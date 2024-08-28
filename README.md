@@ -9,7 +9,7 @@
 
 This repository was added with the permission of the original author.
 
-© [2024] [OG|OS - OGATA Open Source](https://github.com/OG-Open-Source). All rights reserved.
+© 2024 [OGATA Open Source](https://github.com/OG-Open-Source). All rights reserved.
 
 ---
 
