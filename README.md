@@ -23,7 +23,7 @@ This repository was added with the permission of the original author.
 
 ## Introduction
 
-OG|OS - OGATA Open Source is dedicated to developing and sharing open-source software. Our goal is to create and maintain high-quality, community-driven projects that benefit developers and users worldwide.
+OGOS - OGATA Open Source is dedicated to developing and sharing open-source software. Our goal is to create and maintain high-quality, community-driven projects that benefit developers and users worldwide.
 
 ## Disclaimer
 
