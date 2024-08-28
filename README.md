@@ -1,11 +1,5 @@
 # OG|OS - OGATA Open Source
 
-## Repositories
-
-### [OG-Open-Source/sh-by-kejilion](https://github.com/OG-Open-Source/sh-by-kejilion)
-
----
-
 ## License
 
 <!-- This repository is licensed under the [Apache License](https://www.apache.org/licenses). -->
