@@ -13,6 +13,20 @@ This repository was added with the permission of the original author.
 
 ---
 
+## Changelog
+
+### [Unreleased]
+
+- Add a new feature X
+- Fix issue Y
+- Improve documentation
+
+### [1.0.0] - 2024-08-28
+
+- Initial release of the project
+
+---
+
 ## Introduction
 
 OG|OS - OGATA Open Source is dedicated to developing and sharing open-source software. Our goal is to create and maintain high-quality, community-driven projects that benefit developers and users worldwide.
