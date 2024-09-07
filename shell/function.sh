@@ -1,10 +1,9 @@
 #!/bin/bash
-# © 2024 OG|OS OGATA-Open-Source
 # curl -sSL https://raw.ogtt.tk/shell/function.sh -o function.sh
 # source function.sh
+COPYRIGHT() { echo "© 2024 OG|OS OGATA-Open-Source"; }
 
 CLEAN() { cd ~; clear; }
-INPUT() { read -p "$1" "$2"; }
 
 FONT() {
     local FONT=""
@@ -23,7 +22,6 @@ FONT() {
     echo -e "${FONT}${arg}\e[0m"
 }
 
-TEXT=()
-for i in "${!TEXT[@]}"; do
-    printf "$(FONT CYAN "%3d.") %s\n" $((i + 1)) "${TEXT[i]}"
-done
+INPUT() { read -p "$1" "$2"; }
+
+TIMEZONE() { readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null; }
