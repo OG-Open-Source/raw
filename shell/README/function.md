@@ -57,3 +57,26 @@ FONT [STYLE] [TEXT]
     ```bash
     FONT CYAN "This is cyan text"
     ```
+
+### 3. `INPUT`
+
+Prompts the user for input with a custom message.
+
+**Usage:**
+
+```bash
+INPUT [PROMPT] [VARIABLE]
+```
+
+- `[PROMPT]`: The message to display to the user.
+- `[VARIABLE]`: The variable name to store the user's input.
+
+**Example:**
+
+To prompt the user for their name and store it in the variable `name`:
+
+```bash
+INPUT "Enter your name: " name
+```
+
+This will display the prompt "Enter your name: " and store the user's input in the variable `name`.
