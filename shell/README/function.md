@@ -141,7 +141,27 @@ To prompt the user for their name and store it in the variable `name`:
 INPUT "Enter your name: " name
 ```
 
-### 8. `TIMEZONE`
+### 8. `LINE`
+
+Prints a line of dashes (`-`) of a specified length.
+
+**Usage:**
+
+```bash
+LINE [LENGTH]
+```
+
+- `[LENGTH]`: The number of dashes to print.
+
+**Example:**
+
+To print a line of 50 dashes:
+
+```bash
+LINE 50
+```
+
+### 9. `TIMEZONE`
 
 Displays the system's current timezone.
 
