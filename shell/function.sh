@@ -8,14 +8,14 @@ ADD() {
   for app in "$@"; do
     echo -e "\e[33mINSTALL [$app]\e[0m"
     case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
-      *apk) apk info "$app" &>/dev/null || { apk update && apk add "$app"; } ;;
-      *apt) dpkg -l | grep -qw "$app" || { apt update -y && apt install -y "$app"; } ;;
-      *dnf) dnf list installed "$app" &>/dev/null || { dnf -y update && dnf install -y epel-release "$app"; } ;;
-      *opkg) opkg list-installed | grep -qw "$app" || { opkg update && opkg install "$app"; } ;;
-      *pacman) pacman -Q "$app" &>/dev/null || { pacman -Syu --noconfirm && pacman -S --noconfirm "$app"; } ;;
-      *yum) yum list installed "$app" &>/dev/null || { yum -y update && yum install -y epel-release "$app"; } ;;
-      *zypper) zypper se --installed-only "$app" &>/dev/null || { zypper refresh && zypper install -y "$app"; } ;;
-      *) return ;;
+      *apk) apk info "$app" &>/dev/null || { apk update && apk add "$app"; };;
+      *apt) dpkg -l | grep -qw "$app" || { apt update -y && apt install -y "$app"; };;
+      *dnf) dnf list installed "$app" &>/dev/null || { dnf -y update && dnf install -y epel-release "$app"; };;
+      *opkg) opkg list-installed | grep -qw "$app" || { opkg update && opkg install "$app"; };;
+      *pacman) pacman -Q "$app" &>/dev/null || { pacman -Syu --noconfirm && pacman -S --noconfirm "$app"; };;
+      *yum) yum list installed "$app" &>/dev/null || { yum -y update && yum install -y epel-release "$app"; };;
+      *zypper) zypper se --installed-only "$app" &>/dev/null || { zypper refresh && zypper install -y "$app"; };;
+      *) return;;
     esac
     echo -e "\e[32mFINISHED\e[0m"
     echo
@@ -36,14 +36,14 @@ DEL() {
   for app in "$@"; do
     echo -e "\e[33mREMOVE [$app]\e[0m"
     case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
-      *apk) apk info "$app" &>/dev/null && apk del "$app" ;;
-      *apt) dpkg -l | grep -q "^ii  $app" && apt purge -y "$app" ;;
-      *dnf) dnf list installed "$app" &>/dev/null && dnf remove -y "$app" ;;
-      *opkg) opkg list-installed | grep -q "$app" && opkg remove "$app" ;;
-      *pacman) pacman -Q "$app" &>/dev/null && pacman -Rns --noconfirm "$app" ;;
-      *yum) yum list installed "$app" &>/dev/null && yum remove -y "$app" ;;
-      *zypper) zypper se --installed-only "$app" | grep -q "$app" && zypper remove -y "$app" ;;
-      *) return ;;
+      *apk) apk info "$app" &>/dev/null && apk del "$app";;
+      *apt) dpkg -l | grep -q "^ii  $app" && apt purge -y "$app";;
+      *dnf) dnf list installed "$app" &>/dev/null && dnf remove -y "$app";;
+      *opkg) opkg list-installed | grep -q "$app" && opkg remove "$app";;
+      *pacman) pacman -Q "$app" &>/dev/null && pacman -Rns --noconfirm "$app";;
+      *yum) yum list installed "$app" &>/dev/null && yum remove -y "$app";;
+      *zypper) zypper se --installed-only "$app" | grep -q "$app" && zypper remove -y "$app";;
+      *) return;;
     esac
     echo -e "\e[32mFINISHED\e[0m"
     echo
