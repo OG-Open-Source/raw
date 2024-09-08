@@ -98,7 +98,7 @@ FONT [STYLE] [TEXT]
 - `B` : Bold
 - `U` : Underline
 - Text Colors: `BLACK`, `RED`, `GREEN`, `YELLOW`, `BLUE`, `PINK`, `SKYBLUE`, `GRAY`, `CYAN`
-- Background Colors: `BG.BLACK`, `BG.RED`, `BG.GREEN`, `BG.YELLOW`, `BG.BLUE`, `BG.PINK`, `BG.SKYBLUE`, `BG.GRAY`
+- Background Colors: `BG.BLACK`, `BG.RED`, `BG.GREEN`, `BG.YELLOW`, `BG.BLUE`, `BG.PINK`, `BG.SKYBLUE`, `BG.GRAY`, `BG.CYAN`
 
 **Examples:**
 
@@ -174,14 +174,26 @@ SYS_INFO
 **Example Output:**
 
 ```
-System Info:
-OS: Ubuntu 20.04
-Hostname: my-computer
-Kernel: 5.4.0-42-generic
+System Information:
+------------------------
+Hostname: Server
+System:   Debian GNU/Linux 12
+Kernel:   6.2.0-1-amd64
+------------------------
 Architecture: x86_64
-CPU Count: 4
-Total Memory: 8GiB
-Disk Usage: 30GiB
+CPU Model:    QEMU Virtual CPU version 2.5+
+CPU Cores:    4
+------------------------
+Total Memory: 7.8GiB
+Disk Usage:   5.7GiB
+------------------------
+IPv4 Address: 192.168.0.15
+IPv6 Address: 2001:db8:1234:5678:abcd:ef01:2345:6789
+------------------------
+Location: Seattle, US
+Timezone: America/Los_Angeles
+------------------------
+Uptime: 4 days, 12 hours, 30 minutes
 ```
 
 ### 10. `TIMEZONE`
