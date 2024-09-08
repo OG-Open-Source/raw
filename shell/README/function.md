@@ -11,7 +11,39 @@ source function.sh
 
 ## Functions
 
-### 1. `CLEAN`
+### 1. `ADD`
+
+Installs the specified packages using the package manager available on the system.
+
+**Usage:**
+
+```bash
+ADD [PACKAGE...]
+```
+
+- `[PACKAGE...]`: One or more package names to be installed.
+
+**Example:**
+
+To install `curl` and `git`:
+
+```bash
+ADD curl git
+```
+
+### 2. `CHECK_ROOT`
+
+Checks if the script is being run as the root user.
+
+**Usage:**
+
+```bash
+CHECK_ROOT
+```
+
+If the script is not run as the root user, it displays a message in red and exits the script.
+
+### 3. `CLEAN`
 
 Navigates to the home directory and clears the terminal screen.
 
@@ -21,7 +53,37 @@ Navigates to the home directory and clears the terminal screen.
 CLEAN
 ```
 
-### 2. `FONT`
+### 4. `COPYRIGHT`
+
+Displays the copyright notice for OG|OS OGATA-Open-Source.
+
+**Usage:**
+
+```bash
+COPYRIGHT
+```
+
+### 5. `DEL`
+
+Removes the specified packages using the package manager available on the system.
+
+**Usage:**
+
+```bash
+DEL [PACKAGE...]
+```
+
+- `[PACKAGE...]`: One or more package names to be removed.
+
+**Example:**
+
+To remove `curl` and `git`:
+
+```bash
+DEL curl git
+```
+
+### 6. `FONT`
 
 Applies text styles, colors, and backgrounds to your terminal output.
 
@@ -58,7 +120,7 @@ FONT [STYLE] [TEXT]
     FONT CYAN "This is cyan text"
     ```
 
-### 3. `INPUT`
+### 7. `INPUT`
 
 Prompts the user for input with a custom message.
 
@@ -79,4 +141,12 @@ To prompt the user for their name and store it in the variable `name`:
 INPUT "Enter your name: " name
 ```
 
-This will display the prompt "Enter your name: " and store the user's input in the variable `name`.
+### 8. `TIMEZONE`
+
+Displays the system's current timezone.
+
+**Usage:**
+
+```bash
+TIMEZONE
+```
