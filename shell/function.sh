@@ -71,6 +71,10 @@ INPUT() {
   read -p "$1" "$2"
 }
 
+LINE() {
+  printf '%*s' "$1" '' | tr ' ' '-'
+}
+
 TIMEZONE() {
   readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null
 }
