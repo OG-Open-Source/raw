@@ -76,14 +76,26 @@ LINE() {
 }
 
 SYS_INFO() {
-  echo -e "\e[33mSystem Info:\e[0m"
-  echo "OS: $(grep '^NAME=' /etc/*release | cut -d'=' -f2 | tr -d '\"') $(grep '^VERSION_ID=' /etc/*release | cut -d'=' -f2 | tr -d '\"')"
-  echo "Hostname: $(hostname)"
-  echo "Kernel: $(uname -r)"
-  echo "Architecture: $(uname -m)"
-  echo "CPU Count: $(nproc)"
-  echo "Total Memory: $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')"
-  echo "Disk Usage: $(df -h | awk '$NF=="/"{printf "%s\t\t", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')"
+  echo -e "\e[33mSystem Information:\e[0m"
+  echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
+  echo "主機名: $(hostname)"
+  echo "系統: $(grep '^NAME=' /etc/*release | cut -d'=' -f2 | tr -d '\"') $(grep '^VERSION_ID=' /etc/*release | cut -d'=' -f2 | tr -d '\"')"
+  echo "內核: $(uname -r)"
+  echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
+  echo "架構: $(uname -m)"
+  echo "CPU型號: $(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')"
+  echo "CPU核心數: $(nproc)"
+  echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
+  echo "總內存: $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')"
+  echo "磁盤使用: $(df -h | awk '$NF=="/"{printf "%s\t\t", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')"
+  echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
+  echo "IPv4地址: $(curl -s ipv4.ip.sb)"
+  echo "IPv6地址: $(curl -s ipv6.ip.sb)"
+  echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
+  echo "地理位置: $(curl -s ipinfo.io/city), $(curl -s ipinfo.io/country)"
+  echo "系統時區: $(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)"
+  echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
+  echo "運行時長: $(uptime -p | sed 's/up //')"
 }
 
 TIMEZONE() {
