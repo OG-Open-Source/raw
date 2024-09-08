@@ -161,7 +161,30 @@ To print a line of 50 dashes:
 LINE 50
 ```
 
-### 9. `TIMEZONE`
+### 9. `SYS_INFO`
+
+Displays system information including OS name and version, hostname, kernel version, architecture, CPU count, total memory, and disk usage.
+
+**Usage:**
+
+```bash
+SYS_INFO
+```
+
+**Example Output:**
+
+```
+System Info:
+OS: Ubuntu 20.04
+Hostname: my-computer
+Kernel: 5.4.0-42-generic
+Architecture: x86_64
+CPU Count: 4
+Total Memory: 8GiB
+Disk Usage: 30GiB
+```
+
+### 10. `TIMEZONE`
 
 Displays the system's current timezone.
 
