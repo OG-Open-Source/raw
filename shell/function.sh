@@ -75,6 +75,17 @@ LINE() {
   printf '%*s' "$1" '' | tr ' ' '-'
 }
 
+SYS_INFO() {
+  echo -e "\e[33mSystem Info:\e[0m"
+  echo "OS: $(grep '^NAME=' /etc/*release | cut -d'=' -f2 | tr -d '\"') $(grep '^VERSION_ID=' /etc/*release | cut -d'=' -f2 | tr -d '\"')"
+  echo "Hostname: $(hostname)"
+  echo "Kernel: $(uname -r)"
+  echo "Architecture: $(uname -m)"
+  echo "CPU Count: $(nproc)"
+  echo "Total Memory: $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')"
+  echo "Disk Usage: $(df -h | awk '$NF=="/"{printf "%s\t\t", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')"
+}
+
 TIMEZONE() {
   readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null
 }
