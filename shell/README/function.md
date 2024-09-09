@@ -11,7 +11,7 @@ source function.sh
 
 ## Functions
 
-### 1. `ADD`
+### `ADD`
 
 Installs the specified packages using the package manager available on the system.
 
@@ -31,7 +31,7 @@ To install `curl` and `git`:
 ADD curl git
 ```
 
-### 2. `CHECK_ROOT`
+### `CHECK_ROOT`
 
 Checks if the script is being run as the root user.
 
@@ -43,7 +43,7 @@ CHECK_ROOT
 
 If the script is not run as the root user, it displays a message in red and exits the script.
 
-### 3. `CLEAN`
+### `CLEAN`
 
 Navigates to the home directory and clears the terminal screen.
 
@@ -53,7 +53,7 @@ Navigates to the home directory and clears the terminal screen.
 CLEAN
 ```
 
-### 4. `COPYRIGHT`
+### `COPYRIGHT`
 
 Displays the copyright notice for OG|OS OGATA-Open-Source.
 
@@ -63,7 +63,7 @@ Displays the copyright notice for OG|OS OGATA-Open-Source.
 COPYRIGHT
 ```
 
-### 5. `DEL`
+### `DEL`
 
 Removes the specified packages using the package manager available on the system.
 
@@ -83,7 +83,7 @@ To remove `curl` and `git`:
 DEL curl git
 ```
 
-### 6. `FONT`
+### `FONT`
 
 Applies text styles, colors, and backgrounds to your terminal output.
 
@@ -120,7 +120,7 @@ FONT [STYLE] [TEXT]
     FONT CYAN "This is cyan text"
     ```
 
-### 7. `INPUT`
+### `INPUT`
 
 Prompts the user for input with a custom message.
 
@@ -141,7 +141,7 @@ To prompt the user for their name and store it in the variable `name`:
 INPUT "Enter your name: " name
 ```
 
-### 8. `LINE`
+### `LINE`
 
 Prints a line of dashes (`-`) of a specified length.
 
@@ -161,7 +161,23 @@ To print a line of 50 dashes:
 LINE 50
 ```
 
-### 9. `SYS_INFO`
+### `SYS_CLEAN`
+
+Performs a system cleanup by removing temporary files, cleaning package caches, and removing unnecessary files.
+
+**Usage:**
+
+```bash
+SYS_CLEAN
+```
+
+This function uses the available package manager to clean the system:
+
+- Removes unnecessary packages and caches.
+- Cleans up temporary files and logs.
+- Rotates and vacuums the system journal.
+
+### `SYS_INFO`
 
 Displays system information including OS name and version, hostname, kernel version, architecture, CPU count, total memory, and disk usage.
 
@@ -196,7 +212,37 @@ Timezone: America/Los_Angeles
 Uptime: 4 days, 12 hours, 30 minutes
 ```
 
-### 10. `TIMEZONE`
+### `SYS_UPGRADE`
+
+Performs a system version upgrade based on the current operating system.
+
+**Usage:**
+
+```bash
+SYS_UPGRADE
+```
+
+The function checks the current operating system and version, and performs an upgrade if supported.
+
+**Examples:**
+
+- On Debian 11, it upgrades to Debian 12.
+- On Ubuntu 22.04, it upgrades to Ubuntu 24.04.
+- On CentOS 7, it updates to the latest version available.
+
+### `SYS_UPDATE`
+
+Updates all installed packages on the system to the latest available versions.
+
+**Usage:**
+
+```bash
+SYS_UPDATE
+```
+
+The function detects the package manager used by the system and performs an update of all installed packages.
+
+### `TIMEZONE`
 
 Displays the system's current timezone.
 
