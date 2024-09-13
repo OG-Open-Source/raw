@@ -4,6 +4,24 @@
 
 To use the functions provided by OGATA Open Source, download and source them in your terminal:
 
+### Recommended Fast Installation
+
+This method provides quicker updates to the latest version:
+
+```bash
+URL="https://raw.ogtt.tk/shell/function.sh"
+FILE="function.sh"
+if [ ! -f "$FILE" ]; then
+    curl -sSL "$URL" -o "$FILE"
+else
+    rsync -av --times --checksum --inplace "$URL" "$FILE" &>/dev/null
+fi
+[ -f "$FILE" ] && source "$FILE"
+```
+### General and Stable Installation
+
+This method is more stable but may not provide the latest updates immediately:
+
 ```bash
 curl -sSL https://raw.ogtt.tk/shell/function.sh -o function.sh
 source function.sh
