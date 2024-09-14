@@ -1,11 +1,7 @@
 #!/bin/bash
 # URL="https://raw.ogtt.tk/shell/function.sh"
 # FILE="function.sh"
-# if [ ! -f "$FILE" ]; then
-# 	curl -sSL "$URL" -o "$FILE"
-# else
-# 	rsync -av --times --checksum --inplace "$URL" "$FILE" &>/dev/null
-# fi
+# [ ! -f "$FILE" ] && curl -sSL "$URL" -o "$FILE"
 # [ -f "$FILE" ] && source "$FILE"
 COPYRIGHT() { echo "© 2024 OG|OS OGATA-Open-Source"; }
 
