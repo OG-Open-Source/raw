@@ -57,20 +57,35 @@ DEL() {
 }
 
 FONT() {
-	local FONT=""
-	declare -A STYLE=(
-		[B]="\e[1m" [U]="\e[4m"
-		[BLACK]="\e[30m" [RED]="\e[31m" [GREEN]="\e[32m"
-		[YELLOW]="\e[33m" [BLUE]="\e[34m" [PINK]="\e[35m"
-		[SKYBLUE]="\e[36m" [GRAY]="\e[37m" [CYAN]="\e[96m"
-		[BG.BLACK]="\e[40m" [BG.RED]="\e[41m" [BG.GREEN]="\e[42m"
-		[BG.YELLOW]="\e[43m" [BG.BLUE]="\e[44m" [BG.PINK]="\e[45m"
-		[BG.SKYBLUE]="\e[46m" [BG.GRAY]="\e[47m" [BG.CYAN]="\e[106m"
-	)
-	for arg in "$@"; do
-		FONT+="${STYLE[$arg]}"
-	done
-	echo -e "${FONT}${arg}\e[0m"
+    local FONT=""
+    declare -A STYLE=(
+        [B]="\e[1m" [U]="\e[4m"
+        [BLACK]="\e[30m" [RED]="\e[31m" [GREEN]="\e[32m" [YELLOW]="\e[33m"
+        [BLUE]="\e[34m" [PURPLE]="\e[35m" [CYAN]="\e[36m" [WHITE]="\e[37m"
+        [L.BLACK]="\e[90m" [L.RED]="\e[91m" [L.GREEN]="\e[92m" [L.YELLOW]="\e[93m"
+        [L.BLUE]="\e[94m" [L.PURPLE]="\e[95m" [L.CYAN]="\e[96m" [L.WHITE]="\e[97m"
+        [BG.BLACK]="\e[40m" [BG.RED]="\e[41m" [BG.GREEN]="\e[42m" [BG.YELLOW]="\e[43m"
+        [BG.BLUE]="\e[44m" [BG.PURPLE]="\e[45m" [BG.CYAN]="\e[46m" [BG.WHITE]="\e[47m"
+        [L.BG.BLACK]="\e[100m" [L.BG.RED]="\e[101m" [L.BG.GREEN]="\e[102m" [L.BG.YELLOW]="\e[103m"
+        [L.BG.BLUE]="\e[104m" [L.BG.PURPLE]="\e[105m" [L.BG.CYAN]="\e[106m" [L.BG.WHITE]="\e[107m"
+    )
+    while [[ $# -gt 1 ]]; do
+        case "$1" in
+            RGB)
+                shift
+                [[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && FONT+="\e[38;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
+                ;;
+            BG.RGB)
+                shift
+                [[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && FONT+="\e[48;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
+                ;;
+            *)
+                FONT+="${STYLE[$1]:-}"
+                ;;
+        esac
+        shift
+    done
+    echo -e "${FONT}${1}\e[0m"
 }
 
 INPUT() {

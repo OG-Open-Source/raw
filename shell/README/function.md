@@ -115,27 +115,40 @@ FONT [STYLE] [TEXT]
 
 - `B` : Bold
 - `U` : Underline
-- Text Colors: `BLACK`, `RED`, `GREEN`, `YELLOW`, `BLUE`, `PINK`, `SKYBLUE`, `GRAY`, `CYAN`
-- Background Colors: `BG.BLACK`, `BG.RED`, `BG.GREEN`, `BG.YELLOW`, `BG.BLUE`, `BG.PINK`, `BG.SKYBLUE`, `BG.GRAY`, `BG.CYAN`
+- Text Colors: `BLACK`, `RED`, `GREEN`, `YELLOW`, `BLUE`, `PURPLE`, `CYAN`, `WHITE`, `L.BLACK`, `L.RED`, `L.GREEN`, `L.YELLOW`, `L.BLUE`, `L.PURPLE`, `L.CYAN`, `L.WHITE`
+- Background Colors: `BG.BLACK`, `BG.RED`, `BG.GREEN`, `BG.YELLOW`, `BG.BLUE`, `BG.PURPLE`, `BG.CYAN`, `BG.WHITE`, `L.BG.BLACK`, `L.BG.RED`, `L.BG.GREEN`, `L.BG.YELLOW`, `L.BG.BLUE`, `L.BG.PURPLE`, `L.BG.CYAN`, `L.BG.WHITE`
+- RGB Colors: `RGB;r;g;b` for foreground, `BG;RGB;r;g;b` for background
 
 **Examples:**
 
-- Bold and Cyan Text:
+- **Bold and Cyan Text:**
 
     ```bash
-    FONT CYAN B "This is bold cyan text"
+    FONT B CYAN "This is bold cyan text"
     ```
 
-- Underlined Text:
+- **Underlined Text:**
 
     ```bash
     FONT U "This is underlined text"
     ```
 
-- Cyan Text:
+- **Cyan Text:**
 
     ```bash
     FONT CYAN "This is cyan text"
+    ```
+
+- **Foreground RGB Color (e.g., Orange):**
+
+    ```bash
+    FONT RGB 255,165,0 "This is orange text"
+    ```
+
+- **Background RGB Color (e.g., Deep Blue):**
+
+    ```bash
+    FONT BG.RGB 0,0,139 "Text with deep blue background"
     ```
 
 ### `INPUT`
