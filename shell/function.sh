@@ -94,7 +94,7 @@ LINE() {
 
 SYS_CLEAN() {
 	echo -e "\e[33mPerforming system cleanup...\e[0m"
-	echo
+	echo -e "\e[96m========================\e[0m"
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 		*apk) apk cache clean; rm -rf /tmp/* /var/cache/apk/* /var/log/*;;
 		*apt)
@@ -123,6 +123,7 @@ SYS_CLEAN() {
 
 	find /var/log -type f -delete
 	rm -rf /tmp/*
+	echo -e "\e[96m========================\e[0m"
 }
 SYS_INFO() {
 	echo -e "\e[33mSystem Information\e[0m"
@@ -153,7 +154,7 @@ SYS_INFO() {
 }
 SYS_UPDATE() {
 	echo -e "\e[33mUpdating system software...\e[0m"
-	echo
+	echo -e "\e[96m========================\e[0m"
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 		*apk) apk update && apk upgrade;;
 		*apt) 
@@ -168,10 +169,11 @@ SYS_UPDATE() {
 		*zypper) zypper refresh && zypper update;;
 		*) return 1;;
 	esac
+	echo -e "\e[96m========================\e[0m"
 }
 SYS_UPGRADE() {
 	echo -e "\e[33mPerforming system version upgrade...\e[0m"
-	echo
+	echo -e "\e[96m========================\e[0m"
 	if [ -f /etc/os-release ]; then
 		. /etc/os-release
 		case $ID in
@@ -220,6 +222,7 @@ SYS_UPGRADE() {
 	else
 		echo -e "\e[31mUnable to determine the operating system version\e[0m"
 	fi
+	echo -e "\e[96m========================\e[0m"
 }
 
 TIMEZONE() {
