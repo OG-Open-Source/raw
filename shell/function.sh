@@ -25,7 +25,7 @@ ADD() {
 }
 
 CHECK_ROOT() {
-	[ "$EUID" -ne 0 ] && { echo -e "\e[31mPlease run this script as root user.\e[0m"; exit 1; }
+	[ "$(id -u)" -ne 0 ] && { echo -e "\e[31mPlease run this script as root user.\e[0m"; exit 1; }
 	echo
 }
 CLEAN() {
