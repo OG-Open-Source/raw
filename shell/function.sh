@@ -2,7 +2,7 @@
 # FILE="function.sh"
 # [ ! -f "$FILE" ] && curl -sSL "https://raw.ogtt.tk/shell/function.sh" -o "$FILE"
 # [ -f "$FILE" ] && source "$FILE"
-COPYRIGHT() { echo "© 2024 OG|OS OGATA-Open-Source"; }
+COPYRIGHT() { echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."; }
 
 ADD() {
 	[ $# -eq 0 ] && return
