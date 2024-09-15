@@ -125,40 +125,42 @@ SYS_CLEAN() {
 	rm -rf /tmp/*
 }
 SYS_INFO() {
-	echo -e "\e[33mSystem Information:\e[0m"
-	echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
-	echo "Hostname: $(hostname)"
-	echo "System:   $(grep '^NAME=' /etc/*release | cut -d'=' -f2 | tr -d '\"') $(grep '^VERSION_ID=' /etc/*release | cut -d'=' -f2 | tr -d '\"')"
-	echo "Kernel:   $(uname -r)"
-	echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
-	echo "Architecture: $(uname -m)"
-	echo "CPU Model:    $(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')"
-	echo "CPU Cores:    $(nproc)"
-	echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
-	echo "Total Memory: $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')"
-	echo "Disk Usage:   $(df -h | awk '$NF=="/"{printf "%s\t\t", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')"
-	echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
-	echo "IPv4 Address: $(curl -s ipv4.ip.sb)"
-	echo "IPv6 Address: $(curl -s ipv6.ip.sb)"
-	echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
-	echo "Location: $(curl -s ipinfo.io/city), $(curl -s ipinfo.io/country)"
-	echo "Timezone: $(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)"
-	echo -e "\e[96m$(printf '%*s' "24" '' | tr ' ' '-')\e[0m"
-	echo "Uptime: $(uptime -p | sed 's/up //')"
+	echo -e "\e[33mSystem Information\e[0m"
+	echo -e "\e[96m========================\e[0m"
+	echo -e "Hostname:         \e[32m$(hostname)\e[0m"
+	echo -e "Operating System: \e[32m$(grep '^NAME=' /etc/*release | cut -d'=' -f2 | tr -d '\"') $(if [ -f /etc/debian_version ]; then echo "Debian $(cat /etc/debian_version)"; elif command -v lsb_release >/dev/null 2>&1; then lsb_release -d | cut -f2; else grep '^VERSION=' /etc/*release | cut -d'=' -f2 | tr -d '\"'; fi)\e[0m"
+	echo -e "Kernel Version:   \e[32m$(uname -r)\e[0m"
+	echo -e "\e[96m--------------------------------\e[0m"
+	echo -e "Architecture:     \e[32m$(uname -m)\e[0m"
+	echo -e "CPU Model:        \e[32m$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')\e[0m"
+	echo -e "CPU Cores:        \e[32m$(nproc)\e[0m"
+	echo -e "CPU Usage:        \e[32m$(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')%\e[0m"
+	echo -e "\e[96m--------------------------------\e[0m"
+	echo -e "Total Memory:     \e[32m$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g') / $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')\e[0m"
+	echo -e "Memory Usage:     \e[32m$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%\e[0m"
+	echo -e "\e[96m--------------------------------\e[0m"
+	echo -e "Total Storage:    \e[32m$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g') / $(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')\e[0m"
+	echo -e "Disk Usage:       \e[32m$(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')%\e[0m"
+	echo -e "\e[96m--------------------------------\e[0m"
+	LOCATION_DATA=$(curl -s ipinfo.io)
+	echo -e "IPv4 Address:     \e[32m$(echo "$LOCATION_DATA" | jq -r .ip)\e[0m"
+	echo -e "IPv6 Address:     \e[32m$(curl -s ipv6.ip.sb)\e[0m"
+	echo -e "Location:         \e[32m$(echo "$LOCATION_DATA" | jq -r .city), $(echo "$LOCATION_DATA" | jq -r .country)\e[0m"
+	echo -e "Timezone:         \e[32m$(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)\e[0m"
+	echo -e "\e[96m--------------------------------\e[0m"
+	echo -e "Uptime:           \e[32m$(uptime -p | sed 's/up //')\e[0m"
+	echo -e "\e[96m========================\e[0m"
 }
 SYS_UPDATE() {
 	echo -e "\e[33mUpdating system software...\e[0m"
 	echo
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 		*apk) apk update && apk upgrade;;
-		*apt)
+		*apt) 
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				echo "Waiting for dpkg lock to be released..."
 				sleep 1
 			done
-			DEBIAN_FRONTEND=noninteractive apt update -y
-			DEBIAN_FRONTEND=noninteractive apt full-upgrade -y
-			;;
+			DEBIAN_FRONTEND=noninteractive apt update -y && apt full-upgrade -y;;
 		*dnf) dnf -y update;;
 		*opkg) opkg update && opkg upgrade;;
 		*pacman) pacman -Syu --noconfirm;;
@@ -170,7 +172,6 @@ SYS_UPDATE() {
 SYS_UPGRADE() {
 	echo -e "\e[33mPerforming system version upgrade...\e[0m"
 	echo
-
 	if [ -f /etc/os-release ]; then
 		. /etc/os-release
 		case $ID in
