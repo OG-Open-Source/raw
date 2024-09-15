@@ -85,7 +85,7 @@ FONT() {
 }
 
 INPUT() {
-	read -p "$1" "$2"
+	read -e -p "$1" "$2"
 }
 
 LINE() {
