@@ -91,6 +91,9 @@ INPUT() {
 LINE() {
 	printf '%*s' "$1" '' | tr ' ' '-'
 }
+D.LINE() {
+	printf '%*s' "$1" '' | tr ' ' '='
+}
 
 SYS_CLEAN() {
 	echo -e "\e[33mPerforming system cleanup...\e[0m"
