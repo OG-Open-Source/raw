@@ -164,22 +164,22 @@ INPUT "Enter your name: " name
 
 ### `LINE`
 
-Prints a line of dashes (`-`) of a specified length.
+Prints a line of a specified character (CHAR) with a specified length (LENGTH).
 
 **Usage:**
 
 ```bash
-LINE [LENGTH]
+LINE [CHAR] [LENGTH]
 ```
-
-- `[LENGTH]`: The number of dashes to print.
+- `[CHAR]`: The character to print.
+- `[LENGTH]`: The number of characters to print.
 
 **Example:**
 
-To print a line of 50 dashes:
+To print a line of 32 dashes:
 
 ```bash
-LINE 50
+LINE - "32"
 ```
 
 ### `SYS_CLEAN`
@@ -211,26 +211,30 @@ SYS_INFO
 **Example Output:**
 
 ```
-System Information:
-------------------------
-Hostname: Server
-System:   Debian GNU/Linux 12
-Kernel:   6.2.0-1-amd64
-------------------------
-Architecture: x86_64
-CPU Model:    QEMU Virtual CPU version 2.5+
-CPU Cores:    4
-------------------------
-Total Memory: 7.8GiB
-Disk Usage:   5.7GiB
-------------------------
-IPv4 Address: 192.168.0.15
-IPv6 Address: 2001:db8:1234:5678:abcd:ef01:2345:6789
-------------------------
-Location: Seattle, US
-Timezone: America/Los_Angeles
-------------------------
-Uptime: 4 days, 12 hours, 30 minutes
+System Information
+========================
+Hostname:         server
+Operating System: Debian GNU/Linux Debian 12.7
+Kernel Version:   6.1.0-25-amd64
+--------------------------------
+Architecture:     x86_64
+CPU Model:        QEMU Virtual CPU version 2.5+
+CPU Cores:        4
+CPU Usage:        50%
+--------------------------------
+Total Memory:     363MiB / 7.8GiB
+Memory Usage:     4.58%
+--------------------------------
+Total Storage:    1.5GiB / 31GiB
+Disk Usage:       4.84%
+--------------------------------
+IPv4 Address:     192.168.0.15
+IPv6 Address:     2001:db8:1234:5678:abcd:ef01:2345:6789
+Location:         Seattle, US
+Timezone:         America/Los_Angeles
+--------------------------------
+Uptime:           4 days, 12 hours, 30 minutes
+========================
 ```
 
 ### `SYS_UPDATE`
