@@ -89,10 +89,7 @@ INPUT() {
 }
 
 LINE() {
-	printf '%*s' "$1" '' | tr ' ' '-'
-}
-D.LINE() {
-	printf '%*s' "$1" '' | tr ' ' '='
+	printf '%*s' "$2" '' | tr ' ' "$1"
 }
 
 SYS_CLEAN() {
