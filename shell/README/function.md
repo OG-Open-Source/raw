@@ -5,16 +5,9 @@
 To use the functions provided by OGATA Open Source, download and source them in your terminal:
 
 ```bash
-URL="https://raw.ogtt.tk/shell/function.sh"
 FILE="function.sh"
-[ ! -f "$FILE" ] && curl -sSL "$URL" -o "$FILE"
+[ ! -f "$FILE" ] && curl -sSL "https://raw.ogtt.tk/shell/function.sh" -o "$FILE"
 [ -f "$FILE" ] && source "$FILE"
-```
-or
-
-```bash
-curl -sSL https://raw.ogtt.tk/shell/function.sh -o function.sh
-source function.sh
 ```
 
 ## Functions
