@@ -170,59 +170,6 @@ SYS_UPDATE() {
 	esac
 	echo -e "\e[96m========================\e[0m"
 }
-SYS_UPGRADE() {
-	echo -e "\e[33mPerforming system version upgrade...\e[0m"
-	echo -e "\e[96m========================\e[0m"
-	if [ -f /etc/os-release ]; then
-		. /etc/os-release
-		case $ID in
-			debian)
-				if [ "$VERSION_ID" = "11" ]; then
-					sed -i 's/bullseye/bookworm/g' /etc/apt/sources.list
-					apt update && apt full-upgrade -y
-					apt autoremove -y
-					echo -e "\e[32mDebian 11 has been upgraded to Debian 12\e[0m"
-				else
-					echo -e "\e[31mUpgrade for this Debian version is not currently supported\e[0m"
-				fi
-				;;
-			ubuntu)
-				if [ "$VERSION_ID" = "22.04" ]; then
-					do-release-upgrade -d
-					echo -e "\e[32mUbuntu 22.04 has been upgraded to Ubuntu 24.04\e[0m"
-				else
-					echo -e "\e[31mUpgrade for this Ubuntu version is not currently supported\e[0m"
-				fi
-				;;
-			centos)
-				if [ "$VERSION_ID" = "7" ]; then
-					yum install -y centos-release-scl
-					yum install -y centos-release-scl-rh
-					yum install -y rh-python36 rh-python36-python-devel
-					yum install -y epel-release yum-utils
-					yum install -y http://rpms.remirepo.net/enterprise/remi-release-7.rpm
-					yum-config-manager --enable remi-php74
-					yum update -y
-					echo -e "\e[32mCentOS 7 has been updated to the latest version\e[0m"
-				elif [ "$VERSION_ID" = "8" ]; then
-					dnf upgrade -y
-					dnf install -y epel-release
-					dnf config-manager --set-enabled PowerTools
-					dnf update -y
-					echo -e "\e[32mCentOS 8 has been updated to the latest version\e[0m"
-				else
-					echo -e "\e[31mUpgrade for this CentOS version is not currently supported\e[0m"
-				fi
-				;;
-			*)
-				echo -e "\e[31mVersion upgrade is not supported for the current operating system\e[0m"
-				;;
-		esac
-	else
-		echo -e "\e[31mUnable to determine the operating system version\e[0m"
-	fi
-	echo -e "\e[96m========================\e[0m"
-}
 
 TIMEZONE() {
 	readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null
