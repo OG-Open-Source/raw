@@ -7,7 +7,7 @@ COPYRIGHT() { echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reser
 ADD() {
 	[ $# -eq 0 ] && return
 	for app in "$@"; do
-		echo -e "\e[33mINSTALL [$app]\e[0m"
+		echo -e "\033[33mINSTALL [$app]\033[0m"
 		case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 			*apk) apk info "$app" &>/dev/null || { apk update && apk add "$app"; };;
 			*apt) dpkg -l | grep -qw "$app" || { apt update -y && apt install -y "$app"; };;
@@ -18,13 +18,13 @@ ADD() {
 			*zypper) zypper se --installed-only "$app" &>/dev/null || { zypper refresh && zypper install -y "$app"; };;
 			*) return;;
 		esac
-		echo -e "\e[32mFINISHED\e[0m"
+		echo -e "\033[32mFINISHED\033[0m"
 		echo
 	done
 }
 
 CHECK_ROOT() {
-	[ "$(id -u)" -ne 0 ] && { echo -e "\e[31mPlease run this script as root user.\e[0m"; exit 1; }
+	[ "$(id -u)" -ne 0 ] && { echo -e "\033[31mPlease run this script as root user.\033[0m"; exit 1; }
 	echo
 }
 CLEAN() {
@@ -35,7 +35,7 @@ CLEAN() {
 DEL() {
 	[ $# -eq 0 ] && return
 	for app in "$@"; do
-		echo -e "\e[33mREMOVE [$app]\e[0m"
+		echo -e "\033[33mREMOVE [$app]\033[0m"
 		case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 			*apk) apk info "$app" &>/dev/null && apk del "$app";;
 			*apt) dpkg -l | grep -q "^ii  $app" && apt purge -y "$app";;
@@ -46,7 +46,7 @@ DEL() {
 			*zypper) zypper se --installed-only "$app" | grep -q "$app" && zypper remove -y "$app";;
 			*) return;;
 		esac
-		echo -e "\e[32mFINISHED\e[0m"
+		echo -e "\033[32mFINISHED\033[0m"
 		echo
 	done
 }
@@ -54,25 +54,25 @@ DEL() {
 FONT() {
     local FONT=""
     declare -A STYLE=(
-        [B]="\e[1m" [U]="\e[4m"
-        [BLACK]="\e[30m" [RED]="\e[31m" [GREEN]="\e[32m" [YELLOW]="\e[33m"
-        [BLUE]="\e[34m" [PURPLE]="\e[35m" [CYAN]="\e[36m" [WHITE]="\e[37m"
-        [L.BLACK]="\e[90m" [L.RED]="\e[91m" [L.GREEN]="\e[92m" [L.YELLOW]="\e[93m"
-        [L.BLUE]="\e[94m" [L.PURPLE]="\e[95m" [L.CYAN]="\e[96m" [L.WHITE]="\e[97m"
-        [BG.BLACK]="\e[40m" [BG.RED]="\e[41m" [BG.GREEN]="\e[42m" [BG.YELLOW]="\e[43m"
-        [BG.BLUE]="\e[44m" [BG.PURPLE]="\e[45m" [BG.CYAN]="\e[46m" [BG.WHITE]="\e[47m"
-        [L.BG.BLACK]="\e[100m" [L.BG.RED]="\e[101m" [L.BG.GREEN]="\e[102m" [L.BG.YELLOW]="\e[103m"
-        [L.BG.BLUE]="\e[104m" [L.BG.PURPLE]="\e[105m" [L.BG.CYAN]="\e[106m" [L.BG.WHITE]="\e[107m"
+        [B]="\033[1m" [U]="\033[4m"
+        [BLACK]="\033[30m" [RED]="\033[31m" [GREEN]="\033[32m" [YELLOW]="\033[33m"
+        [BLUE]="\033[34m" [PURPLE]="\033[35m" [CYAN]="\033[36m" [WHITE]="\033[37m"
+        [L.BLACK]="\033[90m" [L.RED]="\033[91m" [L.GREEN]="\033[92m" [L.YELLOW]="\033[93m"
+        [L.BLUE]="\033[94m" [L.PURPLE]="\033[95m" [L.CYAN]="\033[96m" [L.WHITE]="\033[97m"
+        [BG.BLACK]="\033[40m" [BG.RED]="\033[41m" [BG.GREEN]="\033[42m" [BG.YELLOW]="\033[43m"
+        [BG.BLUE]="\033[44m" [BG.PURPLE]="\033[45m" [BG.CYAN]="\033[46m" [BG.WHITE]="\033[47m"
+        [L.BG.BLACK]="\033[100m" [L.BG.RED]="\033[101m" [L.BG.GREEN]="\033[102m" [L.BG.YELLOW]="\033[103m"
+        [L.BG.BLUE]="\033[104m" [L.BG.PURPLE]="\033[105m" [L.BG.CYAN]="\033[106m" [L.BG.WHITE]="\033[107m"
     )
     while [[ $# -gt 1 ]]; do
         case "$1" in
             RGB)
                 shift
-                [[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && FONT+="\e[38;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
+                [[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && FONT+="\033[38;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
                 ;;
             BG.RGB)
                 shift
-                [[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && FONT+="\e[48;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
+                [[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && FONT+="\033[48;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
                 ;;
             *)
                 FONT+="${STYLE[$1]:-}"
@@ -80,7 +80,7 @@ FONT() {
         esac
         shift
     done
-    echo -e "${FONT}${1}\e[0m"
+    echo -e "${FONT}${1}\033[0m"
 }
 
 INPUT() {
@@ -92,8 +92,8 @@ LINE() {
 }
 
 SYS_CLEAN() {
-	echo -e "\e[33mPerforming system cleanup...\e[0m"
-	echo -e "\e[96m========================\e[0m"
+	echo -e "\033[33mPerforming system cleanup...\033[0m"
+	echo -e "\033[96m========================\033[0m"
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 		*apk) apk cache clean; rm -rf /tmp/* /var/cache/apk/* /var/log/*;;
 		*apt)
@@ -122,37 +122,37 @@ SYS_CLEAN() {
 
 	find /var/log -type f -delete
 	rm -rf /tmp/*
-	echo -e "\e[96m========================\e[0m"
+	echo -e "\033[96m========================\033[0m"
 }
 SYS_INFO() {
-	echo -e "\e[33mSystem Information\e[0m"
-	echo -e "\e[96m========================\e[0m"
-	echo -e "Hostname:         \e[32m$(hostname)\e[0m"
-	echo -e "Operating System: \e[32m$(grep '^NAME=' /etc/*release | cut -d'=' -f2 | tr -d '\"') $(if [ -f /etc/debian_version ]; then echo "Debian $(cat /etc/debian_version)"; elif command -v lsb_release >/dev/null 2>&1; then lsb_release -d | cut -f2; else grep '^VERSION=' /etc/*release | cut -d'=' -f2 | tr -d '\"'; fi)\e[0m"
-	echo -e "Kernel Version:   \e[32m$(uname -r)\e[0m"
-	echo -e "\e[96m--------------------------------\e[0m"
-	echo -e "Architecture:     \e[32m$(uname -m)\e[0m"
-	echo -e "CPU Model:        \e[32m$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')\e[0m"
-	echo -e "CPU Cores:        \e[32m$(nproc)\e[0m"
-	echo -e "\e[96m--------------------------------\e[0m"
-	echo -e "Total Memory:     \e[32m$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g') / $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')\e[0m"
-	echo -e "Memory Usage:     \e[32m$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%\e[0m"
-	echo -e "\e[96m--------------------------------\e[0m"
-	echo -e "Total Storage:    \e[32m$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g') / $(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')\e[0m"
-	echo -e "Disk Usage:       \e[32m$(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')%\e[0m"
-	echo -e "\e[96m--------------------------------\e[0m"
+	echo -e "\033[33mSystem Information\033[0m"
+	echo -e "\033[96m========================\033[0m"
+	echo -e "Hostname:         \033[32m$(hostname)\033[0m"
+	echo -e "Operating System: \033[32m$(grep '^NAME=' /etc/*release | cut -d'=' -f2 | tr -d '\"') $(if [ -f /etc/debian_version ]; then echo "Debian $(cat /etc/debian_version)"; elif command -v lsb_release >/dev/null 2>&1; then lsb_release -d | cut -f2; else grep '^VERSION=' /etc/*release | cut -d'=' -f2 | tr -d '\"'; fi)\033[0m"
+	echo -e "Kernel Version:   \033[32m$(uname -r)\033[0m"
+	echo -e "\033[96m--------------------------------\033[0m"
+	echo -e "Architecture:     \033[32m$(uname -m)\033[0m"
+	echo -e "CPU Model:        \033[32m$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')\033[0m"
+	echo -e "CPU Cores:        \033[32m$(nproc)\033[0m"
+	echo -e "\033[96m--------------------------------\033[0m"
+	echo -e "Total Memory:     \033[32m$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g') / $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')\033[0m"
+	echo -e "Memory Usage:     \033[32m$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%\033[0m"
+	echo -e "\033[96m--------------------------------\033[0m"
+	echo -e "Total Storage:    \033[32m$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g') / $(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')\033[0m"
+	echo -e "Disk Usage:       \033[32m$(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')%\033[0m"
+	echo -e "\033[96m--------------------------------\033[0m"
 	LOCATION_DATA=$(curl -s ipinfo.io)
-	echo -e "IPv4 Address:     \e[32m$(echo "$LOCATION_DATA" | jq -r .ip)\e[0m"
-	echo -e "IPv6 Address:     \e[32m$(curl -s ipv6.ip.sb)\e[0m"
-	echo -e "Location:         \e[32m$(echo "$LOCATION_DATA" | jq -r .city), $(echo "$LOCATION_DATA" | jq -r .country)\e[0m"
-	echo -e "Timezone:         \e[32m$(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)\e[0m"
-	echo -e "\e[96m--------------------------------\e[0m"
-	echo -e "Uptime:           \e[32m$(uptime -p | sed 's/up //')\e[0m"
-	echo -e "\e[96m========================\e[0m"
+	echo -e "IPv4 Address:     \033[32m$(echo "$LOCATION_DATA" | jq -r .ip)\033[0m"
+	echo -e "IPv6 Address:     \033[32m$(curl -s ipv6.ip.sb)\033[0m"
+	echo -e "Location:         \033[32m$(echo "$LOCATION_DATA" | jq -r .city), $(echo "$LOCATION_DATA" | jq -r .country)\033[0m"
+	echo -e "Timezone:         \033[32m$(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)\033[0m"
+	echo -e "\033[96m--------------------------------\033[0m"
+	echo -e "Uptime:           \033[32m$(uptime -p | sed 's/up //')\033[0m"
+	echo -e "\033[96m========================\033[0m"
 }
 SYS_UPDATE() {
-	echo -e "\e[33mUpdating system software...\e[0m"
-	echo -e "\e[96m========================\e[0m"
+	echo -e "\033[33mUpdating system software...\033[0m"
+	echo -e "\033[96m========================\033[0m"
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 		*apk) apk update && apk upgrade;;
 		*apt) 
@@ -167,7 +167,7 @@ SYS_UPDATE() {
 		*zypper) zypper refresh && zypper update;;
 		*) return 1;;
 	esac
-	echo -e "\e[96m========================\e[0m"
+	echo -e "\033[96m========================\033[0m"
 }
 
 TIMEZONE() {
