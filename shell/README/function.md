@@ -213,7 +213,6 @@ Kernel Version:   6.1.0-25-amd64
 Architecture:     x86_64
 CPU Model:        QEMU Virtual CPU version 2.5+
 CPU Cores:        4
-CPU Usage:        50%
 --------------------------------
 Total Memory:     363MiB / 7.8GiB
 Memory Usage:     4.58%
