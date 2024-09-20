@@ -134,7 +134,6 @@ SYS_INFO() {
 	echo -e "Architecture:     \e[32m$(uname -m)\e[0m"
 	echo -e "CPU Model:        \e[32m$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')\e[0m"
 	echo -e "CPU Cores:        \e[32m$(nproc)\e[0m"
-	echo -e "CPU Usage:        \e[32m$(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')%\e[0m"
 	echo -e "\e[96m--------------------------------\e[0m"
 	echo -e "Total Memory:     \e[32m$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g') / $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')\e[0m"
 	echo -e "Memory Usage:     \e[32m$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%\e[0m"
