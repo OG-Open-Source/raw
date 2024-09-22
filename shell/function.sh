@@ -63,22 +63,22 @@ DEL() {
 }
 
 FILE_MANGER() {
-	ipp=20
-	cp=0
-	sq=""
-	cd=$(pwd)
+	ip=20
+	c=0
+	s=""
+	d=$(pwd)
 	trap 'echo -e "\033[?1000l" && exit' SIGINT
-	df() {
-		s=$1
-		e=$2
-		sr=$3
+	f() {
+		a=$1
+		b=$2
+		r=$3
 		clear
-		echo -e "${CLR8}Current Directory: ${CLR3}$cd${CLR0}"
+		echo -e "${CLR8}Current Directory: ${CLR3}$d${CLR0}"
 		printf "${CLR8}%$(tput cols)s\n" | tr ' ' '-'
 		printf "${CLR2}%-28s %-20s %-14s %-10s %s${CLR0}\n" "Name" "Modification Date" "Size" "Type" "Permissions"
 		printf "${CLR8}%$(tput cols)s\n" | tr ' ' '-'
-		find "$cd" -maxdepth 1 | tail -n +2 | awk -v s="$s" -v e="$e" -v sr="$sr" '
-		NR > s && NR <= e {
+		find "$d" -maxdepth 1 | tail -n +2 | awk -v a="$a" -v b="$b" -v r="$r" '
+		NR > a && NR <= b {
 			cmd = "stat --format=\"%y\" \""$0"\" | cut -d \".\" -f 1 | cut -c1-16"
 			cmd | getline dt
 			close(cmd)
@@ -89,7 +89,7 @@ FILE_MANGER() {
 			p = ia[1]
 			sz = ia[2]
 			n = gensub(/.*\//, "", "g", $0)
-			if (sr == "" || tolower(n) ~ tolower(sr)) {
+			if (r == "" || tolower(n) ~ tolower(r)) {
 				t = (p ~ /^d/) ? "Directory" : (p ~ /^l/) ? "Link" : "File"
 				tc = (p ~ /^d/) ? "'$CLR4'" : (p ~ /^l/) ? "'$CLR6'" : "'$CLR2'"
 				if (length(n) > 28) n = substr(n, 1, 25) "...";
@@ -101,12 +101,12 @@ FILE_MANGER() {
 					n, dt, nm, u, tc, t, p
 			}
 		}'
-		di=$(find "$cd" -maxdepth 1 | tail -n +2 | awk -v s="$s" -v e="$e" -v sr="$sr" 'NR > s && NR <= e && (sr == "" || tolower($0) ~ tolower(sr)) {print}' | wc -l)
-		for (( i=di; i<ipp; i++ )); do
+		i=$(find "$d" -maxdepth 1 | tail -n +2 | awk -v a="$a" -v b="$b" -v r="$r" 'NR > a && NR <= b && (r == "" || tolower($0) ~ tolower(r)) {print}' | wc -l)
+		for (( j=i; j<ip; j++ )); do
 			printf "%-28s %-20s %-14s %-10s %s\n" "" "" "" "" ""
 		done
 		printf "${CLR8}%$(tput cols)s\n" | tr ' ' '-'
-		echo -e "${CLR2}Page: ${CLR3}$((current_page + 1))/${total_pages}${CLR0}"
+		echo -e "${CLR2}Page: ${CLR3}$((c + 1))/${t}${CLR0}"
 		printf "${CLR8}%56s\n" | tr ' ' '-'
 		echo -e "${CLR8}[Up]${CLR0} | ${CLR8}[Down]${CLR0} | ${CLR8}[Prev]${CLR0} | ${CLR8}[Next]${CLR0} | ${CLR8}[Search]${CLR0} | ${CLR8}[Refresh]${CLR0} | ${CLR8}[Exit]${CLR0}"
 		printf "${CLR8}%56s\n" | tr ' ' '-'
@@ -114,18 +114,18 @@ FILE_MANGER() {
 		printf "${CLR8}%56s\n" | tr ' ' '-'
 		echo -e "${CLR8}[Copy]${CLR0} | ${CLR8}[Move]${CLR0} | ${CLR8}[Tar/Untar]${CLR0} | ${CLR8}[Help]${CLR0} | ${CLR8}[About]${CLR0}"
 	}
-	rf() {
-		tf=$(find "$cd" -maxdepth 1 | tail -n +2 | wc -l)
-		tp=$(( (tf + ipp - 1) / ipp ))
-		df $((cp * ipp)) $(( (cp + 1) * ipp )) "$sq"
+	r() {
+		o=$(find "$d" -maxdepth 1 | tail -n +2 | wc -l)
+		t=$(( (o + ip - 1) / ip ))
+		f $((c * ip)) $(( (c + 1) * ip )) "$s"
 	}
-	rn() {
+	n() {
 		echo -e "\033[?1000l"
 		eval "$@"
-		rf
+		r
 		echo -e "\033[?1000h"
 	}
-	rf
+	r
 	echo -e "\033[?1000h"
 	while IFS= read -rsn1 m; do
 		if [[ $m == $'\033' ]]; then
@@ -137,30 +137,30 @@ FILE_MANGER() {
 				case "$y" in
 					60)
 						case "$x" in
-							3[3-6]) rn "cd=$(dirname "$cd")" ;;
-							4[0-5]) rn "read -e -p \"Enter directory: \" sd && [[ -d \"\$cd/\$sd\" ]] && cd=\$(realpath \"\$cd/\$sd\") || { echo \"Directory '\$sd' does not exist.\"; sleep 1; }" ;;
-							49|5[0-4]) rn "((cp > 0)) && ((cp--))" ;;
-							5[8-9]|6[0-3]) rn "((cp < tp - 1)) && ((cp++))" ;;
-							6[7-9]|7[0-4]) rn "read -e -p \"Search query: \" sq && [[ -n \"\$sq\" ]] && { tf=\$(ls -A1 \"\$cd\" | grep -i -F \"\$sq\" | wc -l); ((tf == 0)) && { echo \"No results found.\"; sleep 1; sq=\"\"; } || { tp=\$(( (tf + ipp - 1) / ipp )); cp=0; }; }; rf" ;;
-							7[8-9]|8[0-6]) rn "true" ;;
+							3[3-6]) n "d=$(dirname "$d")" ;;
+							4[0-5]) n "read -e -p \"Enter directory: \" sd && [[ -d \"\$d/\$sd\" ]] && d=\$(realpath \"\$d/\$sd\") || { echo \"Directory '\$sd' does not exist.\"; sleep 1; }" ;;
+							49|5[0-4]) n "((c > 0)) && ((c--))" ;;
+							5[8-9]|6[0-3]) n "((c < t - 1)) && ((c++))" ;;
+							6[7-9]|7[0-4]) n "read -e -p \"Search query: \" s && [[ -n \"\$s\" ]] && { o=\$(ls -A1 \"\$d\" | grep -i -F \"\$s\" | wc -l); ((o == 0)) && { echo \"No results found.\"; sleep 1; s=\"\"; } || { t=\$(( (o + ip - 1) / ip )); c=0; }; }; r" ;;
+							7[8-9]|8[0-6]) n "true" ;;
 							9[0-5]) echo -e "\033[?1000l"; break ;;
 						esac ;;
 					62)
 						case "$x" in
-							3[3-9]|40) rn "IFS=',' read -ra ftd <<< \$(read -e -p \"Files to delete: \" && echo \"\$resetEPLY\"); for f in \"\${ftd[@]}\"; do [[ -e \"\$cd/\$f\" ]] && { rm -r \"\$cd/\$f\"; echo \"Deleted '\$f'.\"; } || echo \"'\$f' does not exist.\"; done; sleep 1" ;;
-							4[4-9]|5[0-3]) rn "read -e -p \"New file name: \" ftc && [[ ! -e \"\$cd/\$ftc\" ]] && touch \"\$cd/\$ftc\" || { echo \"File exists.\"; sleep 1; }" ;;
-							5[7-9]|6[0-5]) rn "read -e -p \"New directory name: \" dtc && [[ ! -d \"\$cd/\$dtc\" ]] && mkdir -p \"\$cd/\$dtc\" || { echo \"Directory exists.\"; sleep 1; }" ;;
-							69|7[0-6]) rn "read -e -p \"File to rename: \" on && [[ -e \"\$cd/\$on\" ]] && { read -e -p \"New name: \" nn && [[ -n \"\$nn\" ]] && { [[ ! -e \"\$cd/\$nn\" ]] && mv \"\$cd/\$on\" \"\$cd/\$nn\" || echo \"New name exists.\"; }; } || { echo \"'\$on' does not exist.\"; sleep 1; }; rf" ;;
-							8[0-9]|9[0-2]) rn "read -e -p \"File to change permissions: \" n && [[ -e \"\$cd/\$n\" ]] && { read -e -p \"New permissions: \" p && chmod \"\$p\" \"\$cd/\$n\"; } || { echo \"'\$n' does not exist.\"; sleep 1; }" ;;
-							9[6-9]|10[0-1]) rn "read -e -p \"File to edit: \" fte && [[ -f \"\$cd/\$fte\" ]] && nano \"\$cd/\$fte\" || { echo \"'\$fte' does not exist.\"; sleep 1; }" ;;
+							3[3-9]|40) n "IFS=',' read -ra fd <<< \$(read -e -p \"Files to delete: \" && echo \"\$resetEPLY\"); for f in \"\${fd[@]}\"; do [[ -e \"\$d/\$f\" ]] && { rm -r \"\$d/\$f\"; echo \"Deleted '\$f'.\"; } || echo \"'\$f' does not exist.\"; done; sleep 1" ;;
+							4[4-9]|5[0-3]) n "read -e -p \"New file name: \" fc && [[ ! -e \"\$d/\$fc\" ]] && touch \"\$d/\$fc\" || { echo \"File exists.\"; sleep 1; }" ;;
+							5[7-9]|6[0-5]) n "read -e -p \"New directory name: \" dc && [[ ! -d \"\$d/\$dc\" ]] && mkdir -p \"\$d/\$dc\" || { echo \"Directory exists.\"; sleep 1; }" ;;
+							69|7[0-6]) n "read -e -p \"File to rename: \" on && [[ -e \"\$d/\$on\" ]] && { read -e -p \"New name: \" nn && [[ -n \"\$nn\" ]] && { [[ ! -e \"\$d/\$nn\" ]] && mv \"\$d/\$on\" \"\$d/\$nn\" || echo \"New name exists.\"; }; } || { echo \"'\$on' does not exist.\"; sleep 1; }; r" ;;
+							8[0-9]|9[0-2]) n "read -e -p \"File to change permissions: \" n && [[ -e \"\$d/\$n\" ]] && { read -e -p \"New permissions: \" p && chmod \"\$p\" \"\$d/\$n\"; } || { echo \"'\$n' does not exist.\"; sleep 1; }" ;;
+							9[6-9]|10[0-1]) n "read -e -p \"File to edit: \" fe && [[ -f \"\$d/\$fe\" ]] && nano \"\$d/\$fe\" || { echo \"'\$fe' does not exist.\"; sleep 1; }" ;;
 						esac ;;
 					64)
 						case "$x" in
-							3[3-8]) rn "read -e -p \"Files to copy (separated by commas): \" i; IFS=',' read -ra ftc <<< \"\$i\"; read -e -p \"Destination: \" d; if [[ -d \"\$(realpath \"\$cd/\$d\")\" ]]; then for f in \"\${ftc[@]}\"; do f=\$(echo \"\$f\" | xargs); if [[ -e \"\$cd/\$f\" ]]; then cp -r \"\$cd/\$f\" \"\$(realpath \"\$cd/\$d\")\"; echo \"Copied '\$f' to '\$d'.\"; else echo \"'\$f' does not exist.\"; fi; done; else echo \"Invalid destination.\"; fi; sleep 1" ;;
-							4[2-7]) rn "read -e -p \"Files to move (separated by commas): \" i; IFS=',' read -ra ftm <<< \"\$i\"; read -e -p \"Destination: \" d; if [[ -d \"\$(realpath \"\$cd/\$d\")\" ]]; then for f in \"\${ftm[@]}\"; do f=\$(echo \"\$f\" | xargs); if [[ -e \"\$cd/\$f\" ]]; then mv \"\$cd/\$f\" \"\$(realpath \"\$cd/\$d\")\"; echo \"Moved '\$f' to '\$d'.\"; else echo \"'\$f' does not exist.\"; fi; done; else echo \"Invalid destination.\"; fi; sleep 1" ;;
-							5[1-9]|6[0-1]) rn "read -e -p \"File/directory: \" i && [[ -e \"\$cd/\$i\" ]] && { [[ \"\$i\" == *.tar.gz ]] && { echo \"Decompressing '\$i'...\"; pv \"\$cd/\$i\" | tar -xz -C \"\$cd\"; echo \"Decompression complete.\"; } || { echo \"Compressing '\$i'...\"; (cd \"\$cd\" && tar -czf - \"\$i\" | pv -s \$(du -sb \"\$cd/\$i\" | awk '{print \$1}') > \"\$i.tar.gz\"); echo \"Compression complete.\"; }; } || { echo \"'\$i' does not exist.\"; sleep 1; }; rf" ;;
-							6[5-9]|70) rn "echo 'Help: File management options: move, copy, delete, rename, etc.'; sleep 2" ;;
-							7[4-9]|80) rn "echo 'About: File Manager Script v1.0 by OGOS OGATA.'; sleep 2" ;;
+							3[3-8]) n "read -e -p \"Files to copy (separated by commas): \" i; IFS=',' read -ra fc <<< \"\$i\"; read -e -p \"Destination: \" d; if [[ -d \"\$(realpath \"\$d/\$d\")\" ]]; then for f in \"\${fc[@]}\"; do f=\$(echo \"\$f\" | xargs); if [[ -e \"\$d/\$f\" ]]; then cp -r \"\$d/\$f\" \"\$(realpath \"\$d/\$d\")\"; echo \"Copied '\$f' to '\$d'.\"; else echo \"'\$f' does not exist.\"; fi; done; else echo \"Invalid destination.\"; fi; sleep 1" ;;
+							4[2-7]) n "read -e -p \"Files to move (separated by commas): \" i; IFS=',' read -ra fm <<< \"\$i\"; read -e -p \"Destination: \" d; if [[ -d \"\$(realpath \"\$d/\$d\")\" ]]; then for f in \"\${fm[@]}\"; do f=\$(echo \"\$f\" | xargs); if [[ -e \"\$d/\$f\" ]]; then mv \"\$d/\$f\" \"\$(realpath \"\$d/\$d\")\"; echo \"Moved '\$f' to '\$d'.\"; else echo \"'\$f' does not exist.\"; fi; done; else echo \"Invalid destination.\"; fi; sleep 1" ;;
+							5[1-9]|6[0-1]) n "read -e -p \"File/directory: \" i && [[ -e \"\$d/\$i\" ]] && { [[ \"\$i\" == *.tar.gz ]] && { echo \"Decompressing '\$i'...\"; pv \"\$d/\$i\" | tar -xz -C \"\$d\"; echo \"Decompression complete.\"; } || { echo \"Compressing '\$i'...\"; (cd \"\$d\" && tar -czf - \"\$i\" | pv -s \$(du -sb \"\$d/\$i\" | awk '{print \$1}') > \"\$i.tar.gz\"); echo \"Compression complete.\"; }; } || { echo \"'\$i' does not exist.\"; sleep 1; }; r" ;;
+							6[5-9]|70) n "echo 'Help: File management options: move, copy, delete, rename, etc.'; sleep 2" ;;
+							7[4-9]|80) n "echo 'About: File Manager Script v1.0 by OGOS OGATA.'; sleep 2" ;;
 						esac ;;
 				esac
 			fi
@@ -258,10 +258,10 @@ SYS_INFO() {
 	echo -e "Total Storage:    ${CLR2}$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g') / $(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')${CLR0}"
 	echo -e "Disk Usage:       ${CLR2}$(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')%${CLR0}"
 	echo -e "${CLR6}--------------------------------${CLR0}"
-	LOCATION_DATA=$(curl -s ipinfo.io)
-	echo -e "IPv4 Address:     ${CLR2}$(echo "$LOCATION_DATA" | jq -r .ip)${CLR0}"
+	LOC=$(curl -s ipinfo.io)
+	echo -e "IPv4 Address:     ${CLR2}$(echo "$LOC" | jq -r .ip)${CLR0}"
 	echo -e "IPv6 Address:     ${CLR2}$(curl -s ipv6.ip.sb)${CLR0}"
-	echo -e "Location:         ${CLR2}$(echo "$LOCATION_DATA" | jq -r .city), $(echo "$LOCATION_DATA" | jq -r .country)${CLR0}"
+	echo -e "Location:         ${CLR2}$(echo "$LOC" | jq -r .city), $(echo "$LOC" | jq -r .country)${CLR0}"
 	echo -e "Timezone:         ${CLR2}$(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)${CLR0}"
 	echo -e "${CLR6}--------------------------------${CLR0}"
 	echo -e "Uptime:           ${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
