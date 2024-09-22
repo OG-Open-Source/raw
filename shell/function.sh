@@ -62,7 +62,7 @@ DEL() {
 	done
 }
 
-FILE_MANGER() {
+FILE_MANAGER() {
 	ip=20
 	c=0
 	s=""
