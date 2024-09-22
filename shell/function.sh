@@ -169,7 +169,7 @@ FILE_MANGER() {
 	echo -e "\033[?1000l"
 }
 FONT() {
-	local FONT=""
+	FONT=""
 	declare -A STYLE=(
 		[B]="\033[1m" [U]="\033[4m"
 		[BLACK]="\033[30m" [RED]="\033[31m" [GREEN]="\033[32m" [YELLOW]="\033[33m"
