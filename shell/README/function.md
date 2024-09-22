@@ -287,24 +287,6 @@ SYS_UPDATE
 
 The function detects the package manager used by the system and performs an update of all installed packages.
 
-### `SYS_UPGRADE`
-
-Performs a system version upgrade based on the current operating system.
-
-**Usage:**
-
-```bash
-SYS_UPGRADE
-```
-
-The function checks the current operating system and version, and performs an upgrade if supported.
-
-**Examples:**
-
-- On Debian 11, it upgrades to Debian 12.
-- On Ubuntu 22.04, it upgrades to Ubuntu 24.04.
-- On CentOS 7, it updates to the latest version available.
-
 ### `TIMEZONE`
 
 Displays the system's current timezone.
