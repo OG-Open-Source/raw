@@ -221,6 +221,37 @@ To print a line of 32 dashes:
 LINE - "32"
 ```
 
+### `PROGRESS`
+
+The `PROGRESS` function displays a progress bar to visualize the execution progress of commands.
+
+**Usage:**
+
+```bash
+cmds=()
+PROGRESS
+```
+**Parameters:**
+
+`cmds`: An array containing the commands to be executed. Commands will be executed in the order they appear in the array.
+
+**Example:**
+
+Here is an example of how to use the `PROGRESS` function to execute multiple commands and display the progress bar:
+
+```bash
+cmds=("echo 'Step 1'" "sleep 2" "echo 'Step 2'" "sleep 3" "echo 'Step 3'")
+PROGRESS
+```
+
+**Example Output:**
+
+During the execution of the commands, the progress bar will display something like this:
+
+```
+Progress: [ 50%] [#####.............]
+```
+
 ### `SYS_CLEAN`
 
 Performs a system cleanup by removing temporary files, cleaning package caches, and removing unnecessary files.
