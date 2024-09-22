@@ -208,6 +208,29 @@ LINE() {
 	printf '%*s' "$2" '' | tr ' ' "$1"
 }
 
+PROGRESS() {
+	n=${#cmds[@]}
+	w=$(tput cols)
+	b=$((w - 23))
+	stty -echo
+	trap '' SIGINT SIGQUIT SIGTSTP
+	for ((i=0; i<n; i++)); do
+		p=$(( i * 100 / n ))
+		f=$((p * b / 100))
+		printf "\r\033[30;42mProgress: [%3d%%]\033[0m [%s%s]" "$p" "$(printf "%${f}s" | tr ' ' '#')" "$(printf "%$((b - f))s" | tr ' ' '.')"
+		if ! o=$(eval "${cmds[$i]}" 2>&1); then
+		echo -e "\n$o"
+		stty echo
+		trap - SIGINT SIGQUIT SIGTSTP
+		return 1
+		fi
+	done
+	printf "\r\033[30;42mProgress: [100%%]\033[0m [%s]" "$(printf "%${b}s" | tr ' ' '#')"
+	printf "\r%${w}s\r"
+	stty echo
+	trap - SIGINT SIGQUIT SIGTSTP
+}
+
 SYS_CLEAN() {
 	echo -e "${CLR3}Performing system cleanup...${CLR0}"
 	echo -e "${CLR6}========================${CLR0}"
