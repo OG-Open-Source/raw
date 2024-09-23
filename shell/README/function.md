@@ -83,52 +83,6 @@ To remove `curl` and `git`:
 ```bash
 DEL curl git
 ```
-### `FILE_MANAGER`
-
-Provides basic file management operations like listing, creating, deleting, and moving files and directories.
-
-**Usage:**
-
-```bash
-FILE_MANAGER
-```
-
-**Example Output:**
-
-```
-Current Directory: /root
------------------------------------------------------------------------------------------
--Name                         Modification Date    Size           Type       Permissions
------------------------------------------------------------------------------------------
-.local                       2024-09-21 09:25     4.00 KiB       Directory  drwxr-xr-x
-123.tar.gz                   2024-09-21 22:24     4.40 KiB       File       -rw-r--r--
-41651                        2024-09-22 00:50     4.00 KiB       Directory  drwxr-xr-x
-.bash_history                2024-09-22 09:21     7.30 KiB       File       -rw-------
-function.sh                  2024-09-22 00:09    17.85 KiB       File       -rw-r--r--
-test.sh                      2024-09-22 01:27    31.00 Bytes     File       -rwxr-xr-x
-41651.tar.gz                 2024-09-22 01:09     6.12 KiB       File       -rw-r--r--
-892.tar.gz                   2024-09-21 22:56   139.00 Bytes     File       -rw-r--r--
-
-
-
-
-
-
-
-
-
-
-
-
------------------------------------------------------------------------------------------
-Page: 1/1
---------------------------------------------------------
-[Up] | [Down] | [Prev] | [Next] | [Search] | [Refresh] | [Exit]
---------------------------------------------------------
-[Delete] | [New File] | [New Dir] | [Rename] | [Permissions] | [Edit]
---------------------------------------------------------
-[Copy] | [Move] | [Tar/Untar] | [Help] | [About]
-```
 
 ### `FONT`
 
