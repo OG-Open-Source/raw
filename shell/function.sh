@@ -6,7 +6,7 @@ COPYRIGHT() { echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reser
 
 CLR1="\033[31m"
 CLR2="\033[32m"
-CLR3="\033[33m"
+CLR3="\033[0;33m" # TITLE
 CLR4="\033[34m"
 CLR5="\033[35m"
 CLR6="\033[36m"
