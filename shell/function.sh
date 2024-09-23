@@ -127,7 +127,7 @@ PROGRESS() {
 
 SYS_CLEAN() {
 	echo -e "${CLR3}Performing system cleanup...${CLR0}"
-	echo -e "${CLR6}========================${CLR0}"
+	echo -e "${CLR8}========================${CLR0}"
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 		*apk) apk cache clean; rm -rf /tmp/* /var/cache/apk/* /var/log/* ;;
 		*apt)
@@ -156,37 +156,37 @@ SYS_CLEAN() {
 
 	find /var/log -type f -delete
 	rm -rf /tmp/*
-	echo -e "${CLR6}========================${CLR0}"
+	echo -e "${CLR8}========================${CLR0}"
 }
 SYS_INFO() {
 	echo -e "${CLR3}System Information${CLR0}"
-	echo -e "${CLR6}========================${CLR0}"
+	echo -e "${CLR8}========================${CLR0}"
 	echo -e "Hostname:         ${CLR2}$(hostname)${CLR0}"
 	echo -e "Operating System: ${CLR2}$(grep '^NAME=' /etc/*release | cut -d'=' -f2 | tr -d '\"') $(if [ -f /etc/debian_version ]; then echo "Debian $(cat /etc/debian_version)"; elif command -v lsb_release >/dev/null 2>&1; then lsb_release -d | cut -f2; else grep '^VERSION=' /etc/*release | cut -d'=' -f2 | tr -d '\"'; fi)${CLR0}"
 	echo -e "Kernel Version:   ${CLR2}$(uname -r)${CLR0}"
-	echo -e "${CLR6}--------------------------------${CLR0}"
+	echo -e "${CLR8}--------------------------------${CLR0}"
 	echo -e "Architecture:     ${CLR2}$(uname -m)${CLR0}"
 	echo -e "CPU Model:        ${CLR2}$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')${CLR0}"
 	echo -e "CPU Cores:        ${CLR2}$(nproc)${CLR0}"
-	echo -e "${CLR6}--------------------------------${CLR0}"
+	echo -e "${CLR8}--------------------------------${CLR0}"
 	echo -e "Total Memory:     ${CLR2}$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g') / $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')${CLR0}"
 	echo -e "Memory Usage:     ${CLR2}$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%${CLR0}"
-	echo -e "${CLR6}--------------------------------${CLR0}"
+	echo -e "${CLR8}--------------------------------${CLR0}"
 	echo -e "Total Storage:    ${CLR2}$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g') / $(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')${CLR0}"
 	echo -e "Disk Usage:       ${CLR2}$(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')%${CLR0}"
-	echo -e "${CLR6}--------------------------------${CLR0}"
+	echo -e "${CLR8}--------------------------------${CLR0}"
 	LOC=$(curl -s ipinfo.io)
 	echo -e "IPv4 Address:     ${CLR2}$(echo "$LOC" | jq -r .ip)${CLR0}"
 	echo -e "IPv6 Address:     ${CLR2}$(curl -s ipv6.ip.sb)${CLR0}"
 	echo -e "Location:         ${CLR2}$(echo "$LOC" | jq -r .city), $(echo "$LOC" | jq -r .country)${CLR0}"
 	echo -e "Timezone:         ${CLR2}$(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)${CLR0}"
-	echo -e "${CLR6}--------------------------------${CLR0}"
+	echo -e "${CLR8}--------------------------------${CLR0}"
 	echo -e "Uptime:           ${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
-	echo -e "${CLR6}========================${CLR0}"
+	echo -e "${CLR8}========================${CLR0}"
 }
 SYS_UPDATE() {
 	echo -e "${CLR3}Updating system software...${CLR0}"
-	echo -e "${CLR6}========================${CLR0}"
+	echo -e "${CLR8}========================${CLR0}"
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 		*apk) apk update && apk upgrade ;;
 		*apt)
@@ -201,7 +201,7 @@ SYS_UPDATE() {
 		*zypper) zypper refresh && zypper update ;;
 		*) return 1 ;;
 	esac
-	echo -e "${CLR6}========================${CLR0}"
+	echo -e "${CLR8}========================${CLR0}"
 }
 
 TIMEZONE() {
