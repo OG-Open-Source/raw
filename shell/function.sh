@@ -34,15 +34,6 @@ ADD() {
 	done
 }
 
-CHECK_ROOT() {
-	[ "$(id -u)" -ne 0 ] && { echo -e "${CLR1}Please run this script as root user.${CLR0}"; exit 1; }
-	echo
-}
-CLEAN() {
-	cd ~
-	clear
-}
-
 DEL() {
 	[ $# -eq 0 ] && return
 	for app in "$@"; do
@@ -60,6 +51,20 @@ DEL() {
 		echo -e "${CLR2}FINISHED${CLR0}"
 		echo
 	done
+}
+
+CHECK_ROOT() {
+	[ "$(id -u)" -ne 0 ] && { echo -e "${CLR1}Please run this script as root user.${CLR0}"; exit 1; }
+	echo
+}
+
+CLEAN() {
+	cd ~
+	clear
+}
+
+LINE() {
+	printf '%*s' "$2" '' | tr ' ' "$1"
 }
 
 FONT() {
@@ -96,10 +101,6 @@ FONT() {
 
 INPUT() {
 	read -e -p "$1" "$2"
-}
-
-LINE() {
-	printf '%*s' "$2" '' | tr ' ' "$1"
 }
 
 PROGRESS() {
@@ -158,6 +159,7 @@ SYS_CLEAN() {
 	rm -rf /tmp/*
 	echo -e "${CLR8}========================${CLR0}"
 }
+
 SYS_INFO() {
 	echo -e "${CLR3}System Information${CLR0}"
 	echo -e "${CLR8}========================${CLR0}"
@@ -184,6 +186,7 @@ SYS_INFO() {
 	echo -e "Uptime:           ${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
 	echo -e "${CLR8}========================${CLR0}"
 }
+
 SYS_UPDATE() {
 	echo -e "${CLR3}Updating system software...${CLR0}"
 	echo -e "${CLR8}========================${CLR0}"
