@@ -33,7 +33,6 @@ ADD() {
 		echo
 	done
 }
-
 DEL() {
 	[ $# -eq 0 ] && return
 	for app in "$@"; do
@@ -52,24 +51,20 @@ DEL() {
 		echo
 	done
 }
-
 CHECK_ROOT() {
 	[ "$(id -u)" -ne 0 ] && { echo -e "${CLR1}Please run this script as root user.${CLR0}"; exit 1; }
 	echo
 }
-
 CLEAN() {
 	cd ~
 	clear
 }
-
 LINE() {
 	printf '%*s' "$2" '' | tr ' ' "$1"
 }
-
 FONT() {
-	FONT=""
-	declare -A STYLE=(
+	font=""
+	declare -A style=(
 		[B]="\033[1m" [U]="\033[4m"
 		[BLACK]="\033[30m" [RED]="\033[31m" [GREEN]="\033[32m" [YELLOW]="\033[33m"
 		[BLUE]="\033[34m" [PURPLE]="\033[35m" [CYAN]="\033[36m" [WHITE]="\033[37m"
@@ -84,51 +79,49 @@ FONT() {
 		case "$1" in
 			RGB)
 				shift
-				[[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && FONT+="\033[38;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
-				 ;;
+				[[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && font+="\033[38;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
+				;;
 			BG.RGB)
 				shift
-				[[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && FONT+="\033[48;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
-				 ;;
+				[[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && font+="\033[48;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
+				;;
 			*)
-				FONT+="${STYLE[$1]:-}"
-				 ;;
+				font+="${style[$1]:-}"
+				;;
 		esac
 		shift
 	done
-	echo -e "${FONT}${1}${CLR0}"
+	echo -e "${font}${1}${CLR0}"
 }
-
 INPUT() {
 	read -e -p "$1" "$2"
 }
-
 PROGRESS() {
-	n=${#cmds[@]}
-	w=$(tput cols)
-	b=$((w - 23))
+	num_cmds=${#cmds[@]}
+	term_width=$(tput cols)
+	bar_width=$((term_width - 23))
 	stty -echo
 	trap '' SIGINT SIGQUIT SIGTSTP
-	for ((i=0; i<n; i++)); do
-		p=$(( i * 100 / n ))
-		f=$((p * b / 100))
-		printf "\r\033[30;42mProgress: [%3d%%]\033[0m [%s%s]" "$p" "$(printf "%${f}s" | tr ' ' '#')" "$(printf "%$((b - f))s" | tr ' ' '.')"
-		if ! o=$(eval "${cmds[$i]}" 2>&1); then
-		echo -e "\n$o"
+	for ((i=0; i<num_cmds; i++)); do
+		progress=$(( i * 100 / num_cmds ))
+		filled_width=$((progress * bar_width / 100))
+		printf "\r\033[30;42mProgress: [%3d%%]\033[0m [%s%s]" "$progress" "$(printf "%${filled_width}s" | tr ' ' '#')" "$(printf "%$((bar_width - filled_width))s" | tr ' ' '.')"
+		if ! output=$(eval "${cmds[$i]}" 2>&1); then
+		echo -e "\n$output"
 		stty echo
 		trap - SIGINT SIGQUIT SIGTSTP
 		return 1
 		fi
 	done
-	printf "\r\033[30;42mProgress: [100%%]\033[0m [%s]" "$(printf "%${b}s" | tr ' ' '#')"
-	printf "\r%${w}s\r"
+	printf "\r\033[30;42mProgress: [100%%]\033[0m [%s]" "$(printf "%${bar_width}s" | tr ' ' '#')"
+	printf "\r%${term_width}s\r"
 	stty echo
 	trap - SIGINT SIGQUIT SIGTSTP
 }
 
 SYS_CLEAN() {
 	echo -e "${CLR3}Performing system cleanup...${CLR0}"
-	echo -e "${CLR8}========================${CLR0}"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 		*apk) apk cache clean; rm -rf /tmp/* /var/cache/apk/* /var/log/* ;;
 		*apt)
@@ -157,39 +150,39 @@ SYS_CLEAN() {
 
 	find /var/log -type f -delete
 	rm -rf /tmp/*
-	echo -e "${CLR8}========================${CLR0}"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
 
 SYS_INFO() {
 	echo -e "${CLR3}System Information${CLR0}"
-	echo -e "${CLR8}========================${CLR0}"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "Hostname:         ${CLR2}$(hostname)${CLR0}"
 	echo -e "Operating System: ${CLR2}$(grep '^NAME=' /etc/*release | cut -d'=' -f2 | tr -d '\"') $(if [ -f /etc/debian_version ]; then echo "Debian $(cat /etc/debian_version)"; elif command -v lsb_release >/dev/null 2>&1; then lsb_release -d | cut -f2; else grep '^VERSION=' /etc/*release | cut -d'=' -f2 | tr -d '\"'; fi)${CLR0}"
 	echo -e "Kernel Version:   ${CLR2}$(uname -r)${CLR0}"
-	echo -e "${CLR8}--------------------------------${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "Architecture:     ${CLR2}$(uname -m)${CLR0}"
 	echo -e "CPU Model:        ${CLR2}$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')${CLR0}"
 	echo -e "CPU Cores:        ${CLR2}$(nproc)${CLR0}"
-	echo -e "${CLR8}--------------------------------${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "Total Memory:     ${CLR2}$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g') / $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')${CLR0}"
 	echo -e "Memory Usage:     ${CLR2}$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%${CLR0}"
-	echo -e "${CLR8}--------------------------------${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "Total Storage:    ${CLR2}$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g') / $(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')${CLR0}"
 	echo -e "Disk Usage:       ${CLR2}$(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')%${CLR0}"
-	echo -e "${CLR8}--------------------------------${CLR0}"
-	LOC=$(curl -s ipinfo.io)
-	echo -e "IPv4 Address:     ${CLR2}$(echo "$LOC" | jq -r .ip)${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	loc=$(curl -s ipinfo.io)
+	echo -e "IPv4 Address:     ${CLR2}$(echo "$loc" | jq -r .ip)${CLR0}"
 	echo -e "IPv6 Address:     ${CLR2}$(curl -s ipv6.ip.sb)${CLR0}"
-	echo -e "Location:         ${CLR2}$(echo "$LOC" | jq -r .city), $(echo "$LOC" | jq -r .country)${CLR0}"
+	echo -e "Location:         ${CLR2}$(echo "$loc" | jq -r .city), $(echo "$loc" | jq -r .country)${CLR0}"
 	echo -e "Timezone:         ${CLR2}$(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)${CLR0}"
-	echo -e "${CLR8}--------------------------------${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "Uptime:           ${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
-	echo -e "${CLR8}========================${CLR0}"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
 
 SYS_UPDATE() {
 	echo -e "${CLR3}Updating system software...${CLR0}"
-	echo -e "${CLR8}========================${CLR0}"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
 		*apk) apk update && apk upgrade ;;
 		*apt)
@@ -204,7 +197,7 @@ SYS_UPDATE() {
 		*zypper) zypper refresh && zypper update ;;
 		*) return 1 ;;
 	esac
-	echo -e "${CLR8}========================${CLR0}"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
 
 TIMEZONE() {
