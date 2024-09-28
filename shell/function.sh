@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.1.004
+# Version: 1.1.005
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -142,12 +142,6 @@ FONT() {
 		shift
 	done
 	echo -e "${font}${1}${CLR0}"
-}
-
-GET() {
-	[ $# -eq 0 ] && return
-	url="$1"
-	command -v curl &>/dev/null && curl -sSO "$url" || command -v wget &>/dev/null && wget -q "$url" || return 1
 }
 
 INPUT() {
