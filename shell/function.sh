@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.1.006
+# Version: 1.1.007
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -183,8 +183,7 @@ SYS_CLEAN() {
 		*apk) apk cache clean; rm -rf /tmp/* /var/cache/apk/* /var/log/* ;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				echo "Waiting for dpkg lock to be released..."
-				sleep 1
+				sleep 0.5
 			done
 			DEBIAN_FRONTEND=noninteractive dpkg --configure -a
 			apt autoremove --purge -y
@@ -259,7 +258,7 @@ SYS_UPDATE() {
 		*apk) apk update && apk upgrade ;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				sleep 1
+				sleep 0.5
 			done
 			DEBIAN_FRONTEND=noninteractive apt update -y && apt full-upgrade -y ;;
 		*dnf) dnf -y update ;;
