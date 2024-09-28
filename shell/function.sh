@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.1.007
+# Version: 1.1.008
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -247,7 +247,13 @@ SYS_INFO() {
 		*zypper) zypper se --installed-only | wc -l ;;
 	esac)
 	echo -e "Packages:         ${CLR2}${pkg_count}${CLR0}"
-	[ -f /proc/cpuinfo ] && grep -q "hypervisor" /proc/cpuinfo && echo -e "Virtualization:   ${CLR2}Running in a virtual machine${CLR0}" || echo -e "Virtualization:   ${CLR2}Not detected${CLR0}"
+	if [ -f /proc/cpuinfo ] && grep -q "hypervisor" /proc/cpuinfo; then
+		echo -e "Virtualization:   ${CLR2}Running in a virtual machine${CLR0}"
+	elif [ -x "$(command -v systemd-detect-virt)" ] && [ "$(systemd-detect-virt)" != "none" ]; then
+		echo -e "Virtualization:   ${CLR2}Running in a virtual machine ($(systemd-detect-virt))${CLR0}"
+	else
+		echo -e "Virtualization:   ${CLR2}Not detected${CLR0}"
+	fi
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
 SYS_UPDATE() {
