@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.1.011
+# Version: 1.1.012
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -249,6 +249,7 @@ SYS_INFO() {
 		*zypper) zypper se --installed-only | wc -l ;;
 	esac)
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Packages:" "${pkg_count}"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Process Count:" "$(ps aux | wc -l)"
 	printf "%-${width}s " "Virtualization:"
 	if [ -f /proc/cpuinfo ] && grep -qi "hypervisor" /proc/cpuinfo; then
 		virt_type=$(systemd-detect-virt 2>/dev/null)
