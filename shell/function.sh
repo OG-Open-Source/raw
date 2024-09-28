@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.1.001
+# Version: 1.1.002
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -60,19 +60,19 @@ CHECK_OS() {
 	fi
 }
 CHECK_ROOT() {
-    if [ "$(id -u)" -ne 0 ]; then
-        echo -e "${CLR1}Please run this script as root user.${CLR0}"
-        exit 1
-    else
-        echo
-    fi
+	if [ "$(id -u)" -ne 0 ]; then
+		echo -e "${CLR1}Please run this script as root user.${CLR0}"
+		exit 1
+	else
+		echo
+	fi
 }
 CLEAN() {
-    cd ~
-    clear
+	cd ~
+	clear
 }
 COPYRIGHT() {
-    echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."
+	echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."
 }
 
 DEL() {
@@ -99,7 +99,7 @@ FIND() {
 	[ $# -eq 0 ] && return
 	for app in "$@"; do
 		echo -e "${CLR3}SEARCH [$app]${CLR0}"
-		case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
+		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 			*apk) apk search "$app" ;;
 			*apt) apt-cache search "$app" ;;
 			*dnf) dnf search "$app" ;;
@@ -179,7 +179,7 @@ SYS_CLEAN() {
 	CHECK_ROOT
 	echo -e "${CLR3}Performing system cleanup...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
+	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk) apk cache clean; rm -rf /tmp/* /var/cache/apk/* /var/log/* ;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
@@ -222,7 +222,7 @@ SYS_INFO() {
 	echo -e "CPU Cores:        ${CLR2}$(nproc)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "Memory Usage:     ${CLR2}$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') / $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') ($(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%)${CLR0}"
-    echo -e "Swap Usage:       ${CLR2}$(free -h | awk '/^Swap:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') / $(free -h | awk '/^Swap:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') ($(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')%)${CLR0}"
+	echo -e "Swap Usage:       ${CLR2}$(free -h | awk '/^Swap:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') / $(free -h | awk '/^Swap:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') ($(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')%)${CLR0}"
 	echo -e "Disk Usage:       ${CLR2}$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/ GiB/g; s/M/ MiB/g') / $(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/ GiB/g; s/M/ MiB/g') ($(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')%)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	if ping -c 1 ipinfo.io &>/dev/null; then
@@ -235,9 +235,9 @@ SYS_INFO() {
 	fi
 	echo -e "Timezone:         ${CLR2}$(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-    echo -e "Load Average:     ${CLR2}$(uptime | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//')${CLR0}"
+	echo -e "Load Average:     ${CLR2}$(uptime | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//')${CLR0}"
 	echo -e "System Uptime:    ${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
-    echo -e "Boot Time:        ${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
+	echo -e "Boot Time:        ${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	pkg_count=$(case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk) apk info | wc -l ;;
@@ -255,7 +255,7 @@ SYS_UPDATE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Updating system software...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
+	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk) apk update && apk upgrade ;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
