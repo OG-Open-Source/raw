@@ -1,8 +1,7 @@
 #!/bin/bash
-# FILE="function.sh"
-# [ ! -f "$FILE" ] && curl -sSL "https://raw.ogtt.tk/shell/function.sh" -o "$FILE"
-# [ -f "$FILE" ] && source "$FILE"
-COPYRIGHT() { echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."; }
+# Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
+# Author: OGATA Open-Source
+# Version: 1.1.001
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -16,10 +15,11 @@ CLR9="\033[97m"
 CLR0="\033[0m"
 
 ADD() {
+	CHECK_ROOT
 	[ $# -eq 0 ] && return
 	for app in "$@"; do
 		echo -e "${CLR3}INSTALL [$app]${CLR0}"
-		case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
+		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 			*apk) apk info "$app" &>/dev/null || { apk update && apk add "$app"; } ;;
 			*apt) dpkg -l | grep -qw "$app" || { apt update -y && apt install -y "$app"; } ;;
 			*dnf) dnf list installed "$app" &>/dev/null || { dnf -y update && dnf install -y epel-release "$app"; } ;;
@@ -33,11 +33,54 @@ ADD() {
 		echo
 	done
 }
+
+CHECK_OS() {
+	if [ -f /etc/os-release ]; then
+		. /etc/os-release
+		echo "$NAME $VERSION"
+	elif [ -f /etc/lsb-release ]; then
+		. /etc/lsb-release
+		echo "$DISTRIB_DESCRIPTION"
+	elif [ -f /etc/debian_version ]; then
+		echo "Debian $(cat /etc/debian_version)"
+	elif [ -f /etc/fedora-release ]; then
+		cat /etc/fedora-release
+	elif [ -f /etc/centos-release ]; then
+		cat /etc/centos-release
+	elif [ -f /etc/arch-release ]; then
+		echo "Arch Linux"
+	elif [ -f /etc/gentoo-release ]; then
+		cat /etc/gentoo-release
+	elif [ -f /etc/alpine-release ]; then
+		echo "Alpine Linux $(cat /etc/alpine-release)"
+	elif [ -f /etc/DISTRO_SPECS ]; then
+		grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
+	else
+		echo "Unknown distribution"
+	fi
+}
+CHECK_ROOT() {
+    if [ "$(id -u)" -ne 0 ]; then
+        echo -e "${CLR1}Please run this script as root user.${CLR0}"
+        exit 1
+    else
+        echo
+    fi
+}
+CLEAN() {
+    cd ~
+    clear
+}
+COPYRIGHT() {
+    echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."
+}
+
 DEL() {
+	CHECK_ROOT
 	[ $# -eq 0 ] && return
 	for app in "$@"; do
 		echo -e "${CLR3}REMOVE [$app]${CLR0}"
-		case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
+		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 			*apk) apk info "$app" &>/dev/null && apk del "$app" ;;
 			*apt) dpkg -l | grep -q "^ii  $app" && apt purge -y "$app" ;;
 			*dnf) dnf list installed "$app" &>/dev/null && dnf remove -y "$app" ;;
@@ -51,16 +94,23 @@ DEL() {
 		echo
 	done
 }
-CHECK_ROOT() {
-	[ "$(id -u)" -ne 0 ] && { echo -e "${CLR1}Please run this script as root user.${CLR0}"; exit 1; }
-	echo
-}
-CLEAN() {
-	cd ~
-	clear
-}
-LINE() {
-	printf '%*s' "$2" '' | tr ' ' "$1"
+
+FIND() {
+	[ $# -eq 0 ] && return
+	for app in "$@"; do
+		echo -e "${CLR3}SEARCH [$app]${CLR0}"
+		case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
+			*apk) apk search "$app" ;;
+			*apt) apt-cache search "$app" ;;
+			*dnf) dnf search "$app" ;;
+			*opkg) opkg search "$app" ;;
+			*pacman) pacman -Ss "$app" ;;
+			*yum) yum search "$app" ;;
+			*zypper) zypper search "$app" ;;
+			*) return ;;
+		esac
+		echo
+	done
 }
 FONT() {
 	font=""
@@ -93,9 +143,15 @@ FONT() {
 	done
 	echo -e "${font}${1}${CLR0}"
 }
+
 INPUT() {
 	read -e -p "$1" "$2"
 }
+
+LINE() {
+	printf '%*s' "$2" '' | tr ' ' "$1"
+}
+
 PROGRESS() {
 	num_cmds=${#cmds[@]}
 	term_width=$(tput cols)
@@ -120,6 +176,7 @@ PROGRESS() {
 }
 
 SYS_CLEAN() {
+	CHECK_ROOT
 	echo -e "${CLR3}Performing system cleanup...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
@@ -152,35 +209,50 @@ SYS_CLEAN() {
 	rm -rf /tmp/*
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
-
 SYS_INFO() {
 	echo -e "${CLR3}System Information${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "Hostname:         ${CLR2}$(hostname)${CLR0}"
-	echo -e "Operating System: ${CLR2}$(grep '^NAME=' /etc/*release | cut -d'=' -f2 | tr -d '\"') $(if [ -f /etc/debian_version ]; then echo "$(cat /etc/debian_version)"; elif command -v lsb_release >/dev/null 2>&1; then lsb_release -d | cut -f2; else grep '^VERSION=' /etc/*release | cut -d'=' -f2 | tr -d '\"'; fi)${CLR0}"
+	echo -e "Operating System: ${CLR2}$(CHECK_OS)${CLR0}"
 	echo -e "Kernel Version:   ${CLR2}$(uname -r)${CLR0}"
+	echo -e "System Language:  ${CLR2}$LANG${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "Architecture:     ${CLR2}$(uname -m)${CLR0}"
 	echo -e "CPU Model:        ${CLR2}$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')${CLR0}"
 	echo -e "CPU Cores:        ${CLR2}$(nproc)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "Total Memory:     ${CLR2}$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g') / $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/GiB/g' | sed 's/Mi/MiB/g')${CLR0}"
-	echo -e "Memory Usage:     ${CLR2}$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%${CLR0}"
+	echo -e "Memory Usage:     ${CLR2}$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') / $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') ($(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%)${CLR0}"
+    echo -e "Swap Usage:       ${CLR2}$(free -h | awk '/^Swap:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') / $(free -h | awk '/^Swap:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') ($(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')%)${CLR0}"
+	echo -e "Disk Usage:       ${CLR2}$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/ GiB/g; s/M/ MiB/g') / $(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/ GiB/g; s/M/ MiB/g') ($(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')%)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "Total Storage:    ${CLR2}$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/GiB/g' | sed 's/M/MiB/g') / $(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/GiB/g' | sed 's/M/MiB/g')${CLR0}"
-	echo -e "Disk Usage:       ${CLR2}$(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')%${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	loc=$(curl -s ipinfo.io)
-	echo -e "IPv4 Address:     ${CLR2}$(echo "$loc" | jq -r .ip)${CLR0}"
-	echo -e "IPv6 Address:     ${CLR2}$(curl -s ipv6.ip.sb)${CLR0}"
-	echo -e "Location:         ${CLR2}$(echo "$loc" | jq -r .city), $(echo "$loc" | jq -r .country)${CLR0}"
+	if ping -c 1 ipinfo.io &>/dev/null; then
+		loc=$(curl -s ipinfo.io)
+		echo -e "IPv4 Address:     ${CLR2}$(echo "$loc" | jq -r .ip)${CLR0}"
+		echo -e "IPv6 Address:     ${CLR2}$(curl -s ipv6.ip.sb)${CLR0}"
+		echo -e "Location:         ${CLR2}$(echo "$loc" | jq -r .city), $(echo "$loc" | jq -r .country)${CLR0}"
+	else
+		echo -e "Network Status:   ${CLR1}OFFLINE${CLR0}"
+	fi
 	echo -e "Timezone:         ${CLR2}$(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "Uptime:           ${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
+    echo -e "Load Average:     ${CLR2}$(uptime | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//')${CLR0}"
+	echo -e "System Uptime:    ${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
+    echo -e "Boot Time:        ${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	pkg_count=$(case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
+		*apk) apk info | wc -l ;;
+		*apt) dpkg --get-selections | wc -l ;;
+		*dnf|*yum) rpm -qa | wc -l ;;
+		*opkg) opkg list-installed | wc -l ;;
+		*pacman) pacman -Q | wc -l ;;
+		*zypper) zypper se --installed-only | wc -l ;;
+	esac)
+	echo -e "Packages:         ${CLR2}${pkg_count}${CLR0}"
+	[ -f /proc/cpuinfo ] && grep -q "hypervisor" /proc/cpuinfo && echo -e "Virtualization:   ${CLR2}Running in a virtual machine${CLR0}" || echo -e "Virtualization:   ${CLR2}Not detected${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
-
 SYS_UPDATE() {
+	CHECK_ROOT
 	echo -e "${CLR3}Updating system software...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk || command -v apt || command -v dnf || command -v opkg || command -v pacman || command -v yum || command -v zypper) in
