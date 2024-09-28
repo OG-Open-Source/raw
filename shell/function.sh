@@ -145,9 +145,9 @@ FONT() {
 }
 
 GET() {
-    [ $# -eq 0 ] && return
-    url="$1"
-    command -v curl &>/dev/null && curl -sSO "$url" || command -v wget &>/dev/null && wget -q "$url" || return 1
+	[ $# -eq 0 ] && return
+	url="$1"
+	command -v curl &>/dev/null && curl -sSO "$url" || command -v wget &>/dev/null && wget -q "$url" || return 1
 }
 
 INPUT() {
