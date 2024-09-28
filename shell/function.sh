@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.1.005
+# Version: 1.1.006
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -233,7 +233,7 @@ SYS_INFO() {
 	else
 		echo -e "Network Status:   ${CLR1}OFFLINE${CLR0}"
 	fi
-	echo -e "Timezone:         ${CLR2}$(readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null)${CLR0}"
+	echo -e "Timezone:         ${CLR2}$(TIMEZONE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "Load Average:     ${CLR2}$(uptime | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//')${CLR0}"
 	echo -e "System Uptime:    ${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
