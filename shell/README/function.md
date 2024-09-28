@@ -238,7 +238,7 @@ SYS_INFO
 System Information
 ========================
 Hostname:         server
-Operating System: Debian GNU/Linux Debian 12.7
+Operating System: Debian GNU/Linux 12.7
 Kernel Version:   6.1.0-25-amd64
 --------------------------------
 Architecture:     x86_64
