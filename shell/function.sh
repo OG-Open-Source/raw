@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.1.009
+# Version: 1.1.010
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -209,35 +209,36 @@ SYS_CLEAN() {
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
 SYS_INFO() {
-	echo -e "${CLR3}System Information${CLR0}"
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	echo -e "Hostname:         ${CLR2}$(hostname)${CLR0}"
-	echo -e "Operating System: ${CLR2}$(CHECK_OS)${CLR0}"
-	echo -e "Kernel Version:   ${CLR2}$(uname -r)${CLR0}"
-	echo -e "System Language:  ${CLR2}$LANG${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "Architecture:     ${CLR2}$(uname -m)${CLR0}"
-	echo -e "CPU Model:        ${CLR2}$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')${CLR0}"
-	echo -e "CPU Cores:        ${CLR2}$(nproc)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "Memory Usage:     ${CLR2}$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') / $(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') ($(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%)${CLR0}"
-	echo -e "Swap Usage:       ${CLR2}$(free -h | awk '/^Swap:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') / $(free -h | awk '/^Swap:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g') ($(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')%)${CLR0}"
-	echo -e "Disk Usage:       ${CLR2}$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/ GiB/g; s/M/ MiB/g') / $(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/ GiB/g; s/M/ MiB/g') ($(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')%)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	width=19
+	printf "${CLR3}System Information${CLR0}\n"
+	printf "${CLR8}%s${CLR0}\n" "$(LINE = "24")"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Hostname:" "$(hostname)"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Operating System:" "$(CHECK_OS)"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Kernel Version:" "$(uname -r)"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "System Language:" "$LANG"
+	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Architecture:" "$(uname -m)"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Model:" "$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Cores:" "$(nproc)"
+	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
+	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Memory Usage:" "$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g')" "$(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g')" "$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')"
+	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Swap Usage:" "$(free -h | awk '/^Swap:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g')" "$(free -h | awk '/^Swap:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g')" "$(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')"
+	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Disk Usage:" "$(df -h | awk '$NF=="/"{printf "%s", $3}' | sed 's/G/ GiB/g; s/M/ MiB/g')" "$(df -h | awk '$NF=="/"{printf "%s", $2}' | sed 's/G/ GiB/g; s/M/ MiB/g')" "$(df -h | awk '$NF=="/"{printf "%.2f", $3/$2 * 100}')"
+	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
 	if ping -c 1 ipinfo.io &>/dev/null; then
 		loc=$(curl -s ipinfo.io)
-		echo -e "IPv4 Address:     ${CLR2}$(echo "$loc" | jq -r .ip)${CLR0}"
-		echo -e "IPv6 Address:     ${CLR2}$(curl -s ipv6.ip.sb)${CLR0}"
-		echo -e "Location:         ${CLR2}$(echo "$loc" | jq -r .city), $(echo "$loc" | jq -r .country)${CLR0}"
+		printf "%-${width}s ${CLR2}%s${CLR0}\n" "IPv4 Address:" "$(echo "$loc" | jq -r .ip)"
+		printf "%-${width}s ${CLR2}%s${CLR0}\n" "IPv6 Address:" "$(curl -s ipv6.ip.sb)"
+		printf "%-${width}s ${CLR2}%s, %s${CLR0}\n" "Location:" "$(echo "$loc" | jq -r .city)" "$(echo "$loc" | jq -r .country)"
 	else
-		echo -e "Network Status:   ${CLR1}OFFLINE${CLR0}"
+		printf "%-${width}s ${CLR1}%s${CLR0}\n" "Network Status:" "OFFLINE"
 	fi
-	echo -e "Timezone:         ${CLR2}$(TIMEZONE)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "Load Average:     ${CLR2}$(uptime | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//')${CLR0}"
-	echo -e "System Uptime:    ${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
-	echo -e "Boot Time:        ${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Timezone:" "$(TIMEZONE)"
+	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Load Average:" "$(uptime | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//')"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "System Uptime:" "$(uptime -p | sed 's/up //')"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Boot Time:" "$(who -b | awk '{print $3, $4}')"
+	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
 	pkg_count=$(case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk) apk info | wc -l ;;
 		*apt) dpkg --get-selections | wc -l ;;
@@ -246,34 +247,34 @@ SYS_INFO() {
 		*pacman) pacman -Q | wc -l ;;
 		*zypper) zypper se --installed-only | wc -l ;;
 	esac)
-	echo -e "Packages:         ${CLR2}${pkg_count}${CLR0}"
-	echo -n "Virtualization:   "
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Packages:" "${pkg_count}"
+	printf "%-${width}s " "Virtualization:"
 	if [ -f /proc/cpuinfo ] && grep -qi "hypervisor" /proc/cpuinfo; then
 		virt_type=$(systemd-detect-virt 2>/dev/null)
 		if [ "$virt_type" = "kvm" ]; then
 			if [ -f /sys/class/dmi/id/product_name ] && grep -qi "proxmox" /sys/class/dmi/id/product_name; then
-				echo -e "${CLR2}Running in Proxmox VE (KVM)${CLR0}"
+				printf "${CLR2}Running in Proxmox VE (KVM)${CLR0}\n"
 			else
-				echo -e "${CLR2}Running on KVM (possibly in Proxmox VE)${CLR0}"
+				printf "${CLR2}Running on KVM (possibly in Proxmox VE)${CLR0}\n"
 			fi
 		elif [ -n "$virt_type" ] && [ "$virt_type" != "none" ]; then
-			echo -e "${CLR2}Running on $virt_type${CLR0}"
+			printf "${CLR2}Running on %s${CLR0}\n" "$virt_type"
 		else
-			echo -e "${CLR2}Running in a virtual machine (unknown type)${CLR0}"
+			printf "${CLR2}Running in a virtual machine (unknown type)${CLR0}\n"
 		fi
 	elif [ -f /proc/1/environ ] && grep -q "container=lxc" /proc/1/environ; then
-		echo -e "${CLR2}Running in LXC container (possibly in Proxmox VE)${CLR0}"
+		printf "${CLR2}Running in LXC container (possibly in Proxmox VE)${CLR0}\n"
 	elif systemd-detect-virt &>/dev/null; then
 		virt_type=$(systemd-detect-virt)
 		if [ "$virt_type" != "none" ]; then
-			echo -e "${CLR2}Running on $virt_type${CLR0}"
+			printf "${CLR2}Running on %s${CLR0}\n" "$virt_type"
 		else
-			echo -e "${CLR2}Not detected (possibly bare metal)${CLR0}"
+			printf "${CLR2}Not detected (possibly bare metal)${CLR0}\n"
 		fi
 	else
-		echo -e "${CLR2}Not detected (possibly bare metal)${CLR0}"
+		printf "${CLR2}Not detected (possibly bare metal)${CLR0}\n"
 	fi
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	printf "${CLR8}%s${CLR0}\n" "$(LINE = "24")"
 }
 SYS_UPDATE() {
 	CHECK_ROOT
