@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.1.010
+# Version: 1.1.011
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -109,6 +109,7 @@ FIND() {
 			*zypper) zypper search "$app" ;;
 			*) return ;;
 		esac
+		echo -e "${CLR2}FINISHED${CLR0}"
 		echo
 	done
 }
