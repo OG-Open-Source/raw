@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.1.008
+# Version: 1.1.009
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -247,12 +247,31 @@ SYS_INFO() {
 		*zypper) zypper se --installed-only | wc -l ;;
 	esac)
 	echo -e "Packages:         ${CLR2}${pkg_count}${CLR0}"
-	if [ -f /proc/cpuinfo ] && grep -q "hypervisor" /proc/cpuinfo; then
-		echo -e "Virtualization:   ${CLR2}Running in a virtual machine${CLR0}"
-	elif [ -x "$(command -v systemd-detect-virt)" ] && [ "$(systemd-detect-virt)" != "none" ]; then
-		echo -e "Virtualization:   ${CLR2}Running in a virtual machine ($(systemd-detect-virt))${CLR0}"
+	echo -n "Virtualization:   "
+	if [ -f /proc/cpuinfo ] && grep -qi "hypervisor" /proc/cpuinfo; then
+		virt_type=$(systemd-detect-virt 2>/dev/null)
+		if [ "$virt_type" = "kvm" ]; then
+			if [ -f /sys/class/dmi/id/product_name ] && grep -qi "proxmox" /sys/class/dmi/id/product_name; then
+				echo -e "${CLR2}Running in Proxmox VE (KVM)${CLR0}"
+			else
+				echo -e "${CLR2}Running on KVM (possibly in Proxmox VE)${CLR0}"
+			fi
+		elif [ -n "$virt_type" ] && [ "$virt_type" != "none" ]; then
+			echo -e "${CLR2}Running on $virt_type${CLR0}"
+		else
+			echo -e "${CLR2}Running in a virtual machine (unknown type)${CLR0}"
+		fi
+	elif [ -f /proc/1/environ ] && grep -q "container=lxc" /proc/1/environ; then
+		echo -e "${CLR2}Running in LXC container (possibly in Proxmox VE)${CLR0}"
+	elif systemd-detect-virt &>/dev/null; then
+		virt_type=$(systemd-detect-virt)
+		if [ "$virt_type" != "none" ]; then
+			echo -e "${CLR2}Running on $virt_type${CLR0}"
+		else
+			echo -e "${CLR2}Not detected (possibly bare metal)${CLR0}"
+		fi
 	else
-		echo -e "Virtualization:   ${CLR2}Not detected${CLR0}"
+		echo -e "${CLR2}Not detected (possibly bare metal)${CLR0}"
 	fi
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
