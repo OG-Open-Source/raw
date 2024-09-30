@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.015.005
+# Version: 1.015.006
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -61,12 +61,7 @@ CHECK_OS() {
 	fi
 }
 CHECK_ROOT() {
-	if [ "$(id -u)" -ne 0 ]; then
-		echo -e "${CLR1}Please run this script as root user.${CLR0}"
-		exit 1
-	else
-		echo
-	fi
+	[ "$(id -u)" -ne 0 ] && { echo -e "${CLR1}Please run this script as root user.${CLR0}"; exit 1; }
 }
 CLEAN() {
 	cd ~
