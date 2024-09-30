@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.015.006
+# Version: 1.015.007
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -247,31 +247,31 @@ SYS_INFO() {
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Packages:" "${pkg_count}"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Process Count:" "$(ps aux | wc -l)"
 	printf "%-${width}s " "Virtualization:"
-	if [ -f /proc/cpuinfo ] && grep -qi "hypervisor" /proc/cpuinfo; then
-		virt_type=$(systemd-detect-virt 2>/dev/null)
-		if [ "$virt_type" = "kvm" ]; then
+	virt_type=$(systemd-detect-virt 2>/dev/null)
+	case "$virt_type" in
+		kvm)
 			if [ -f /sys/class/dmi/id/product_name ] && grep -qi "proxmox" /sys/class/dmi/id/product_name; then
 				printf "${CLR2}Running in Proxmox VE (KVM)${CLR0}\n"
 			else
-				printf "${CLR2}Running on KVM (possibly in Proxmox VE)${CLR0}\n"
+				printf "${CLR2}Running on KVM${CLR0}\n"
 			fi
-		elif [ -n "$virt_type" ] && [ "$virt_type" != "none" ]; then
-			printf "${CLR2}Running on %s${CLR0}\n" "$virt_type"
-		else
-			printf "${CLR2}Running in a virtual machine (unknown type)${CLR0}\n"
-		fi
-	elif [ -f /proc/1/environ ] && grep -q "container=lxc" /proc/1/environ; then
-		printf "${CLR2}Running in LXC container (possibly in Proxmox VE)${CLR0}\n"
-	elif systemd-detect-virt &>/dev/null; then
-		virt_type=$(systemd-detect-virt)
-		if [ "$virt_type" != "none" ]; then
-			printf "${CLR2}Running on %s${CLR0}\n" "$virt_type"
-		else
+			;;
+		none)
+			if [ -f /proc/1/environ ] && grep -q "container=lxc" /proc/1/environ; then
+				printf "${CLR2}Running in LXC container${CLR0}\n"
+			elif [ -f /proc/cpuinfo ] && grep -qi "hypervisor" /proc/cpuinfo; then
+				printf "${CLR2}Running in a virtual machine (unknown type)${CLR0}\n"
+			else
+				printf "${CLR2}Not detected (possibly bare metal)${CLR0}\n"
+			fi
+			;;
+		"")
 			printf "${CLR2}Not detected (possibly bare metal)${CLR0}\n"
-		fi
-	else
-		printf "${CLR2}Not detected (possibly bare metal)${CLR0}\n"
-	fi
+			;;
+		*)
+			printf "${CLR2}Running on %s${CLR0}\n" "$virt_type"
+			;;
+	esac
 	printf "${CLR8}%s${CLR0}\n" "$(LINE = "24")"
 }
 SYS_UPDATE() {
