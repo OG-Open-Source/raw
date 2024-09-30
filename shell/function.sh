@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.015.004
+# Version: 1.015.005
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -223,9 +223,9 @@ SYS_INFO() {
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Model:" "$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Cores:" "$(nproc)"
 	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
-	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Memory Usage:" "$(free -h | awk '/^Mem:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g')" "$(free -h | awk '/^Mem:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g')" "$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')"
-	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Swap Usage:" "$(free -h | awk '/^Swap:/ {print $3}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g')" "$(free -h | awk '/^Swap:/ {print $2}' | sed 's/Gi/ GiB/g; s/Mi/ MiB/g')" "$(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')"
-	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Disk Usage:" "$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $3/1024*1000}')" "$(df -BG / | awk 'NR==2 {gsub("G",""); printf "%.1f GiB", $2/1024*1000}')" "$(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')"
+	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Memory Usage:" "$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $3}')" "$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $2}')" "$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')"
+	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Swap Usage:" "$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $3}')" "$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $2}')" "$(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')"
+	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Disk Usage:" "$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $3}')" "$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $2}')" "$(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')"
 	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
 	if ping -c 1 ipinfo.io &>/dev/null; then
 		loc=$(curl -s ipinfo.io)
