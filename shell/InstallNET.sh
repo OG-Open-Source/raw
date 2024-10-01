@@ -540,7 +540,7 @@ $UNCOMP < /tmp/$NewIMG | cpio --extract --verbose --make-directories --no-absolu
 if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
 	CurrentKernelVersion=`ls -1 ./lib/modules 2>/dev/null |head -n1`
 	[ -n "$CurrentKernelVersion" ] && SelectLowmem="di-utils-exit-installer,driver-injection-disk-detect,fdisk-udeb,netcfg-static,parted-udeb,partman-auto,partman-ext3,ata-modules-${CurrentKernelVersion}-di,efi-modules-${CurrentKernelVersion}-di,sata-modules-${CurrentKernelVersion}-di,scsi-modules-${CurrentKernelVersion}-di,scsi-nic-modules-${CurrentKernelVersion}-di" || SelectLowmem=""
-cat >/tmp/boot/preseed.cfg<<EOF
+	cat >/tmp/boot/preseed.cfg<<EOF
 d-i debian-installer/locale string en_US.UTF-8
 d-i debian-installer/country string US
 d-i debian-installer/language string en
@@ -674,7 +674,7 @@ EOF
 	}
 
 elif [[ "$linux_relese" == 'centos' ]]; then
-cat >/tmp/boot/ks.cfg<<EOF
+	cat >/tmp/boot/ks.cfg<<EOF
 #platform=x86, AMD64, or Intel EM64T
 firewall --enabled --ssh
 install
