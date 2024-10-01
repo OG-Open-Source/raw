@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.015.007
+# Version: 1.015.008
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -37,7 +37,11 @@ ADD() {
 CHECK_OS() {
 	if [ -f /etc/debian_version ]; then
 		. /etc/os-release
-		echo "$NAME $(cat /etc/debian_version)"
+		if [ "$ID" = "ubuntu" ]; then
+			grep PRETTY_NAME /etc/os-release | cut -d '=' -f2 | tr -d '"'
+		else
+			echo "$NAME $(cat /etc/debian_version)"
+		fi
 	elif [ -f /etc/os-release ]; then
 		. /etc/os-release
 		echo "$NAME $VERSION"
