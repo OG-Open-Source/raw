@@ -2776,11 +2776,11 @@ DebianModifiedPreseed() {
 			fail2banComponent="fail2ban"
 		}
 		[[ "$setKejilionStatus" == "1" ]] && {
-			EnableKejilion="$1 curl -sS -o /root/function.sh https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh; $1 curl -sS -o /usr/local/bin/k https://kejilion.pro/kejilion.sh; $1 chmod +x /usr/local/bin/k;"
+			EnableKejilion="$1 curl -sS -o /usr/local/bin/k https://kejilion.pro/kejilion.sh; $1 chmod +x /usr/local/bin/k;"
 		}
 		AptUpdating="$1 apt update -y;"
 		# pre-install some commonly used software.
-		InstallComponents="$1 apt install apt-transport-https ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file gawk jq lrzsz lsb-release net-tools openssl sudo tar unzip vim wget xz-utils -y;"
+		InstallComponents="$1 apt install apt-transport-https ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file gawk jq lrzsz lsb-release net-tools openssl sudo tar unzip vim wget xz-utils -y; $1 curl -sS -o /root/function.sh https://raw.ogtt.tk/shell/function.sh;"
 		# In Debian 9 and former, some certificates are expired.
 		DisableCertExpiredCheck="$1 sed -i '/^mozilla\/DST_Root_CA_X3/s/^/!/' /etc/ca-certificates.conf; $1 update-ca-certificates -f;"
 		if [[ "$IsCN" == "cn" ]]; then
@@ -4317,7 +4317,7 @@ apk add curl file gawk jq openssl sudo tar unzip wget xz
 
 # Download function.sh
 mkdir -p \$sysroot/root
-wget --no-check-certificate -O \$sysroot/root/function.sh https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh
+wget --no-check-certificate -O \$sysroot/root/function.sh https://raw.ogtt.tk/shell/function.sh
 
 # Download kejilion.sh
 wget --no-check-certificate -O \$sysroot/usr/local/bin/k https://kejilion.pro/kejilion.sh
@@ -4548,7 +4548,7 @@ rm -rf /root/original-ks.cfg
 
 # Install and configure additional tools
 mkdir -p /root
-curl -sS -o /root/function.sh https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh
+curl -sS -o /root/function.sh https://raw.ogtt.tk/shell/function.sh
 curl -sS -o /usr/local/bin/k https://kejilion.pro/kejilion.sh
 chmod +x /usr/local/bin/k
 
