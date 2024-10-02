@@ -21,7 +21,7 @@
 ## Blog: https://www.zhihu.com/column/originaltechnic
 
 curl -sSL "https://raw.ogtt.tk/shell/function.sh" -o "function.sh"
-source "function.sh"
+source ./function.sh
 
 tmpVER=''
 tmpDIST=''
