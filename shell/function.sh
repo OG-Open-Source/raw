@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.015.008
+# Version: 1.015.009
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -212,20 +212,20 @@ SYS_CLEAN() {
 SYS_INFO() {
 	width=19
 	printf "${CLR3}System Information${CLR0}\n"
-	printf "${CLR8}%s${CLR0}\n" "$(LINE = "24")"
+	printf "${CLR8}$(LINE = "24")${CLR0}\n"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Hostname:" "$(hostname)"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Operating System:" "$(CHECK_OS)"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Kernel Version:" "$(uname -r)"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "System Language:" "$LANG"
-	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
+	printf "${CLR8}$(LINE - "32")${CLR0}\n"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Architecture:" "$(uname -m)"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Model:" "$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Cores:" "$(nproc)"
-	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
+	printf "${CLR8}$(LINE - "32")${CLR0}\n"
 	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Memory Usage:" "$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $3}')" "$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $2}')" "$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')"
 	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Swap Usage:" "$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $3}')" "$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $2}')" "$(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')"
 	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Disk Usage:" "$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $3}')" "$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $2}')" "$(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')"
-	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
+	printf "${CLR8}$(LINE - "32")${CLR0}\n"
 	if ping -c 1 ipinfo.io &>/dev/null; then
 		loc=$(curl -s ipinfo.io)
 		printf "%-${width}s ${CLR2}%s${CLR0}\n" "IPv4 Address:" "$(echo "$loc" | jq -r .ip)"
@@ -235,11 +235,11 @@ SYS_INFO() {
 		printf "%-${width}s ${CLR1}%s${CLR0}\n" "Network Status:" "OFFLINE"
 	fi
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Timezone:" "$(TIMEZONE)"
-	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
+	printf "${CLR8}$(LINE - "32")${CLR0}\n"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Load Average:" "$(uptime | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//')"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "System Uptime:" "$(uptime -p | sed 's/up //')"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Boot Time:" "$(who -b | awk '{print $3, $4}')"
-	printf "${CLR8}%s${CLR0}\n" "$(LINE - "32")"
+	printf "${CLR8}$(LINE - "32")${CLR0}\n"
 	pkg_count=$(case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk) apk info | wc -l ;;
 		*apt) dpkg --get-selections | wc -l ;;
@@ -276,7 +276,7 @@ SYS_INFO() {
 			printf "${CLR2}Running on %s${CLR0}\n" "$virt_type"
 			;;
 	esac
-	printf "${CLR8}%s${CLR0}\n" "$(LINE = "24")"
+	printf "${CLR8}$(LINE = "24")${CLR0}\n"
 }
 SYS_UPDATE() {
 	CHECK_ROOT
