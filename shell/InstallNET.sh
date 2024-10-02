@@ -619,12 +619,18 @@ d-i grub-installer/bootdev string $IncDisk
 d-i grub-installer/force-efi-extra-removable boolean true
 d-i finish-install/reboot_in_progress note
 d-i debian-installer/exit/reboot boolean true
+
+
 d-i preseed/late_command string	\
 sed -ri 's/^#?Port.*/Port ${sshPORT}/g' /target/etc/ssh/sshd_config; \
 sed -ri 's/^#?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config; \
 sed -ri 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config; \
 echo '@reboot root cat /etc/run.sh 2>/dev/null |base64 -d >/tmp/run.sh; rm -rf /etc/run.sh; sed -i /^@reboot/d /etc/crontab; bash /tmp/run.sh' >>/target/etc/crontab; \
+
+
 echo '' >>/target/etc/crontab; \
+
+
 echo '${setCMD}' >/target/etc/run.sh; \
 in-target apt update -y; \
 in-target apt install -y curl file gawk jq openssl sudo tar unzip wget xz-utils; \
