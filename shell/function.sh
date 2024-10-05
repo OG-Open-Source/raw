@@ -1,7 +1,8 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.015.009
+# Version: 1.015.010
+# License: MIT License
 
 CLR1="\033[31m"
 CLR2="\033[32m"
@@ -228,8 +229,17 @@ SYS_INFO() {
 	printf "${CLR8}$(LINE - "32")${CLR0}\n"
 	if ping -c 1 ipinfo.io &>/dev/null; then
 		loc=$(curl -s ipinfo.io)
-		printf "%-${width}s ${CLR2}%s${CLR0}\n" "IPv4 Address:" "$(echo "$loc" | jq -r .ip)"
-		printf "%-${width}s ${CLR2}%s${CLR0}\n" "IPv6 Address:" "$(curl -s ipv6.ip.sb)"
+		if timeout 3 ping -c 1 ipv4.ip.sb &>/dev/null; then
+			printf "%-${width}s ${CLR2}%s${CLR0}\n" "IPv4 Address:" "$(curl -s ipv4.ip.sb)"
+		else
+			printf "%-${width}s ${CLR1}%s${CLR0}\n" "IPv4 Address:" "Not Available"
+		fi
+		if timeout 3 ping -c 1 ipv6.ip.sb &>/dev/null; then
+			printf "%-${width}s ${CLR2}%s${CLR0}\n" "IPv6 Address:" "$(curl -s ipv6.ip.sb)"
+		else
+			printf "%-${width}s ${CLR1}%s${CLR0}\n" "IPv6 Address:" "Not Available"
+		fi
+		printf "%-${width}s ${CLR2}%s${CLR0}\n" "Network Provider:" "$(echo "$loc" | jq -r .org)"
 		printf "%-${width}s ${CLR2}%s, %s${CLR0}\n" "Location:" "$(echo "$loc" | jq -r .city)" "$(echo "$loc" | jq -r .country)"
 	else
 		printf "%-${width}s ${CLR1}%s${CLR0}\n" "Network Status:" "OFFLINE"
