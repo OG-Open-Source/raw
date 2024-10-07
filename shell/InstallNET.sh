@@ -3334,7 +3334,7 @@ echo -e "Kernel Version:\t\t${CLR2}$(uname -r)${CLR0}"
 echo -e "System Language:\t${CLR2}$LANG${CLR0}"
 
 echo -e "\nArchitecture:\t\t${CLR2}$(uname -m)${CLR0}"
-echo -e "CPU Model:\t\t${CLR2}$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')${CLR0}"
+echo -e "CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
 echo -e "CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
 setDisk=$(echo "$setDisk" | sed 's/[A-Z]/\l&/g')
 getDisk "$setDisk" "$linux_relese"
@@ -3370,46 +3370,13 @@ if [[ "$SpikCheckDIST" == '0' ]]; then
 	echo -e "${CLR2}Success${CLR0}"
 fi
 
-echo -e "\nMemory Usage:\t\t${CLR2}$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $3}') / $(free -m | awk '/^Mem:/ {printf "%.0f MiB", $2}') ($(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')%)${CLR0}"
-echo -e "Swap Usage:\t\t${CLR2}$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $3}') / $(free -m | awk '/^Swap:/ {printf "%.0f MiB", $2}') ($(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')%)${CLR0}"
-echo -e "Disk Usage:\t\t${CLR2}$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $3}') / $(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $2}') ($(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')%)${CLR0}"
+echo -e "\nMemory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
+echo -e "Swap Usage:\t\t${CLR2}$(SWAP_USAGE)${CLR0}"
+echo -e "Disk Usage:\t\t${CLR2}$(DISK_USAGE)${CLR0}"
 
-pkg_count=$(case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
-	*apk) apk info | wc -l ;;
-	*apt) dpkg --get-selections | wc -l ;;
-	*dnf|*yum) rpm -qa | wc -l ;;
-	*opkg) opkg list-installed | wc -l ;;
-	*pacman) pacman -Q | wc -l ;;
-	*zypper) zypper se --installed-only | wc -l ;;
-esac)
-echo -e "\nPackages:\t\t${CLR2}${pkg_count}${CLR0}"
+echo -e "\nPackages:\t\t${CLR2}$(PKG_COUNT)${CLR0}"
 echo -e "Process Count:\t\t${CLR2}$(ps aux | wc -l)${CLR0}"
-echo -ne "Virtualization:"
-virt_type=$(systemd-detect-virt 2>/dev/null)
-case "$virt_type" in
-	kvm)
-		if [ -f /sys/class/dmi/id/product_name ] && grep -qi "proxmox" /sys/class/dmi/id/product_name; then
-			echo -e "\t\t${CLR2}Running in Proxmox VE (KVM)${CLR0}"
-		else
-			echo -e "\t\t${CLR2}Running on KVM${CLR0}"
-		fi
-		;;
-	none)
-		if [ -f /proc/1/environ ] && grep -q "container=lxc" /proc/1/environ; then
-			echo -e "\t\t${CLR2}Running in LXC container${CLR0}"
-		elif [ -f /proc/cpuinfo ] && grep -qi "hypervisor" /proc/cpuinfo; then
-			echo -e "\t\t${CLR2}Running in a virtual machine (unknown type)${CLR0}"
-		else
-			echo -e "\t\t${CLR2}Not detected (possibly bare metal)${CLR0}"
-		fi
-		;;
-	"")
-		echo -e "\t\t${CLR2}Not detected (possibly bare metal)${CLR0}"
-		;;
-	*)
-		echo -e "\t\t${CLR2}Running on $virt_type${CLR0}"
-		;;
-esac
+echo -ne "Virtualization:\t\t${CLR2}$(CHECK_VIRT)${CLR0}"
 
 # Disable SELinux
 [[ -f /etc/selinux/config ]] && {
