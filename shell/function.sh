@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.021.001
+# Version: 1.021.002
 # License: MIT License
 
 CLR1="\033[31m"
@@ -17,21 +17,75 @@ CLR0="\033[0m"
 
 ADD() {
 	CHECK_ROOT
-	[ $# -eq 0 ] && return
+	if [ $# -eq 0 ]; then
+		echo "No packages specified for installation"
+		return 1
+	fi
 	for app in "$@"; do
 		echo -e "${CLR3}INSTALL [$app]${CLR0}"
 		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
-			*apk) apk info "$app" &>/dev/null || { apk update && apk add "$app"; } ;;
-			*apt) dpkg -l | grep -qw "$app" || { apt update -y && apt install -y "$app"; } ;;
-			*dnf) dnf list installed "$app" &>/dev/null || { dnf -y update && dnf install -y epel-release "$app"; } ;;
-			*opkg) opkg list-installed | grep -qw "$app" || { opkg update && opkg install "$app"; } ;;
-			*pacman) pacman -Q "$app" &>/dev/null || { pacman -Syu --noconfirm && pacman -S --noconfirm "$app"; } ;;
-			*yum) yum list installed "$app" &>/dev/null || { yum -y update && yum install -y epel-release "$app"; } ;;
-			*zypper) zypper se --installed-only "$app" &>/dev/null || { zypper refresh && zypper install -y "$app"; } ;;
-			*) return ;;
+			*apk)
+				if ! apk info "$app" &>/dev/null; then
+					if ! apk update && apk add "$app"; then
+						echo "Failed to install $app using apk"
+						return 1
+					fi
+				fi
+				;;
+			*apt)
+				if ! dpkg -l | grep -qw "$app"; then
+					if ! apt update -y && apt install -y "$app"; then
+						echo "Failed to install $app using apt"
+						return 1
+					fi
+				fi
+				;;
+			*dnf)
+				if ! dnf list installed "$app" &>/dev/null; then
+					if ! dnf -y update && dnf install -y epel-release "$app"; then
+						echo "Failed to install $app using dnf"
+						return 1
+					fi
+				fi
+				;;
+			*opkg)
+				if ! opkg list-installed | grep -qw "$app"; then
+					if ! opkg update && opkg install "$app"; then
+						echo "Failed to install $app using opkg"
+						return 1
+					fi
+				fi
+				;;
+			*pacman)
+				if ! pacman -Q "$app" &>/dev/null; then
+					if ! pacman -Syu --noconfirm && pacman -S --noconfirm "$app"; then
+						echo "Failed to install $app using pacman"
+						return 1
+					fi
+				fi
+				;;
+			*yum)
+				if ! yum list installed "$app" &>/dev/null; then
+					if ! yum -y update && yum install -y epel-release "$app"; then
+						echo "Failed to install $app using yum"
+						return 1
+					fi
+				fi
+				;;
+			*zypper)
+				if ! zypper se --installed-only "$app" &>/dev/null; then
+					if ! zypper refresh && zypper install -y "$app"; then
+						echo "Failed to install $app using zypper"
+						return 1
+					fi
+				fi
+				;;
+			*)
+				echo "Unsupported package manager"
+				return 1
+				;;
 		esac
-		echo -e "${CLR2}FINISHED${CLR0}"
-		echo
+		echo -e "${CLR2}FINISHED${CLR0}\n"
 	done
 }
 
@@ -119,21 +173,89 @@ COPYRIGHT() {
 
 DEL() {
 	CHECK_ROOT
-	[ $# -eq 0 ] && return
+	if [ $# -eq 0 ]; then
+		echo "No packages specified for removal"
+		return 1
+	fi
 	for app in "$@"; do
 		echo -e "${CLR3}REMOVE [$app]${CLR0}"
 		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
-			*apk) apk info "$app" &>/dev/null && apk del "$app" ;;
-			*apt) dpkg -l | grep -q "^ii  $app" && apt purge -y "$app" ;;
-			*dnf) dnf list installed "$app" &>/dev/null && dnf remove -y "$app" ;;
-			*opkg) opkg list-installed | grep -q "$app" && opkg remove "$app" ;;
-			*pacman) pacman -Q "$app" &>/dev/null && pacman -Rns --noconfirm "$app" ;;
-			*yum) yum list installed "$app" &>/dev/null && yum remove -y "$app" ;;
-			*zypper) zypper se --installed-only "$app" | grep -q "$app" && zypper remove -y "$app" ;;
-			*) return ;;
+			*apk)
+				if ! apk info "$app" &>/dev/null; then
+					echo "Package $app not found"
+					return 1
+				fi
+				if ! apk del "$app"; then
+					echo "Failed to remove package $app"
+					return 1
+				fi
+				;;
+			*apt)
+				if ! dpkg -l | grep -q "^ii  $app"; then
+					echo "Package $app not installed"
+					return 1
+				fi
+				if ! apt purge -y "$app"; then
+					echo "Failed to remove package $app"
+					return 1
+				fi
+				;;
+			*dnf)
+				if ! dnf list installed "$app" &>/dev/null; then
+					echo "Package $app not installed"
+					return 1
+				fi
+				if ! dnf remove -y "$app"; then
+					echo "Failed to remove package $app"
+					return 1
+				fi
+				;;
+			*opkg)
+				if ! opkg list-installed | grep -q "$app"; then
+					echo "Package $app not installed"
+					return 1
+				fi
+				if ! opkg remove "$app"; then
+					echo "Failed to remove package $app"
+					return 1
+				fi
+				;;
+			*pacman)
+				if ! pacman -Q "$app" &>/dev/null; then
+					echo "Package $app not installed"
+					return 1
+				fi
+				if ! pacman -Rns --noconfirm "$app"; then
+					echo "Failed to remove package $app"
+					return 1
+				fi
+				;;
+			*yum)
+				if ! yum list installed "$app" &>/dev/null; then
+					echo "Package $app not installed"
+					return 1
+				fi
+				if ! yum remove -y "$app"; then
+					echo "Failed to remove package $app"
+					return 1
+				fi
+				;;
+			*zypper)
+				if ! zypper se --installed-only "$app" | grep -q "$app"; then
+					echo "Package $app not installed"
+					return 1
+				fi
+				if ! zypper remove -y "$app"; then
+					echo "Failed to remove package $app"
+					return 1
+				fi
+				;;
+			*)
+				echo "Unsupported package manager"
+				return 1
+				;;
 		esac
-		echo -e "${CLR2}FINISHED${CLR0}"
-		echo
+		echo -e "${CLR2}FINISHED${CLR0}\n"
 	done
 }
 DISK_USAGE() {
@@ -144,21 +266,61 @@ DISK_USAGE() {
 }
 
 FIND() {
-	[ $# -eq 0 ] && return
+	if [ $# -eq 0 ]; then
+		echo "No search terms provided"
+		return 1
+	fi
 	for app in "$@"; do
 		echo -e "${CLR3}SEARCH [$app]${CLR0}"
 		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
-			*apk) apk search "$app" ;;
-			*apt) apt-cache search "$app" ;;
-			*dnf) dnf search "$app" ;;
-			*opkg) opkg search "$app" ;;
-			*pacman) pacman -Ss "$app" ;;
-			*yum) yum search "$app" ;;
-			*zypper) zypper search "$app" ;;
-			*) return ;;
+			*apk)
+				if ! apk search "$app"; then
+					echo "No results found for $app"
+					return 1
+				fi
+				;;
+			*apt)
+				if ! apt-cache search "$app"; then
+					echo "No results found for $app"
+					return 1
+				fi
+				;;
+			*dnf)
+				if ! dnf search "$app"; then
+					echo "No results found for $app"
+					return 1
+				fi
+				;;
+			*opkg)
+				if ! opkg search "$app"; then
+					echo "No results found for $app"
+					return 1
+				fi
+				;;
+			*pacman)
+				if ! pacman -Ss "$app"; then
+					echo "No results found for $app"
+					return 1
+				fi
+				;;
+			*yum)
+				if ! yum search "$app"; then
+					echo "No results found for $app"
+					return 1
+				fi
+				;;
+			*zypper)
+				if ! zypper search "$app"; then
+					echo "No results found for $app"
+					return 1
+				fi
+				;;
+			*)
+				echo "Unsupported package manager"
+				return 1
+				;;
 		esac
-		echo -e "${CLR2}FINISHED${CLR0}"
-		echo
+		echo -e "${CLR2}FINISHED${CLR0}\n"
 	done
 }
 FONT() {
@@ -210,12 +372,46 @@ MEM_USAGE() {
 
 PKG_COUNT() {
 	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
-		*apk) apk info | wc -l ;;
-		*apt) dpkg --get-selections | wc -l ;;
-		*dnf|*yum) rpm -qa | wc -l ;;
-		*opkg) opkg list-installed | wc -l ;;
-		*pacman) pacman -Q | wc -l ;;
-		*zypper) zypper se --installed-only | wc -l ;;
+		*apk)
+			if ! apk info | wc -l; then
+				echo "Failed to count APK packages"
+				return 1
+			fi
+			;;
+		*apt)
+			if ! dpkg --get-selections | wc -l; then
+				echo "Failed to count APT packages"
+				return 1
+			fi
+			;;
+		*dnf|*yum)
+			if ! rpm -qa | wc -l; then
+				echo "Failed to count RPM packages"
+				return 1
+			fi
+			;;
+		*opkg)
+			if ! opkg list-installed | wc -l; then
+				echo "Failed to count OPKG packages"
+				return 1
+			fi
+			;;
+		*pacman)
+			if ! pacman -Q | wc -l; then
+				echo "Failed to count Pacman packages"
+				return 1
+			fi
+			;;
+		*zypper)
+			if ! zypper se --installed-only | wc -l; then
+				echo "Failed to count Zypper packages"
+				return 1
+			fi
+			;;
+		*)
+			echo "Unsupported package manager"
+			return 1
+			;;
 	esac
 }
 PROGRESS() {
@@ -252,33 +448,154 @@ SYS_CLEAN() {
 	echo -e "${CLR3}Performing system cleanup...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
-		*apk) apk cache clean; rm -rf /tmp/* /var/cache/apk/* /var/log/* ;;
+		*apk)
+			if ! apk cache clean; then
+				echo -e "${CLR1}Failed to clean APK cache${CLR0}"
+				return 1
+			fi
+			if ! rm -rf /tmp/* /var/cache/apk/* /var/log/*; then
+				echo -e "${CLR1}Failed to remove temporary files${CLR0}"
+				return 1
+			fi
+			if ! apk fix; then
+				echo -e "${CLR1}Failed to fix APK packages${CLR0}"
+				return 1
+			fi
+			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
 				sleep 0.5
 			done
-			DEBIAN_FRONTEND=noninteractive dpkg --configure -a
-			apt autoremove --purge -y
-			apt clean -y
-			apt autoclean -y
+			if ! DEBIAN_FRONTEND=noninteractive dpkg --configure -a; then
+				echo -e "${CLR1}Failed to configure pending packages${CLR0}"
+				return 1
+			fi
+			if ! apt autoremove --purge -y; then
+				echo -e "${CLR1}Failed to autoremove packages${CLR0}"
+				return 1
+			fi
+			if ! apt clean -y; then
+				echo -e "${CLR1}Failed to clean APT cache${CLR0}"
+				return 1
+			fi
+			if ! apt autoclean -y; then
+				echo -e "${CLR1}Failed to autoclean APT cache${CLR0}"
+				return 1
+			fi
 			;;
-		*dnf) dnf autoremove -y; dnf clean all; dnf makecache ;;
-		*opkg) rm -rf /tmp/* /var/log/*; opkg update; opkg clean ;;
-		*pacman) pacman -Sc --noconfirm; pacman -Scc --noconfirm ;;
-		*yum) yum autoremove -y; yum clean all; yum makecache ;;
-		*zypper) zypper clean --all; zypper refresh ;;
-		*) return 1 ;;
+		*dnf)
+			if ! dnf autoremove -y; then
+				echo -e "${CLR1}Failed to autoremove packages${CLR0}"
+				return 1
+			fi
+			if ! dnf clean all; then
+				echo -e "${CLR1}Failed to clean DNF cache${CLR0}"
+				return 1
+			fi
+			if ! dnf makecache; then
+				echo -e "${CLR1}Failed to make DNF cache${CLR0}"
+				return 1
+			fi
+			;;
+		*opkg)
+			if ! rm -rf /tmp/* /var/log/*; then
+				echo -e "${CLR1}Failed to remove temporary files${CLR0}"
+				return 1
+			fi
+			if ! opkg update; then
+				echo -e "${CLR1}Failed to update OPKG${CLR0}"
+				return 1
+			fi
+			if ! opkg clean; then
+				echo -e "${CLR1}Failed to clean OPKG cache${CLR0}"
+				return 1
+			fi
+			;;
+		*pacman)
+			if ! pacman -Syu --noconfirm; then
+				echo -e "${CLR1}Failed to update and upgrade packages${CLR0}"
+				return 1
+			fi
+			if ! pacman -Sc --noconfirm; then
+				echo -e "${CLR1}Failed to clean pacman cache${CLR0}"
+				return 1
+			fi
+			if ! pacman -Scc --noconfirm; then
+				echo -e "${CLR1}Failed to clean all pacman cache${CLR0}"
+				return 1
+			fi
+			;;
+		*yum)
+			if ! yum autoremove -y; then
+				echo -e "${CLR1}Failed to autoremove packages${CLR0}"
+				return 1
+			fi
+			if ! yum clean all; then
+				echo -e "${CLR1}Failed to clean YUM cache${CLR0}"
+				return 1
+			fi
+			if ! yum makecache; then
+				echo -e "${CLR1}Failed to make YUM cache${CLR0}"
+				return 1
+			fi
+			;;
+		*zypper)
+			if ! zypper clean --all; then
+				echo -e "${CLR1}Failed to clean Zypper cache${CLR0}"
+				return 1
+			fi
+			if ! zypper refresh; then
+				echo -e "${CLR1}Failed to refresh Zypper repositories${CLR0}"
+				return 1
+			fi
+			;;
+		*)
+			echo "Unsupported package manager. Skipping system-specific cleanup."
+			return 1
+			;;
 	esac
-
 	if command -v journalctl &>/dev/null; then
-		journalctl --rotate
-		journalctl --vacuum-time=1d
-		journalctl --vacuum-size=500M
+		if ! journalctl --rotate --vacuum-time=1d --vacuum-size=500M; then
+			echo -e "${CLR1}Failed to rotate and vacuum journalctl logs${CLR0}"
+			return 1
+		fi
 	fi
-
-	find /var/log -type f -delete
-	rm -rf /tmp/*
+	if ! find /var/log -type f -delete; then
+		echo -e "${CLR1}Failed to delete log files${CLR0}"
+		return 1
+	fi
+	if ! rm -rf /tmp/*; then
+		echo -e "${CLR1}Failed to remove temporary files${CLR0}"
+		return 1
+	fi
+	for cmd in docker npm pip; do
+		if command -v "$cmd" &>/dev/null; then
+			case "$cmd" in
+				npm)
+					if ! npm cache clean --force; then
+						echo -e "${CLR1}Failed to clean NPM cache${CLR0}"
+						return 1
+					fi
+					;;
+				pip)
+					if ! pip cache purge; then
+						echo -e "${CLR1}Failed to purge PIP cache${CLR0}"
+						return 1
+					fi
+					;;
+			esac
+		fi
+	done
+	if ! rm -rf ~/.cache/*; then
+		echo -e "${CLR1}Failed to remove user cache files${CLR0}"
+		return 1
+	fi
+	if ! rm -rf ~/.thumbnails/*; then
+		echo -e "${CLR1}Failed to remove thumbnail files${CLR0}"
+		return 1
+	fi
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
 SYS_INFO() {
 	width=19
@@ -331,43 +648,58 @@ SYS_UPDATE() {
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk)
-			apk update && apk upgrade
+			if ! apk update && apk upgrade; then
+				echo -e "${CLR1}Failed to update and upgrade packages using apk${CLR0}"
+				return 1
+			fi
 			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
 				echo "Waiting for dpkg lock to be released..."
 				sleep 1
 			done
-			DEBIAN_FRONTEND=noninteractive apt update -y && apt full-upgrade -y
+			if ! DEBIAN_FRONTEND=noninteractive apt update -y && apt full-upgrade -y; then
+				echo -e "${CLR1}Failed to update and upgrade packages using apt${CLR0}"
+				return 1
+			fi
 			;;
 		*dnf)
-			dnf -y update
+			if ! dnf -y update; then
+				echo -e "${CLR1}Failed to update packages using dnf${CLR0}"
+				return 1
+			fi
 			;;
 		*opkg)
-			opkg update && opkg upgrade
+			if ! opkg update && opkg upgrade; then
+				echo -e "${CLR1}Failed to update and upgrade packages using opkg${CLR0}"
+				return 1
+			fi
 			;;
 		*pacman)
-			pacman -Syu --noconfirm
+			if ! pacman -Syu --noconfirm; then
+				echo -e "${CLR1}Failed to update and upgrade packages using pacman${CLR0}"
+				return 1
+			fi
 			;;
 		*yum)
-			yum -y update
+			if ! yum -y update; then
+				echo -e "${CLR1}Failed to update packages using yum${CLR0}"
+				return 1
+			fi
 			;;
 		*zypper)
-			zypper refresh && zypper update -y
+			if ! zypper refresh && zypper update -y; then
+				echo -e "${CLR1}Failed to refresh and update packages using zypper${CLR0}"
+				return 1
+			fi
 			;;
 		*)
-			echo "Error: Unsupported package manager"
+			echo -e "${CLR1}Unsupported package manager${CLR0}"
 			return 1
 			;;
 	esac
-	
-	if [ $? -eq 0 ]; then
-		echo -e "${CLR2}System update completed successfully.${CLR0}"
-	else
-		echo -e "${CLR1}System update failed. Please check the error messages above.${CLR0}"
-	fi
-	
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
 
 TIMEZONE() {
