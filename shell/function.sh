@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 1.015.011
+# Version: 1.021.001
 # License: MIT License
 
 CLR1="\033[31m"
@@ -66,11 +66,52 @@ CHECK_OS() {
 	fi
 }
 CHECK_ROOT() {
-	[ "$(id -u)" -ne 0 ] && { echo -e "${CLR1}Please run this script as root user.${CLR0}"; exit 1; }
+	if [ "$EUID" -ne 0 ] || [ "$(id -u)" -ne 0 ]; then
+		echo -e "${CLR1}Please run this script as root user.${CLR0}"
+		exit 1
+	fi
+}
+CHECK_VIRT() {
+	virt_type=$(systemd-detect-virt 2>/dev/null)
+	case "$virt_type" in
+		kvm)
+			if [ -f /sys/class/dmi/id/product_name ] && grep -qi "proxmox" /sys/class/dmi/id/product_name; then
+				echo "Proxmox VE (KVM)"
+			else
+				echo "KVM"
+			fi
+			;;
+		none)
+			if [ -f /proc/1/environ ] && grep -q "container=lxc" /proc/1/environ; then
+				echo "LXC container"
+			elif [ -f /proc/cpuinfo ] && grep -qi "hypervisor" /proc/cpuinfo; then
+				echo "Virtual machine (Unknown type)"
+			else
+				echo "Not detected (possibly bare metal)"
+			fi
+			;;
+		"")
+			echo "Not detected (possibly bare metal)"
+			;;
+		*)
+			echo "$virt_type"
+			;;
+	esac
 }
 CLEAN() {
 	cd ~
 	clear
+}
+CPU_MODEL() {
+	if command -v lscpu >/dev/null 2>&1; then
+		lscpu | awk -F': +' '/Model name:/ {print $2; exit}'
+	elif [ -f /proc/cpuinfo ]; then
+		awk -F': ' '/model name/ {print $2; exit}' /proc/cpuinfo
+	elif command -v sysctl >/dev/null 2>&1; then
+		sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Unknown CPU model"
+	else
+		echo "Unable to determine CPU model"
+	fi
 }
 COPYRIGHT() {
 	echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."
@@ -94,6 +135,12 @@ DEL() {
 		echo -e "${CLR2}FINISHED${CLR0}"
 		echo
 	done
+}
+DISK_USAGE() {
+	used=$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $3}')
+	total=$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $2}')
+	percentage=$(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')
+	echo "$used / $total ($percentage%)"
 }
 
 FIND() {
@@ -154,6 +201,23 @@ LINE() {
 	printf '%*s' "$2" '' | tr ' ' "$1"
 }
 
+MEM_USAGE() {
+	used=$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $3}')
+	total=$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $2}')
+	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')
+	echo "$used / $total ($percentage%)"
+}
+
+PKG_COUNT() {
+	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
+		*apk) apk info | wc -l ;;
+		*apt) dpkg --get-selections | wc -l ;;
+		*dnf|*yum) rpm -qa | wc -l ;;
+		*opkg) opkg list-installed | wc -l ;;
+		*pacman) pacman -Q | wc -l ;;
+		*zypper) zypper se --installed-only | wc -l ;;
+	esac
+}
 PROGRESS() {
 	num_cmds=${#cmds[@]}
 	term_width=$(tput cols)
@@ -165,10 +229,10 @@ PROGRESS() {
 		filled_width=$((progress * bar_width / 100))
 		printf "\r\033[30;42mProgress: [%3d%%]\033[0m [%s%s]" "$progress" "$(printf "%${filled_width}s" | tr ' ' '#')" "$(printf "%$((bar_width - filled_width))s" | tr ' ' '.')"
 		if ! output=$(eval "${cmds[$i]}" 2>&1); then
-		echo -e "\n$output"
-		stty echo
-		trap - SIGINT SIGQUIT SIGTSTP
-		return 1
+			echo -e "\n$output"
+			stty echo
+			trap - SIGINT SIGQUIT SIGTSTP
+			return 1
 		fi
 	done
 	printf "\r\033[30;42mProgress: [100%%]\033[0m [%s]" "$(printf "%${bar_width}s" | tr ' ' '#')"
@@ -177,6 +241,12 @@ PROGRESS() {
 	trap - SIGINT SIGQUIT SIGTSTP
 }
 
+SWAP_USAGE() {
+	used=$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $3}')
+	total=$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $2}')
+	percentage=$(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')
+	echo "$used / $total ($percentage%)"
+}
 SYS_CLEAN() {
 	CHECK_ROOT
 	echo -e "${CLR3}Performing system cleanup...${CLR0}"
@@ -191,7 +261,7 @@ SYS_CLEAN() {
 			apt autoremove --purge -y
 			apt clean -y
 			apt autoclean -y
-			 ;;
+			;;
 		*dnf) dnf autoremove -y; dnf clean all; dnf makecache ;;
 		*opkg) rm -rf /tmp/* /var/log/*; opkg update; opkg clean ;;
 		*pacman) pacman -Sc --noconfirm; pacman -Scc --noconfirm ;;
@@ -220,15 +290,14 @@ SYS_INFO() {
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "System Language:" "$LANG"
 	printf "${CLR8}$(LINE - "32")${CLR0}\n"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Architecture:" "$(uname -m)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Model:" "$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Model:" "$(CPU_MODEL)"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Cores:" "$(nproc)"
 	printf "${CLR8}$(LINE - "32")${CLR0}\n"
-	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Memory Usage:" "$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $3}')" "$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $2}')" "$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')"
-	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Swap Usage:" "$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $3}')" "$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $2}')" "$(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')"
-	printf "%-${width}s ${CLR2}%s / %s (%s%%)${CLR0}\n" "Disk Usage:" "$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $3}')" "$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $2}')" "$(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Memory Usage:" "$(MEM_USAGE)"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Swap Usage:" "$(SWAP_USAGE)"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Disk Usage:" "$(DISK_USAGE)"
 	printf "${CLR8}$(LINE - "32")${CLR0}\n"
 	if ping -c 1 ipinfo.io &>/dev/null; then
-		loc=$(curl -s ipinfo.io)
 		if timeout 3 ping -c 1 ipv4.ip.sb &>/dev/null; then
 			printf "%-${width}s ${CLR2}%s${CLR0}\n" "IPv4 Address:" "$(curl -s ipv4.ip.sb)"
 		else
@@ -239,8 +308,8 @@ SYS_INFO() {
 		else
 			printf "%-${width}s ${CLR1}%s${CLR0}\n" "IPv6 Address:" "N/A"
 		fi
-		printf "%-${width}s ${CLR2}%s${CLR0}\n" "Network Provider:" "$(echo "$loc" | jq -r .org)"
-		printf "%-${width}s ${CLR2}%s, %s${CLR0}\n" "Location:" "$(echo "$loc" | jq -r .city)" "$(echo "$loc" | jq -r .country)"
+		printf "%-${width}s ${CLR2}%s${CLR0}\n" "Network Provider:" "$(curl -s ipinfo.io | jq -r .org)"
+		printf "%-${width}s ${CLR2}%s, %s${CLR0}\n" "Location:" "$(curl -s ipinfo.io | jq -r .city)" "$(curl -s ipinfo.io | jq -r .country)"
 	else
 		printf "%-${width}s ${CLR1}%s${CLR0}\n" "Network Status:" "OFFLINE"
 	fi
@@ -250,42 +319,10 @@ SYS_INFO() {
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "System Uptime:" "$(uptime -p | sed 's/up //')"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Boot Time:" "$(who -b | awk '{print $3, $4}')"
 	printf "${CLR8}$(LINE - "32")${CLR0}\n"
-	pkg_count=$(case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
-		*apk) apk info | wc -l ;;
-		*apt) dpkg --get-selections | wc -l ;;
-		*dnf|*yum) rpm -qa | wc -l ;;
-		*opkg) opkg list-installed | wc -l ;;
-		*pacman) pacman -Q | wc -l ;;
-		*zypper) zypper se --installed-only | wc -l ;;
-	esac)
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Packages:" "${pkg_count}"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Packages:" "$(PKG_COUNT)"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Process Count:" "$(ps aux | wc -l)"
 	printf "%-${width}s " "Virtualization:"
-	virt_type=$(systemd-detect-virt 2>/dev/null)
-	case "$virt_type" in
-		kvm)
-			if [ -f /sys/class/dmi/id/product_name ] && grep -qi "proxmox" /sys/class/dmi/id/product_name; then
-				printf "${CLR2}Running in Proxmox VE (KVM)${CLR0}\n"
-			else
-				printf "${CLR2}Running on KVM${CLR0}\n"
-			fi
-			;;
-		none)
-			if [ -f /proc/1/environ ] && grep -q "container=lxc" /proc/1/environ; then
-				printf "${CLR2}Running in LXC container${CLR0}\n"
-			elif [ -f /proc/cpuinfo ] && grep -qi "hypervisor" /proc/cpuinfo; then
-				printf "${CLR2}Running in a virtual machine (unknown type)${CLR0}\n"
-			else
-				printf "${CLR2}Not detected (possibly bare metal)${CLR0}\n"
-			fi
-			;;
-		"")
-			printf "${CLR2}Not detected (possibly bare metal)${CLR0}\n"
-			;;
-		*)
-			printf "${CLR2}Running on %s${CLR0}\n" "$virt_type"
-			;;
-	esac
+	printf "${CLR2}%s${CLR0}\n" "$(CHECK_VIRT)"
 	printf "${CLR8}$(LINE = "24")${CLR0}\n"
 }
 SYS_UPDATE() {
@@ -293,22 +330,49 @@ SYS_UPDATE() {
 	echo -e "${CLR3}Updating system software...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
-		*apk) apk update && apk upgrade ;;
+		*apk)
+			apk update && apk upgrade
+			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				sleep 0.5
+				echo "Waiting for dpkg lock to be released..."
+				sleep 1
 			done
-			DEBIAN_FRONTEND=noninteractive apt update -y && apt full-upgrade -y ;;
-		*dnf) dnf -y update ;;
-		*opkg) opkg update && opkg upgrade ;;
-		*pacman) pacman -Syu --noconfirm ;;
-		*yum) yum -y update ;;
-		*zypper) zypper refresh && zypper update ;;
-		*) return 1 ;;
+			DEBIAN_FRONTEND=noninteractive apt update -y && apt full-upgrade -y
+			;;
+		*dnf)
+			dnf -y update
+			;;
+		*opkg)
+			opkg update && opkg upgrade
+			;;
+		*pacman)
+			pacman -Syu --noconfirm
+			;;
+		*yum)
+			yum -y update
+			;;
+		*zypper)
+			zypper refresh && zypper update -y
+			;;
+		*)
+			echo "Error: Unsupported package manager"
+			return 1
+			;;
 	esac
+	
+	if [ $? -eq 0 ]; then
+		echo -e "${CLR2}System update completed successfully.${CLR0}"
+	else
+		echo -e "${CLR1}System update failed. Please check the error messages above.${CLR0}"
+	fi
+	
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
 
 TIMEZONE() {
-	readlink /etc/localtime | sed 's/^.*zoneinfo\///' 2>/dev/null
+	timezone=$(readlink /etc/localtime | sed 's|^.*/zoneinfo/||' 2>/dev/null) ||
+	timezone=$(command -v timedatectl >/dev/null 2>&1 && timedatectl status | awk '/Time zone:/ {print $3}') ||
+	timezone=$([ -f /etc/timezone ] && cat /etc/timezone)
+	echo "${timezone:-Unknown}"
 }
