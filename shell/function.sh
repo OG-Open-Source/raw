@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.021.001
+# Version: 2.021.002
 # License: MIT License
 
 SH="function.sh"
@@ -649,8 +649,7 @@ SYS_INFO() {
 	printf "${CLR8}$(LINE - "32")${CLR0}\n"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Packages:" "$(PKG_COUNT)"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Process Count:" "$(ps aux | wc -l)"
-	printf "%-${width}s " "Virtualization:"
-	printf "${CLR2}%s${CLR0}\n" "$(CHECK_VIRT)"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Virtualization:" "$(CHECK_VIRT)"
 	printf "${CLR8}$(LINE = "24")${CLR0}\n"
 }
 SYS_UPDATE() {
