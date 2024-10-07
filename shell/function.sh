@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.021.002
+# Version: 2.022.001
 # License: MIT License
 
 SH="function.sh"
@@ -373,6 +373,12 @@ INPUT() {
 LINE() {
 	printf '%*s' "$2" '' | tr ' ' "$1"
 }
+LOAD_AVERAGE() {
+	1min=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}' | sed 's/,//')
+	5min=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $2}' | sed 's/,//')
+	15min=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $3}')
+	printf "1 min: %.2f, 5 min: %.2f, 15 min: %.2f (on %d cores)" "$1min" "$5min" "$15min" "$(nproc)"
+}
 
 MEM_USAGE() {
 	used=$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $3}')
@@ -643,7 +649,7 @@ SYS_INFO() {
 	fi
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Timezone:" "$(TIMEZONE)"
 	printf "${CLR8}$(LINE - "32")${CLR0}\n"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Load Average:" "$(uptime | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//')"
+	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Load Average:" "$(LOAD_AVERAGE)"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "System Uptime:" "$(uptime -p | sed 's/up //')"
 	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Boot Time:" "$(who -b | awk '{print $3, $4}')"
 	printf "${CLR8}$(LINE - "32")${CLR0}\n"
