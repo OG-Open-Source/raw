@@ -1,24 +1,28 @@
 #!/bin/bash
-##
-## License: GPL
-## It can reinstall Debian, Ubuntu, Kali, AlpineLinux, CentOS, AlmaLinux, RockyLinux, Fedora and Windows OS via network automatically without any other external measures and manual operations.
-## Default root password: 1917159
-## Written By MoeClub.org
-## Blog: https://moeclub.org
-## Modified By 秋水逸冰
-## Blog: https://teddysun.com/
-## Modified By VPS收割者
-## Blog: https://www.idcoffer.com/
-## Modified By airium
-## Blog: https://github.com/airium
-## Modified By 王煎饼
-## Github: https://github.com/bin456789/
-## Modified By nat.ee
-## Forum: https://hostloc.com/space-uid-49984.html
-## Modified By Bohan Yang
-## Twitter: https://twitter.com/brentybh
-## Modified By Leitbogioro
-## Blog: https://www.zhihu.com/column/originaltechnic
+
+# Version: 2024.10.08
+# License: GPL
+# It can reinstall Debian, Ubuntu, Kali, AlpineLinux, CentOS, AlmaLinux, RockyLinux, Fedora and Windows OS via network automatically without any other external measures and manual operations.
+# Default root password: 1917159
+
+# Written By MoeClub.org
+# Blog: https://moeclub.org
+# Modified By 秋水逸冰
+# Blog: https://teddysun.com/
+# Modified By VPS收割者
+# Blog: https://www.idcoffer.com/
+# Modified By airium
+# Blog: https://github.com/airium
+# Modified By 王煎饼
+# Github: https://github.com/bin456789/
+# Modified By nat.ee
+# Forum: https://hostloc.com/space-uid-49984.html
+# Modified By Bohan Yang
+# Twitter: https://twitter.com/brentybh
+# Modified By Leitbogioro
+# Blog: https://www.zhihu.com/column/originaltechnic
+# Modified By OGATA Open-Source
+# Github: https://github.com/OG-Open-Source
 
 curl -sSL "https://raw.ogtt.tk/shell/function.sh" -o "function.sh"
 source ./function.sh
@@ -94,63 +98,63 @@ while [[ $# -ge 1 ]]; do
 			tmpVER="$1"
 			shift
 			;;
-		-debian | -Debian)
+		-debian)
 			shift
 			Relese='Debian'
 			tmpDIST="$1"
 			shift
 			;;
-		-ubuntu | -Ubuntu)
+		-ubuntu)
 			shift
 			ddMode='1'
 			finalDIST="$1"
 			targetRelese='Ubuntu'
 			shift
 			;;
-		-kali | -Kali)
+		-kali)
 			shift
 			Relese='Kali'
 			tmpDIST="$1"
 			shift
 			;;
-		-centos | -CentOS | -cent | -Cent)
+		-centos)
 			shift
 			Relese='CentOS'
 			tmpDIST="$1"
 			shift
 			;;
-		-rocky | -rockylinux | -RockyLinux)
+		-rocky)
 			shift
 			Relese='RockyLinux'
 			tmpDIST="$1"
 			shift
 			;;
-		-alma | -almalinux | -AlmaLinux)
+		-alma)
 			shift
 			Relese='AlmaLinux'
 			tmpDIST="$1"
 			shift
 			;;
-		-fedora | -Fedora)
+		-fedora)
 			shift
 			Relese='Fedora'
 			tmpDIST="$1"
 			shift
 			;;
-		-alpine | -alpinelinux | -AlpineLinux | -alpineLinux)
+		-alpine)
 			shift
 			Relese='AlpineLinux'
 			tmpDIST="$1"
 			shift
 			;;
-		-win | -windows)
+		-windows)
 			shift
 			ddMode='1'
 			finalDIST="$1"
 			targetRelese='Windows'
 			shift
 			;;
-		-lang | -language)
+		-lang)
 			shift
 			targetLang="$1"
 			shift
@@ -359,7 +363,27 @@ while [[ $# -ge 1 ]]; do
 			;;
 		*)
 			if [[ "$1" != 'error' ]]; then echo -ne "\nInvaild option: '$1'\n\n"; fi
-			echo -ne " Usage:\n\tbash $(basename $0)\t-debian          ${CLR3}[dists-name]${CLR0}\n\t\t\t\t-ubuntu          [dists-name]${CLR0}\n\t\t\t\t-kali            [dists-name]${CLR0}\n\t\t\t\t-alpine          [dists-name]${CLR0}\n\t\t\t\t-centos          [dists-name]${CLR0}\n\t\t\t\t-rockylinux      [dists-name]${CLR0}\n\t\t\t\t-almalinux       [dists-name]${CLR0}\n\t\t\t\t-fedora          [dists-name]${CLR0}\n\t\t\t\t-windows         [dists-name]${CLR0}\n\t\t\t\t-architecture    [32/i386|64/${CLR3}amd64${CLR0}|arm/${CLR3}arm64]${CLR0}\n\t\t\t\t--ip-addr/--ip-gate/--ip-mask\n\t\t\t\t-apt/-yum/-mirror\n\t\t\t\t-dd/--image      [image-url]\n\t\t\t\t-pwd             [linux-password]\n\t\t\t\t-port            [linux-ssh-port]\n"
+			echo -e "${CLR2}Usage:${CLR0}\n\tbash $(basename $0) [OPTIONS]\n"
+			echo -e "${CLR3}Options:${CLR0}"
+			echo -e "\t${CLR8}-debian${CLR0} [DIST]\tSpecify Debian distribution"
+			echo -e "\t${CLR8}-ubuntu${CLR0} [DIST]\tSpecify Ubuntu distribution"
+			echo -e "\t${CLR8}-kali${CLR0} [DIST]\tSpecify Kali Linux distribution"
+			echo -e "\t${CLR8}-alpine${CLR0} [DIST]\tSpecify Alpine Linux distribution"
+			echo -e "\t${CLR8}-centos${CLR0} [DIST]\tSpecify CentOS distribution"
+			echo -e "\t${CLR8}-rocky${CLR0} [DIST]\tSpecify Rocky Linux distribution"
+			echo -e "\t${CLR8}-alma${CLR0} [DIST]\tSpecify AlmaLinux distribution"
+			echo -e "\t${CLR8}-fedora${CLR0} [DIST]\tSpecify Fedora Linux distribution"
+			echo -e "\t${CLR8}-windows${CLR0} [DIST]\tSpecify Microsoft Windows distribution"
+			echo -e "\t${CLR8}-architecture [32/i386|64/amd64|arm/arm64]${CLR0}"
+			echo -e "\t${CLR8}--ip-addr [123.456.789.012] / --ip-gate [123.456.789.012] / --ip-mask [24-32]${CLR0}"
+			echo -e "\t${CLR8}--ip6-addr [1234:5678:90ab:cdef:1234:5678:90ab:cdef] / --ip6-gate [1234:5678:90ab:cdef:1234:5678:90ab:cdef] / --ip6-mask [1-128]${CLR0}"
+			echo -e "\t${CLR8}--bbr${CLR0}\tEnable BBR congestion control algorithm"
+			echo -e "\t${CLR8}-mirror${CLR0} [URL]"
+			echo -e "\t${CLR8}-lang${CLR0} [LANG]"
+			echo -e "\t${CLR8}-dd/--image${CLR0} [URL]"
+			echo -e "\t${CLR8}-hostname${CLR0} [HOSTNAME]"
+			echo -e "\t${CLR8}-pwd${CLR0} [PASSWORD]"
+			echo -e "\t${CLR8}-port${CLR0} [SSH-PORT]"
 			exit 1
 			;;
 	esac
@@ -1423,7 +1447,7 @@ checkSys() {
 	fi
 	# Don't support Redhat like linux OS under 6 version.
 	if [[ "$CurrentOS" == "CentOS" || "$CurrentOS" == "OracleLinux" ]] && [[ "$CurrentOSVer" -le "6" ]]; then
-		echo -e "Does't support your system!\n"
+		echo -e "Does't support your system!"
 		exit 1
 	fi
 
@@ -1433,7 +1457,7 @@ checkSys() {
 	# "kdump-tools" is a dependence of "kexec-tools".
 	apt purge inetutils-ping kdump-tools kexec-tools -y
 	# Debian like linux OS necessary components.
-	apt install cpio curl dmidecode dnsutils efibootmgr fdisk file gzip iputils-ping jq net-tools openssl tuned util-linux virt-what wget xz-utils -y
+	ADD cpio curl dmidecode dnsutils efibootmgr fdisk file gzip iputils-ping jq net-tools openssl tuned util-linux virt-what wget xz-utils
 
 	# Redhat like Linux OS prefer to use dnf instead of yum because former has a higher execute efficiency.
 	yum install dnf -y
@@ -1443,7 +1467,7 @@ checkSys() {
 		[[ "$CurrentOS" == "CentOS" && "$CurrentOSVer" == "8" ]] && dnf install python3-librepo -y
 		# Redhat like linux OS necessary components.
 		dnf install epel-release -y
-		dnf install bind-utils cpio curl dmidecode dnsutils efibootmgr file gzip jq net-tools openssl redhat-lsb syslinux tuned util-linux virt-what wget xz --skip-broken -y
+		dnf install bind-utils cpio curl dmidecode dnsutils efibootmgr file gzip jq net-tools openssl redhat-lsb syslinux tuned util-linux virt-what wget xz
 	else
 		yum install dnf -y >/root/yum_execute.log 2>&1
 		# In some versions of CentOS 8 which are not subsumed into CentOS-stream are end of supporting by CentOS official, so the source is failure.
@@ -1485,8 +1509,7 @@ checkSys() {
 		# Add testing mirror.
 		# [[ ! `grep -i "testing" /etc/apk/repositories` ]] && sed -i '$a\http://ftp.udx.icscoe.jp/Linux/alpine/edge/testing' /etc/apk/repositories
 		# Alpine Linux use "apk" as package management.
-		apk update
-		apk add bash bind-tools coreutils cpio curl dmidecode efibootmgr file gawk grep gzip jq lsblk net-tools openssl sed shadow tzdata util-linux virt-what wget xz
+		ADD bash bind-tools coreutils cpio curl dmidecode efibootmgr file gawk grep gzip jq lsblk net-tools openssl sed shadow tzdata util-linux virt-what wget xz
 		# Use bash to replace ash.
 		sed -i 's/root:\/bin\/ash/root:\/bin\/bash/g' /etc/passwd
 	}
@@ -3376,7 +3399,7 @@ echo -e "Disk Usage:\t\t${CLR2}$(DISK_USAGE)${CLR0}"
 
 echo -e "\nPackages:\t\t${CLR2}$(PKG_COUNT)${CLR0}"
 echo -e "Process Count:\t\t${CLR2}$(ps aux | wc -l)${CLR0}"
-echo -ne "Virtualization:\t\t${CLR2}$(CHECK_VIRT)${CLR0}"
+echo -e "Virtualization:\t\t${CLR2}$(CHECK_VIRT)${CLR0}"
 
 # Disable SELinux
 [[ -f /etc/selinux/config ]] && {
