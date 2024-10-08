@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.022.001
+# Version: 2.022.002
 # License: MIT License
 
 SH="function.sh"
@@ -374,10 +374,8 @@ LINE() {
 	printf '%*s' "$2" '' | tr ' ' "$1"
 }
 LOAD_AVERAGE() {
-	1min=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}' | sed 's/,//')
-	5min=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $2}' | sed 's/,//')
-	15min=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $3}')
-	printf "1 min: %.2f, 5 min: %.2f, 15 min: %.2f (on %d cores)" "$1min" "$5min" "$15min" "$(nproc)"
+	read one_min five_min fifteen_min <<< $(uptime | awk -F'load average:' '{print $2}' | tr -d ',')
+	printf "1 min: %.2f, 5 min: %.2f, 15 min: %.2f (on %d cores)" "$one_min" "$five_min" "$fifteen_min" "$(nproc)"
 }
 
 MEM_USAGE() {
