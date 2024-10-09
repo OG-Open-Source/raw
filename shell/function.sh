@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.022.002
+# Version: 2.025.001
 # License: MIT License
 
 SH="function.sh"
@@ -123,6 +123,7 @@ CHECK_OS() {
 		grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
 	else
 		log_error "Unknown distribution"
+		return 1
 	fi
 }
 CHECK_ROOT() {
@@ -176,6 +177,7 @@ CPU_MODEL() {
 		sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Unknown CPU model"
 	else
 		log_error "Unable to determine CPU model"
+		return 1
 	fi
 }
 COPYRIGHT() {
@@ -369,6 +371,20 @@ FONT() {
 INPUT() {
 	read -e -p "$1" "$2"
 }
+IPv4() {
+	dig +short -4 myip.opendns.com @resolver1.opendns.com || \
+	curl -s ipv4.ip.sb || \
+	wget -qO- -4 ifconfig.me || \
+	log_error "N/A"
+	return 1
+}
+IPv6() {
+	dig +short -6 myip.opendns.com aaaa @resolver1.opendns.com || \
+	curl -s ipv6.ip.sb || \
+	wget -qO- -6 ifconfig.me || \
+	log_error "N/A"
+	return 1
+}
 
 LINE() {
 	printf '%*s' "$2" '' | tr ' ' "$1"
@@ -383,6 +399,15 @@ MEM_USAGE() {
 	total=$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $2}')
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')
 	echo "$used / $total ($percentage%)"
+}
+
+NET_PROVIDER() {
+	curl -s ipinfo.io | jq -r .org || \
+	curl -s https://ipwhois.app/json/ | jq -r .org || \
+	curl -s http://ip-api.com/json/ | jq -r .org || \
+	dig +short -x $(curl -s ipinfo.io/ip) | sed 's/\.$//' || \
+	log_error "N/A"
+	return 1
 }
 
 PKG_COUNT() {
@@ -613,48 +638,34 @@ SYS_CLEAN() {
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
 SYS_INFO() {
-	width=19
-	printf "${CLR3}System Information${CLR0}\n"
-	printf "${CLR8}$(LINE = "24")${CLR0}\n"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Hostname:" "$(hostname)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Operating System:" "$(CHECK_OS)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Kernel Version:" "$(uname -r)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "System Language:" "$LANG"
-	printf "${CLR8}$(LINE - "32")${CLR0}\n"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Architecture:" "$(uname -m)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Model:" "$(CPU_MODEL)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "CPU Cores:" "$(nproc)"
-	printf "${CLR8}$(LINE - "32")${CLR0}\n"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Memory Usage:" "$(MEM_USAGE)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Swap Usage:" "$(SWAP_USAGE)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Disk Usage:" "$(DISK_USAGE)"
-	printf "${CLR8}$(LINE - "32")${CLR0}\n"
-	if ping -c 1 ipinfo.io &>/dev/null; then
-		if timeout 3 ping -c 1 ipv4.ip.sb &>/dev/null; then
-			printf "%-${width}s ${CLR2}%s${CLR0}\n" "IPv4 Address:" "$(curl -s ipv4.ip.sb)"
-		else
-			printf "%-${width}s ${CLR1}%s${CLR0}\n" "IPv4 Address:" "N/A"
-		fi
-		if timeout 3 ping -c 1 ipv6.ip.sb &>/dev/null; then
-			printf "%-${width}s ${CLR2}%s${CLR0}\n" "IPv6 Address:" "$(curl -s ipv6.ip.sb)"
-		else
-			printf "%-${width}s ${CLR1}%s${CLR0}\n" "IPv6 Address:" "N/A"
-		fi
-		printf "%-${width}s ${CLR2}%s${CLR0}\n" "Network Provider:" "$(curl -s ipinfo.io | jq -r .org)"
-		printf "%-${width}s ${CLR2}%s, %s${CLR0}\n" "Location:" "$(curl -s ipinfo.io | jq -r .city)" "$(curl -s ipinfo.io | jq -r .country)"
-	else
-		printf "%-${width}s ${CLR1}%s${CLR0}\n" "Network Status:" "OFFLINE"
-	fi
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Timezone:" "$(TIMEZONE)"
-	printf "${CLR8}$(LINE - "32")${CLR0}\n"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Load Average:" "$(LOAD_AVERAGE)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "System Uptime:" "$(uptime -p | sed 's/up //')"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Boot Time:" "$(who -b | awk '{print $3, $4}')"
-	printf "${CLR8}$(LINE - "32")${CLR0}\n"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Packages:" "$(PKG_COUNT)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Process Count:" "$(ps aux | wc -l)"
-	printf "%-${width}s ${CLR2}%s${CLR0}\n" "Virtualization:" "$(CHECK_VIRT)"
-	printf "${CLR8}$(LINE = "24")${CLR0}\n"
+	echo -e "${CLR3}System Information${CLR0}\n"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	echo -e "Hostname:\t\t${CLR2}$(hostname)${CLR0}"
+	echo -e "Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
+	echo -e "Kernel Version:\t\t${CLR2}$(uname -r)${CLR0}"
+	echo -e "System Language:\t${CLR2}$LANG${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	echo -e "Architecture:\t\t${CLR2}$(uname -m)${CLR0}"
+	echo -e "CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
+	echo -e "CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	echo -e "Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
+	echo -e "Swap Usage:\t\t${CLR2}$(SWAP_USAGE)${CLR0}"
+	echo -e "Disk Usage:\t\t${CLR2}$(DISK_USAGE)${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	echo -e "IPv4 Address:\t\t${CLR2}$(IPv4)${CLR0}"
+	echo -e "IPv6 Address:\t\t${CLR2}$(IPv6)${CLR0}"
+	echo -e "Network Provider:\t${CLR2}$(curl -s ipinfo.io | jq -r .org)${CLR0}"
+	echo -e "Timezone:\t\t${CLR2}$(TIMEZONE)${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	echo -e "Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
+	echo -e "System Uptime:\t\t${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
+	echo -e "Boot Time:\t\t${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	echo -e "Packages:\t\t${CLR2}$(PKG_COUNT)${CLR0}"
+	echo -e "Process Count:\t\t${CLR2}$(ps aux | wc -l)${CLR0}"
+	echo -e "Virtualization:\t\t${CLR2}$(CHECK_VIRT)${CLR0}"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
 SYS_UPDATE() {
 	CHECK_ROOT
