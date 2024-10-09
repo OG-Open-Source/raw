@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.026.002
+# Version: 2.030.001-beta
 # License: MIT License
 
 SH="function.sh"
@@ -224,6 +224,23 @@ CLEAN() {
 	cd ~
 	clear
 }
+CPU_FREQ() {
+	if command -v lscpu >/dev/null 2>&1; then
+		freq=$(lscpu | awk '/CPU MHz:/ {printf "%.2f", $3/1000}')
+	elif [ -f /proc/cpuinfo ]; then
+		freq=$(awk '/cpu MHz/ {freq=$4} END {printf "%.2f", freq/1000}' /proc/cpuinfo)
+	elif command -v sysctl >/dev/null 2>&1; then
+		freq=$(sysctl -n hw.cpufrequency 2>/dev/null | awk '{printf "%.2f", $1/1e9}')
+	else
+		log_error "Unable to determine CPU frequency"
+		return 1
+	fi
+	if [ -z "$freq" ]; then
+		log_error "Failed to retrieve CPU frequency"
+		return 1
+	fi
+	echo "${freq} GHz"
+}
 CPU_MODEL() {
 	if command -v lscpu >/dev/null 2>&1; then
 		lscpu | awk -F': +' '/Model name:/ {print $2; exit}'
@@ -351,6 +368,40 @@ DISK_USAGE() {
 	percentage=$(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')
 	echo "$used / $total ($percentage%)"
 }
+DNS_ADDR () {
+	if [ ! -f /etc/resolv.conf ]; then
+		log_error "/etc/resolv.conf file not found"
+		return 1
+	fi
+	ipv4_servers=$(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
+	ipv6_servers=$(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}' | grep -E '^[0-9a-fA-F:]+$')
+
+	if [ -z "$ipv4_servers" ] && [ -z "$ipv6_servers" ]; then
+		log_error "No DNS servers found in /etc/resolv.conf"
+		return 1
+	fi
+	ipv4_result=""
+	ipv6_result=""
+	for server in $ipv4_servers; do
+		if [ -z "$ipv4_result" ]; then
+			ipv4_result="$server"
+		else
+			ipv4_result="$ipv4_result, $server"
+		fi
+	done
+	for server in $ipv6_servers; do
+		if [ -z "$ipv6_result" ]; then
+			ipv6_result="$server"
+		else
+			ipv6_result="$ipv6_result, $server"
+		fi
+	done
+	if [ -z "$ipv4_result" ] && [ -z "$ipv6_result" ]; then
+		log_error "Failed to parse DNS server addresses"
+		return 1
+	fi
+	echo "$ipv4_result   $ipv6_result"
+}
 
 FIND() {
 	if [ $# -eq 0 ]; then
@@ -445,14 +496,14 @@ FONT() {
 INPUT() {
 	read -e -p "$1" "$2"
 }
-IPv4() {
+IPv4_ADDR() {
 	dig +short -4 myip.opendns.com @resolver1.opendns.com || \
 	curl -s ipv4.ip.sb || \
 	wget -qO- -4 ifconfig.me || \
 	log_error "N/A"
 	return 1
 }
-IPv6() {
+IPv6_ADDR() {
 	dig +short -6 myip.opendns.com aaaa @resolver1.opendns.com || \
 	curl -s ipv6.ip.sb || \
 	wget -qO- -6 ifconfig.me || \
@@ -468,6 +519,15 @@ LOAD_AVERAGE() {
 	printf "%.2f, %.2f, %.2f (%d cores)" "$one_min" "$five_min" "$fifteen_min" "$(nproc)"
 }
 
+MAC_ADDR() {
+	mac_address=$(ip link show | awk '/ether/ {print $2}' | head -n1)
+	if [[ -n "$mac_address" ]]; then
+		echo "$mac_address"
+	else
+		log_error "Failed to retrieve MAC address"
+		return 1
+	fi
+}
 MEM_USAGE() {
 	used=$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $3}')
 	total=$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $2}')
@@ -550,17 +610,22 @@ PROGRESS() {
 	stty echo
 	trap - SIGINT SIGQUIT SIGTSTP
 }
+PUBLIC_IP() {
+	services=("https://ifconfig.me")
+	for service in "${services[@]}"; do
+		if ip=$(curl -s -m 5 "$service"); then
+			echo "$ip"
+			return 0
+		fi
+	done
+	log_error "Unable to determine public IP"
+	return 1
+}
 
 SHELL_VER() {
 	case "${SHELL##*/}" in
 		bash)
 			${SHELL} --version | head -n 1 | awk '{print "Bash " $4}'
-			;;
-		zsh)
-			zsh --version | awk '{print $1 " " $2}'
-			;;
-		fish)
-			fish --version | awk '{print $1 " " $3}'
 			;;
 		*)
 			echo "Unknown (${SHELL##*/})"
@@ -735,18 +800,25 @@ SYS_INFO() {
 	echo -e "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
 	echo -e "- System Language:\t${CLR2}$LANG${CLR0}"
 	echo -e "- Shell Version:\t${CLR2}$(SHELL_VER)${CLR0}"
+	echo -e "- Last System Update:\t${CLR2}$(date '+%Y-%m-%d %H:%M')${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "- Architecture:\t\t${CLR2}$(uname -m)${CLR0}"
 	echo -e "- CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
 	echo -e "- CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
+	echo -e "- CPU Frequency:\t${CLR2}$(CPU_FREQ)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "- Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
 	echo -e "- Swap Usage:\t\t${CLR2}$(SWAP_USAGE)${CLR0}"
 	echo -e "- Disk Usage:\t\t${CLR2}$(DISK_USAGE)${CLR0}"
+	echo -e "- File System Type:\t${CLR2}$(df -T / | awk 'NR==2 {print $2}')${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "- IPv4 Address:\t\t${CLR2}$(IPv4)${CLR0}"
-	echo -e "- IPv6 Address:\t\t${CLR2}$(IPv6)${CLR0}"
+	echo -e "- IPv4 Address:\t\t${CLR2}$(IPv4_ADDR)${CLR0}"
+	echo -e "- IPv6 Address:\t\t${CLR2}$(IPv6_ADDR)${CLR0}"
+	echo -e "- MAC Address:\t\t${CLR2}$(MAC_ADDR)${CLR0}"
 	echo -e "- Network Provider:\t${CLR2}$(curl -s ipinfo.io | jq -r .org)${CLR0}"
+	echo -e "- DNS Servers:\t\t${CLR2}$(DNS_ADDR)${CLR0}"
+	echo -e "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
+	echo -e "- Network Interface:\t${CLR2}$(          )${CLR0}"
 	echo -e "- Timezone:\t\t${CLR2}$(TIMEZONE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
