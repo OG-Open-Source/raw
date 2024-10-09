@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.025.002
+# Version: 2.026.001
 # License: MIT License
 
 SH="function.sh"
@@ -391,7 +391,7 @@ LINE() {
 }
 LOAD_AVERAGE() {
 	read one_min five_min fifteen_min <<< $(uptime | awk -F'load average:' '{print $2}' | tr -d ',')
-	printf "1 min: %.2f, 5 min: %.2f, 15 min: %.2f (on %d cores)" "$one_min" "$five_min" "$fifteen_min" "$(nproc)"
+	printf "%.2f, %.2f, %.2f (%d cores)" "$one_min" "$five_min" "$fifteen_min" "$(nproc)"
 }
 
 MEM_USAGE() {
@@ -477,6 +477,22 @@ PROGRESS() {
 	trap - SIGINT SIGQUIT SIGTSTP
 }
 
+SHELL_VER() {
+	case "${SHELL##*/}" in
+		bash)
+			${SHELL} --version | head -n 1 | awk '{print "Bash " $4}'
+			;;
+		zsh)
+			zsh --version | awk '{print $1 " " $2}'
+			;;
+		fish)
+			fish --version | awk '{print $1 " " $3}'
+			;;
+		*)
+			echo "Unknown (${SHELL##*/})"
+			;;
+	esac
+}
 SWAP_USAGE() {
 	used=$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $3}')
 	total=$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $2}')
@@ -640,31 +656,33 @@ SYS_CLEAN() {
 SYS_INFO() {
 	echo -e "${CLR3}System Information${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	echo -e "Hostname:\t\t${CLR2}$(hostname)${CLR0}"
-	echo -e "Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
-	echo -e "Kernel Version:\t\t${CLR2}$(uname -r)${CLR0}"
-	echo -e "System Language:\t${CLR2}$LANG${CLR0}"
+	echo -e "- Hostname:\t\t${CLR2}$(hostname)${CLR0}"
+	echo -e "- Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
+	echo -e "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
+	echo -e "- System Language:\t${CLR2}$LANG${CLR0}"
+	echo -e "- Shell Version:\t${CLR2}$(SHELL_VER)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "Architecture:\t\t${CLR2}$(uname -m)${CLR0}"
-	echo -e "CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
-	echo -e "CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
+	echo -e "- Architecture:\t\t${CLR2}$(uname -m)${CLR0}"
+	echo -e "- CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
+	echo -e "- CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
-	echo -e "Swap Usage:\t\t${CLR2}$(SWAP_USAGE)${CLR0}"
-	echo -e "Disk Usage:\t\t${CLR2}$(DISK_USAGE)${CLR0}"
+	echo -e "- Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
+	echo -e "- Swap Usage:\t\t${CLR2}$(SWAP_USAGE)${CLR0}"
+	echo -e "- Disk Usage:\t\t${CLR2}$(DISK_USAGE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "IPv4 Address:\t\t${CLR2}$(IPv4)${CLR0}"
-	echo -e "IPv6 Address:\t\t${CLR2}$(IPv6)${CLR0}"
-	echo -e "Network Provider:\t${CLR2}$(curl -s ipinfo.io | jq -r .org)${CLR0}"
-	echo -e "Timezone:\t\t${CLR2}$(TIMEZONE)${CLR0}"
+	echo -e "- IPv4 Address:\t\t${CLR2}$(IPv4)${CLR0}"
+	echo -e "- IPv6 Address:\t\t${CLR2}$(IPv6)${CLR0}"
+	echo -e "- Network Provider:\t${CLR2}$(curl -s ipinfo.io | jq -r .org)${CLR0}"
+	echo -e "- Timezone:\t\t${CLR2}$(TIMEZONE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
-	echo -e "System Uptime:\t\t${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
-	echo -e "Boot Time:\t\t${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
+	echo -e "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
+	echo -e "- Process Count:\t${CLR2}$(ps aux | wc -l)${CLR0}"
+	echo -e "- Packages Installed:\t${CLR2}$(PKG_COUNT)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "Packages:\t\t${CLR2}$(PKG_COUNT)${CLR0}"
-	echo -e "Process Count:\t\t${CLR2}$(ps aux | wc -l)${CLR0}"
-	echo -e "Virtualization:\t\t${CLR2}$(CHECK_VIRT)${CLR0}"
+	echo -e "- Uptime:\t\t${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
+	echo -e "- Boot Time:\t\t${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
+	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	echo -e "- Virtualization:\t${CLR2}$(CHECK_VIRT)${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
 SYS_UPDATE() {
