@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.026.001
+# Version: 2.026.002
 # License: MIT License
 
 SH="function.sh"
@@ -31,63 +31,119 @@ ADD() {
 		echo -e "${CLR3}INSTALL [$app]${CLR0}"
 		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 			*apk)
-				if ! apk info "$app" &>/dev/null; then
-					if ! apk update && apk add "$app"; then
+				if ! apk info -e "$app" &>/dev/null; then
+					echo "* Package $app is not installed. Attempting installation..."
+					if ! apk update; then
+						log_error "Failed to update package lists"
+						return 1
+					fi
+					if ! apk add "$app"; then
 						log_error "Failed to install $app using apk"
 						return 1
 					fi
+					echo "* Package $app installed successfully."
+				else
+					echo "* Package $app is already installed."
 				fi
 				;;
 			*apt)
-				if ! dpkg -l | grep -qw "$app"; then
-					if ! apt update -y && apt install -y "$app"; then
+				if ! dpkg-query -W -f='${Status}' "$app" 2>/dev/null | grep -q "ok installed"; then
+					echo "* Package $app is not installed. Attempting installation..."
+					if ! apt update; then
+						log_error "Failed to update package lists"
+						return 1
+					fi
+					if ! apt install -y "$app"; then
 						log_error "Failed to install $app using apt"
 						return 1
 					fi
+					echo "* Package $app installed successfully."
+				else
+					echo "* Package $app is already installed."
 				fi
 				;;
 			*dnf)
 				if ! dnf list installed "$app" &>/dev/null; then
-					if ! dnf -y update && dnf install -y epel-release "$app"; then
+					echo "* Package $app is not installed. Attempting installation..."
+					if ! dnf check-update; then
+						log_error "Failed to check for updates"
+						return 1
+					fi
+					if ! dnf install -y "$app"; then
 						log_error "Failed to install $app using dnf"
 						return 1
 					fi
+					echo "* Package $app installed successfully."
+				else
+					echo "* Package $app is already installed."
 				fi
 				;;
 			*opkg)
-				if ! opkg list-installed | grep -qw "$app"; then
-					if ! opkg update && opkg install "$app"; then
+				if ! opkg list-installed | grep -q "^$app "; then
+					echo "* Package $app is not installed. Attempting installation..."
+					if ! opkg update; then
+						log_error "Failed to update package lists"
+						return 1
+					fi
+					if ! opkg install "$app"; then
 						log_error "Failed to install $app using opkg"
 						return 1
 					fi
+					echo "* Package $app installed successfully."
+				else
+					echo "* Package $app is already installed."
 				fi
 				;;
 			*pacman)
-				if ! pacman -Q "$app" &>/dev/null; then
-					if ! pacman -Syu --noconfirm && pacman -S --noconfirm "$app"; then
+				if ! pacman -Qi "$app" &>/dev/null; then
+					echo "* Package $app is not installed. Attempting installation..."
+					if ! pacman -Sy; then
+						log_error "Failed to synchronize package databases"
+						return 1
+					fi
+					if ! pacman -S --noconfirm "$app"; then
 						log_error "Failed to install $app using pacman"
 						return 1
 					fi
+					echo "* Package $app installed successfully."
+				else
+					echo "* Package $app is already installed."
 				fi
 				;;
 			*yum)
 				if ! yum list installed "$app" &>/dev/null; then
-					if ! yum -y update && yum install -y epel-release "$app"; then
+					echo "* Package $app is not installed. Attempting installation..."
+					if ! yum check-update; then
+						log_error "Failed to check for updates"
+						return 1
+					fi
+					if ! yum install -y "$app"; then
 						log_error "Failed to install $app using yum"
 						return 1
 					fi
+					echo "* Package $app installed successfully."
+				else
+					echo "* Package $app is already installed."
 				fi
 				;;
 			*zypper)
-				if ! zypper se --installed-only "$app" &>/dev/null; then
-					if ! zypper refresh && zypper install -y "$app"; then
+				if ! zypper se -i -x "$app" &>/dev/null; then
+					echo "* Package $app is not installed. Attempting installation..."
+					if ! zypper refresh; then
+						log_error "Failed to refresh repositories"
+						return 1
+					fi
+					if ! zypper install -y "$app"; then
 						log_error "Failed to install $app using zypper"
 						return 1
 					fi
+					echo "* Package $app installed successfully."
+				else
+					echo "* Package $app is already installed."
 				fi
 				;;
 			*)
-				log_error "Unsupported package manager"
+				log_error "No supported package manager found"
 				return 1
 				;;
 		esac
@@ -194,73 +250,91 @@ DEL() {
 		echo -e "${CLR3}REMOVE [$app]${CLR0}"
 		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 			*apk)
-				if ! apk info "$app" &>/dev/null; then
-					log_error "Package $app not found"
-					return 1
-				fi
-				if ! apk del "$app"; then
-					log_error "Failed to remove package $app"
-					return 1
+				if apk info "$app" &>/dev/null; then
+					echo "* Package $app is installed. Attempting removal..."
+					if ! apk del "$app"; then
+						log_error "Failed to remove package $app"
+						return 1
+					fi
+					echo "* Package $app removed successfully."
+				else
+					echo "* Package $app is not installed."
 				fi
 				;;
 			*apt)
-				if ! dpkg -l | grep -q "^ii  $app"; then
-					log_error "Package $app not installed"
-					return 1
-				fi
-				if ! apt purge -y "$app"; then
-					log_error "Failed to remove package $app"
-					return 1
+				if dpkg -l | grep -q "^ii  $app"; then
+					echo "* Package $app is installed. Attempting removal..."
+					if ! apt purge -y "$app"; then
+						log_error "Failed to purge package $app"
+						return 1
+					fi
+					if ! apt autoremove -y; then
+						log_error "Failed to autoremove package $app"
+						return 1
+					fi
+					echo "* Package $app removed successfully."
+				else
+					echo "* Package $app is not installed."
 				fi
 				;;
 			*dnf)
-				if ! dnf list installed "$app" &>/dev/null; then
-					log_error "Package $app not installed"
-					return 1
-				fi
-				if ! dnf remove -y "$app"; then
-					log_error "Failed to remove package $app"
-					return 1
+				if dnf list installed "$app" &>/dev/null; then
+					echo "* Package $app is installed. Attempting removal..."
+					if ! dnf remove -y "$app"; then
+						log_error "Failed to remove package $app"
+						return 1
+					fi
+					echo "* Package $app removed successfully."
+				else
+					echo "* Package $app is not installed."
 				fi
 				;;
 			*opkg)
-				if ! opkg list-installed | grep -q "$app"; then
-					log_error "Package $app not installed"
-					return 1
-				fi
-				if ! opkg remove "$app"; then
-					log_error "Failed to remove package $app"
-					return 1
+				if opkg list-installed | grep -q "$app"; then
+					echo "* Package $app is installed. Attempting removal..."
+					if ! opkg remove "$app"; then
+						log_error "Failed to remove package $app"
+						return 1
+					fi
+					echo "* Package $app removed successfully."
+				else
+					echo "* Package $app is not installed."
 				fi
 				;;
 			*pacman)
-				if ! pacman -Q "$app" &>/dev/null; then
-					log_error "Package $app not installed"
-					return 1
-				fi
-				if ! pacman -Rns --noconfirm "$app"; then
-					log_error "Failed to remove package $app"
-					return 1
+				if pacman -Q "$app" &>/dev/null; then
+					echo "* Package $app is installed. Attempting removal..."
+					if ! pacman -Rns --noconfirm "$app"; then
+						log_error "Failed to remove package $app"
+						return 1
+					fi
+					echo "* Package $app removed successfully."
+				else
+					echo "* Package $app is not installed."
 				fi
 				;;
 			*yum)
-				if ! yum list installed "$app" &>/dev/null; then
-					log_error "Package $app not installed"
-					return 1
-				fi
-				if ! yum remove -y "$app"; then
-					log_error "Failed to remove package $app"
-					return 1
+				if yum list installed "$app" &>/dev/null; then
+					echo "* Package $app is installed. Attempting removal..."
+					if ! yum remove -y "$app"; then
+						log_error "Failed to remove package $app"
+						return 1
+					fi
+					echo "* Package $app removed successfully."
+				else
+					echo "* Package $app is not installed."
 				fi
 				;;
 			*zypper)
-				if ! zypper se --installed-only "$app" | grep -q "$app"; then
-					log_error "Package $app not installed"
-					return 1
-				fi
-				if ! zypper remove -y "$app"; then
-					log_error "Failed to remove package $app"
-					return 1
+				if zypper se --installed-only "$app" | grep -q "$app"; then
+					echo "* Package $app is installed. Attempting removal..."
+					if ! zypper remove -y "$app"; then
+						log_error "Failed to remove package $app"
+						return 1
+					fi
+					echo "* Package $app removed successfully."
+				else
+					echo "* Package $app is not installed."
 				fi
 				;;
 			*)
