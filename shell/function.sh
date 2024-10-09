@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.025.001
+# Version: 2.025.002
 # License: MIT License
 
 SH="function.sh"
@@ -638,7 +638,7 @@ SYS_CLEAN() {
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
 SYS_INFO() {
-	echo -e "${CLR3}System Information${CLR0}\n"
+	echo -e "${CLR3}System Information${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "Hostname:\t\t${CLR2}$(hostname)${CLR0}"
 	echo -e "Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
