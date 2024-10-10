@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.032.001
+# Version: 2.032.002
 # License: MIT License
 
 SH="function.sh"
@@ -400,7 +400,13 @@ DNS_ADDR () {
 		log_error "Failed to parse DNS server addresses"
 		return 1
 	fi
-	echo "$ipv4_result   $ipv6_result"
+	if [ "$1" = "-4" ]; then
+		echo "$ipv4_result"
+	elif [ "$1" = "-6" ]; then
+		echo "$ipv6_result"
+	else
+		echo "$ipv4_result   $ipv6_result"
+	fi
 }
 
 FIND() {
@@ -513,7 +519,7 @@ INTERFACE() {
 			if [ -z "$operation" ]; then
 				echo "$interface: RX: $rx_bytes bytes, TX: $tx_bytes bytes"
 			else
-				case "${operation^^}${direction^^}.${metric^^}" in
+				case "${operation^^}" in
 					"RX.BYTES") echo "$rx_bytes" ;;
 					"RX.DROP") echo "$rx_drop" ;;
 					"RX.PACKETS") echo "$rx_packets" ;;
