@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.032.007
+# Version: 3.032.001
 # License: MIT License
 
 SH="function.sh"
@@ -532,14 +532,14 @@ INTERFACE() {
 	done
 }
 IPv4_ADDR() {
-	dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null || \
-	curl -s ipv4.ip.sb 2>/dev/null || \
-	wget -qO- -4 ifconfig.me 2>/dev/null || \
+	timeout 1s dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null || \
+	timeout 1s curl -s ipv4.ip.sb 2>/dev/null || \
+	timeout 1s wget -qO- -4 ifconfig.me 2>/dev/null || \
 	{ error "Unable to determine IPv4 address"; }
 }
 IPv6_ADDR() {
-	curl -s ipv6.ip.sb 2>/dev/null || \
-	wget -qO- -6 ifconfig.me 2>/dev/null || \
+	timeout 1s curl -s ipv6.ip.sb 2>/dev/null || \
+	timeout 1s wget -qO- -6 ifconfig.me 2>/dev/null || \
 	{ error "Unable to determine IPv6 address"; }
 }
 
@@ -915,3 +915,9 @@ TIMEZONE() {
 	timezone=$([ -f /etc/timezone ] && cat /etc/timezone)
 	echo "${timezone:-Unknown}"
 }
+
+if [[ -n "$(IPv4_ADDR)" && -z "$(IPv6_ADDR)" ]]; then
+	sysctl -w net.ipv6.conf.all.disable_ipv6=1 &>/dev/null
+elif [[ -z "$(IPv4_ADDR)" && -n "$(IPv6_ADDR)" ]]; then
+	sysctl -w net.ipv6.conf.all.disable_ipv6=0 &>/dev/null
+fi
