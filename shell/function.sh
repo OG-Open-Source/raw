@@ -1,7 +1,6 @@
 #!/bin/bash
-# Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 3.032.001
+# Version: 3.032.002
 # License: MIT License
 
 SH="function.sh"
