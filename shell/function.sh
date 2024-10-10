@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.031.001
+# Version: 2.032.001
 # License: MIT License
 
 SH="function.sh"
@@ -225,21 +225,21 @@ CLEAN() {
 	clear
 }
 CPU_FREQ() {
-	if command -v lscpu >/dev/null 2>&1; then
-		freq=$(lscpu | awk '/CPU MHz:/ {printf "%.2f", $3/1000}')
-	elif [ -f /proc/cpuinfo ]; then
-		freq=$(awk '/cpu MHz/ {freq=$4} END {printf "%.2f", freq/1000}' /proc/cpuinfo)
-	elif command -v sysctl >/dev/null 2>&1; then
-		freq=$(sysctl -n hw.cpufrequency 2>/dev/null | awk '{printf "%.2f", $1/1e9}')
-	else
-		log_error "Unable to determine CPU frequency"
+	if [ ! -f /proc/cpuinfo ]; then
+		log_error "Unable to access /proc/cpuinfo"
 		return 1
 	fi
-	if [ -z "$freq" ]; then
-		log_error "Failed to retrieve CPU frequency"
+	cpu_freq=$(awk -F ': ' '/^cpu MHz/ {sum += $2; count++} END {if (count > 0) print sum / count; else print "N/A"}' /proc/cpuinfo)
+	if [ "$cpu_freq" = "N/A" ]; then
+		log_error "Failed to calculate CPU frequency"
 		return 1
 	fi
-	echo "${freq} GHz"
+	cpu_freq_ghz=$(awk -v freq="$cpu_freq" 'BEGIN {printf "%.2f", freq / 1000}')
+	if [ -z "$cpu_freq_ghz" ]; then
+		log_error "Failed to convert CPU frequency to GHz"
+		return 1
+	fi
+	echo "${cpu_freq_ghz} GHz"
 }
 CPU_MODEL() {
 	if command -v lscpu >/dev/null 2>&1; then
@@ -386,14 +386,14 @@ DNS_ADDR () {
 		if [ -z "$ipv4_result" ]; then
 			ipv4_result="$server"
 		else
-			ipv4_result="$ipv4_result, $server"
+			ipv4_result="$ipv4_result $server"
 		fi
 	done
 	for server in $ipv6_servers; do
 		if [ -z "$ipv6_result" ]; then
 			ipv6_result="$server"
 		else
-			ipv6_result="$ipv6_result, $server"
+			ipv6_result="$ipv6_result $server"
 		fi
 	done
 	if [ -z "$ipv4_result" ] && [ -z "$ipv6_result" ]; then
@@ -497,36 +497,36 @@ INPUT() {
 	read -e -p "$1" "$2"
 }
 INTERFACE() {
-    interfaces=$(cat /proc/net/dev | grep ':' | cut -d':' -f1 | sed 's/^\s*//;s/\s*$//' | grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | sort -n)
-    operation="$1"
-    direction="$2"
-    metric="$3"
-    for interface in $interfaces; do
-        stats=$(cat /proc/net/dev | grep "$interface" | awk '{print $2, $3, $5, $10, $11, $13}')
-        if [ -n "$stats" ]; then
-            rx_bytes=$(echo $stats | awk '{print $1}')
-            rx_packets=$(echo $stats | awk '{print $2}')
-            rx_drop=$(echo $stats | awk '{print $3}')
-            tx_bytes=$(echo $stats | awk '{print $4}')
-            tx_packets=$(echo $stats | awk '{print $5}')
-            tx_drop=$(echo $stats | awk '{print $6}')
-            if [ -z "$operation" ]; then
-                echo "$interface: RX: $rx_bytes bytes, TX: $tx_bytes bytes"
-            else
-                case "${operation^^}${direction^^}.${metric^^}" in
-                    "RX.BYTES") echo "$rx_bytes" ;;
-                    "RX.DROP") echo "$rx_drop" ;;
-                    "RX.PACKETS") echo "$rx_packets" ;;
-                    "TX.BYTES") echo "$tx_bytes" ;;
-                    "TX.DROP") echo "$tx_drop" ;;
-                    "TX.PACKETS") echo "$tx_packets" ;;
-                esac
-            fi
-        else
-            log_error "No stats found for interface: $interface"
-            return 1
-        fi
-    done
+	interfaces=$(cat /proc/net/dev | grep ':' | cut -d':' -f1 | sed 's/^\s*//;s/\s*$//' | grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | sort -n)
+	operation="$1"
+	direction="$2"
+	metric="$3"
+	for interface in $interfaces; do
+		stats=$(cat /proc/net/dev | grep "$interface" | awk '{print $2, $3, $5, $10, $11, $13}')
+		if [ -n "$stats" ]; then
+			rx_bytes=$(echo $stats | awk '{print $1}')
+			rx_packets=$(echo $stats | awk '{print $2}')
+			rx_drop=$(echo $stats | awk '{print $3}')
+			tx_bytes=$(echo $stats | awk '{print $4}')
+			tx_packets=$(echo $stats | awk '{print $5}')
+			tx_drop=$(echo $stats | awk '{print $6}')
+			if [ -z "$operation" ]; then
+				echo "$interface: RX: $rx_bytes bytes, TX: $tx_bytes bytes"
+			else
+				case "${operation^^}${direction^^}.${metric^^}" in
+					"RX.BYTES") echo "$rx_bytes" ;;
+					"RX.DROP") echo "$rx_drop" ;;
+					"RX.PACKETS") echo "$rx_packets" ;;
+					"TX.BYTES") echo "$tx_bytes" ;;
+					"TX.DROP") echo "$tx_drop" ;;
+					"TX.PACKETS") echo "$tx_packets" ;;
+				esac
+			fi
+		else
+			log_error "No stats found for interface: $interface"
+			return 1
+		fi
+	done
 }
 IPv4_ADDR() {
 	dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null || \
@@ -535,12 +535,23 @@ IPv4_ADDR() {
 	{ log_error "N/A"; return 1; }
 }
 IPv6_ADDR() {
-	dig +short -6 myip.opendns.com aaaa @resolver1.opendns.com 2>/dev/null || \
 	curl -s ipv6.ip.sb 2>/dev/null || \
 	wget -qO- -6 ifconfig.me 2>/dev/null || \
 	{ log_error "N/A"; return 1; }
 }
 
+LAST_UPDATE() {
+	if [ -f /var/log/apt/history.log ]; then
+		grep 'End-Date:' /var/log/apt/history.log | tail -n 1 | sed 's/End-Date: *//' | tr -s ' ' || { log_error "Failed to parse apt history log"; return 1; }
+	elif [ -f /var/log/dpkg.log ]; then
+		tail -n 1 /var/log/dpkg.log | awk '{print $1, $2}' || { log_error "Failed to parse dpkg log"; return 1; }
+	elif command -v rpm >/dev/null 2>&1; then
+		rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}' || { log_error "Failed to retrieve RPM package information"; return 1; }
+	else
+		log_error "Unable to determine last update time"
+		return 1
+	fi
+}
 LINE() {
 	printf '%*s' "$2" '' | tr ' ' "$1"
 }
@@ -830,7 +841,7 @@ SYS_INFO() {
 	echo -e "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
 	echo -e "- System Language:\t${CLR2}$LANG${CLR0}"
 	echo -e "- Shell Version:\t${CLR2}$(SHELL_VER)${CLR0}"
-	echo -e "- Last System Update:\t${CLR2}$(date '+%Y-%m-%d %H:%M')${CLR0}"
+	echo -e "- Last System Update:\t${CLR2}$(LAST_UPDATE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "- Architecture:\t\t${CLR2}$(uname -m)${CLR0}"
 	echo -e "- CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
@@ -849,7 +860,6 @@ SYS_INFO() {
 	echo -e "- DNS Servers:\t\t${CLR2}$(DNS_ADDR)${CLR0}"
 	echo -e "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
 	echo -e "- Network Interface:\t${CLR2}$(INTERFACE)${CLR0}"
-	echo -e "- Connection Speed:\t${CLR2}$(ethtool $(ip route show default | awk '/default/ {print $5}') | grep -oP 'Speed: \K[^ ]*')${CLR0}"
 	echo -e "- Timezone:\t\t${CLR2}$(TIMEZONE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
@@ -868,8 +878,14 @@ SYS_UPDATE() {
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk)
-			if ! apk update && apk upgrade; then
-				log_error "Failed to update and upgrade packages using apk"
+			echo "Updating package lists..."
+			if ! apk update; then
+				log_error "Failed to update package lists using apk"
+				return 1
+			fi
+			echo "Upgrading packages..."
+			if ! apk upgrade; then
+				log_error "Failed to upgrade packages using apk"
 				return 1
 			fi
 			;;
@@ -878,38 +894,59 @@ SYS_UPDATE() {
 				echo "Waiting for dpkg lock to be released..."
 				sleep 1
 			done
-			if ! DEBIAN_FRONTEND=noninteractive apt update -y && apt full-upgrade -y; then
-				log_error "Failed to update and upgrade packages using apt"
+			echo "Updating package lists..."
+			if ! DEBIAN_FRONTEND=noninteractive apt update -y; then
+				log_error "Failed to update package lists using apt"
+				return 1
+			fi
+			echo "Upgrading packages..."
+			if ! DEBIAN_FRONTEND=noninteractive apt full-upgrade -y; then
+				log_error "Failed to upgrade packages using apt"
 				return 1
 			fi
 			;;
 		*dnf)
+			echo "Updating packages..."
 			if ! dnf -y update; then
 				log_error "Failed to update packages using dnf"
 				return 1
 			fi
 			;;
 		*opkg)
-			if ! opkg update && opkg upgrade; then
-				log_error "Failed to update and upgrade packages using opkg"
+			echo "Updating package lists..."
+			if ! opkg update; then
+				log_error "Failed to update package lists using opkg"
+				return 1
+			fi
+			echo "Upgrading packages..."
+			if ! opkg upgrade; then
+				log_error "Failed to upgrade packages using opkg"
 				return 1
 			fi
 			;;
 		*pacman)
+			echo "Updating package databases and upgrading packages..."
 			if ! pacman -Syu --noconfirm; then
 				log_error "Failed to update and upgrade packages using pacman"
 				return 1
 			fi
 			;;
 		*yum)
+			echo "Updating packages..."
 			if ! yum -y update; then
 				log_error "Failed to update packages using yum"
 				return 1
 			fi
 			;;
 		*zypper)
-			if ! zypper refresh && zypper update -y; then
-				log_error "Failed to refresh and update packages using zypper"
+			echo "Refreshing repositories..."
+			if ! zypper refresh; then
+				log_error "Failed to refresh repositories using zypper"
+				return 1
+			fi
+			echo "Updating packages..."
+			if ! zypper update -y; then
+				log_error "Failed to update packages using zypper"
 				return 1
 			fi
 			;;
