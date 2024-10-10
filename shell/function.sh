@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.032.003
+# Version: 2.032.004
 # License: MIT License
 
 SH="function.sh"
@@ -19,13 +19,13 @@ CLR0="\033[0m"
 error() {
 	echo -e "${CLR1}$1${CLR0}"
 	echo "$(date '+%Y-%m-%d %H:%M:%S') - $SH - $1" >> ./ogos-error.log
+	return 1
 }
 
 ADD() {
 	CHECK_ROOT
 	if [ $# -eq 0 ]; then
 		error "No packages specified for installation"
-		return 1
 	fi
 	for app in "$@"; do
 		echo -e "${CLR3}INSTALL [$app]${CLR0}"
@@ -35,11 +35,9 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! apk update; then
 						error "Failed to update package lists"
-						return 1
 					fi
 					if ! apk add "$app"; then
 						error "Failed to install $app using apk"
-						return 1
 					fi
 					echo "* Package $app installed successfully."
 				else
@@ -51,11 +49,9 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! apt update; then
 						error "Failed to update package lists"
-						return 1
 					fi
 					if ! apt install -y "$app"; then
 						error "Failed to install $app using apt"
-						return 1
 					fi
 					echo "* Package $app installed successfully."
 				else
@@ -67,11 +63,9 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! dnf check-update; then
 						error "Failed to check for updates"
-						return 1
 					fi
 					if ! dnf install -y "$app"; then
 						error "Failed to install $app using dnf"
-						return 1
 					fi
 					echo "* Package $app installed successfully."
 				else
@@ -83,11 +77,9 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! opkg update; then
 						error "Failed to update package lists"
-						return 1
 					fi
 					if ! opkg install "$app"; then
 						error "Failed to install $app using opkg"
-						return 1
 					fi
 					echo "* Package $app installed successfully."
 				else
@@ -99,11 +91,9 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! pacman -Sy; then
 						error "Failed to synchronize package databases"
-						return 1
 					fi
 					if ! pacman -S --noconfirm "$app"; then
 						error "Failed to install $app using pacman"
-						return 1
 					fi
 					echo "* Package $app installed successfully."
 				else
@@ -115,11 +105,9 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! yum check-update; then
 						error "Failed to check for updates"
-						return 1
 					fi
 					if ! yum install -y "$app"; then
 						error "Failed to install $app using yum"
-						return 1
 					fi
 					echo "* Package $app installed successfully."
 				else
@@ -131,11 +119,9 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! zypper refresh; then
 						error "Failed to refresh repositories"
-						return 1
 					fi
 					if ! zypper install -y "$app"; then
 						error "Failed to install $app using zypper"
-						return 1
 					fi
 					echo "* Package $app installed successfully."
 				else
@@ -144,7 +130,6 @@ ADD() {
 				;;
 			*)
 				error "No supported package manager found"
-				return 1
 				;;
 		esac
 		echo -e "${CLR2}FINISHED${CLR0}\n"
@@ -179,7 +164,6 @@ CHECK_OS() {
 		grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
 	else
 		error "Unknown distribution"
-		return 1
 	fi
 }
 CHECK_ROOT() {
@@ -192,7 +176,6 @@ CHECK_VIRT() {
 	virt_type=$(systemd-detect-virt 2>/dev/null)
 	if [ -z "$virt_type" ]; then
 		error "Failed to detect virtualization"
-		return 1
 	fi
 	case "$virt_type" in
 		kvm)
@@ -207,7 +190,6 @@ CHECK_VIRT() {
 				echo "LXC container"
 			elif [ -f /proc/cpuinfo ] && grep -qi "hypervisor" /proc/cpuinfo; then
 				echo "Virtual machine (Unknown type)"
-				return 1
 			else
 				echo "Not detected (possibly bare metal)"
 			fi
@@ -227,17 +209,14 @@ CLEAN() {
 CPU_FREQ() {
 	if [ ! -f /proc/cpuinfo ]; then
 		error "Unable to access /proc/cpuinfo"
-		return 1
 	fi
 	cpu_freq=$(awk -F ': ' '/^cpu MHz/ {sum += $2; count++} END {if (count > 0) print sum / count; else print "N/A"}' /proc/cpuinfo)
 	if [ "$cpu_freq" = "N/A" ]; then
 		error "Failed to calculate CPU frequency"
-		return 1
 	fi
 	cpu_freq_ghz=$(awk -v freq="$cpu_freq" 'BEGIN {printf "%.2f", freq / 1000}')
 	if [ -z "$cpu_freq_ghz" ]; then
 		error "Failed to convert CPU frequency to GHz"
-		return 1
 	fi
 	echo "${cpu_freq_ghz} GHz"
 }
@@ -250,7 +229,6 @@ CPU_MODEL() {
 		sysctl -n machdep.cpu.brand_string 2>/dev/null || echo -e "${CLR1}Unknown${CLR0}"
 	else
 		error "Unable to determine CPU model"
-		return 1
 	fi
 }
 COPYRIGHT() {
@@ -261,7 +239,6 @@ DEL() {
 	CHECK_ROOT
 	if [ $# -eq 0 ]; then
 		error "No packages specified for removal"
-		return 1
 	fi
 	for app in "$@"; do
 		echo -e "${CLR3}REMOVE [$app]${CLR0}"
@@ -271,7 +248,6 @@ DEL() {
 					echo "* Package $app is installed. Attempting removal..."
 					if ! apk del "$app"; then
 						error "Failed to remove package $app"
-						return 1
 					fi
 					echo "* Package $app removed successfully."
 				else
@@ -283,11 +259,9 @@ DEL() {
 					echo "* Package $app is installed. Attempting removal..."
 					if ! apt purge -y "$app"; then
 						error "Failed to purge package $app"
-						return 1
 					fi
 					if ! apt autoremove -y; then
 						error "Failed to autoremove package $app"
-						return 1
 					fi
 					echo "* Package $app removed successfully."
 				else
@@ -299,7 +273,6 @@ DEL() {
 					echo "* Package $app is installed. Attempting removal..."
 					if ! dnf remove -y "$app"; then
 						error "Failed to remove package $app"
-						return 1
 					fi
 					echo "* Package $app removed successfully."
 				else
@@ -311,7 +284,6 @@ DEL() {
 					echo "* Package $app is installed. Attempting removal..."
 					if ! opkg remove "$app"; then
 						error "Failed to remove package $app"
-						return 1
 					fi
 					echo "* Package $app removed successfully."
 				else
@@ -323,7 +295,6 @@ DEL() {
 					echo "* Package $app is installed. Attempting removal..."
 					if ! pacman -Rns --noconfirm "$app"; then
 						error "Failed to remove package $app"
-						return 1
 					fi
 					echo "* Package $app removed successfully."
 				else
@@ -335,7 +306,6 @@ DEL() {
 					echo "* Package $app is installed. Attempting removal..."
 					if ! yum remove -y "$app"; then
 						error "Failed to remove package $app"
-						return 1
 					fi
 					echo "* Package $app removed successfully."
 				else
@@ -347,7 +317,6 @@ DEL() {
 					echo "* Package $app is installed. Attempting removal..."
 					if ! zypper remove -y "$app"; then
 						error "Failed to remove package $app"
-						return 1
 					fi
 					echo "* Package $app removed successfully."
 				else
@@ -356,7 +325,6 @@ DEL() {
 				;;
 			*)
 				error "Unsupported package manager"
-				return 1
 				;;
 		esac
 		echo -e "${CLR2}FINISHED${CLR0}\n"
@@ -371,14 +339,12 @@ DISK_USAGE() {
 DNS_ADDR () {
 	if [ ! -f /etc/resolv.conf ]; then
 		error "/etc/resolv.conf file not found"
-		return 1
 	fi
 	ipv4_servers=$(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
 	ipv6_servers=$(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}' | grep -E '^[0-9a-fA-F:]+$')
 
 	if [ -z "$ipv4_servers" ] && [ -z "$ipv6_servers" ]; then
 		error "No DNS servers found in /etc/resolv.conf"
-		return 1
 	fi
 	ipv4_result=""
 	ipv6_result=""
@@ -398,7 +364,6 @@ DNS_ADDR () {
 	done
 	if [ -z "$ipv4_result" ] && [ -z "$ipv6_result" ]; then
 		error "Failed to parse DNS server addresses"
-		return 1
 	fi
 	if [ "$1" = "-4" ]; then
 		echo "$ipv4_result"
@@ -412,7 +377,6 @@ DNS_ADDR () {
 FIND() {
 	if [ $# -eq 0 ]; then
 		error "No search terms provided"
-		return 1
 	fi
 	for app in "$@"; do
 		echo -e "${CLR3}SEARCH [$app]${CLR0}"
@@ -420,48 +384,40 @@ FIND() {
 			*apk)
 				if ! apk search "$app"; then
 					error "No results found for $app"
-					return 1
 				fi
 				;;
 			*apt)
 				if ! apt-cache search "$app"; then
 					error "No results found for $app"
-					return 1
 				fi
 				;;
 			*dnf)
 				if ! dnf search "$app"; then
 					error "No results found for $app"
-					return 1
 				fi
 				;;
 			*opkg)
 				if ! opkg search "$app"; then
 					error "No results found for $app"
-					return 1
 				fi
 				;;
 			*pacman)
 				if ! pacman -Ss "$app"; then
 					error "No results found for $app"
-					return 1
 				fi
 				;;
 			*yum)
 				if ! yum search "$app"; then
 					error "No results found for $app"
-					return 1
 				fi
 				;;
 			*zypper)
 				if ! zypper search "$app"; then
 					error "No results found for $app"
-					return 1
 				fi
 				;;
 			*)
 				error "Unsupported package manager"
-				return 1
 				;;
 		esac
 		echo -e "${CLR2}FINISHED${CLR0}\n"
@@ -530,7 +486,6 @@ INTERFACE() {
 			fi
 		else
 			error "No stats found for interface: $interface"
-			return 1
 		fi
 	done
 }
@@ -538,24 +493,18 @@ IPv4_ADDR() {
 	dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null || \
 	curl -s ipv4.ip.sb 2>/dev/null || \
 	wget -qO- -4 ifconfig.me 2>/dev/null || \
-	{ error "Unable to determine IPv4 address"; return 1; }
 }
 IPv6_ADDR() {
 	curl -s ipv6.ip.sb 2>/dev/null || \
 	wget -qO- -6 ifconfig.me 2>/dev/null || \
-	{ error "Unable to determine IPv6 address"; return 1; }
 }
 
 LAST_UPDATE() {
 	if [ -f /var/log/apt/history.log ]; then
-		grep 'End-Date:' /var/log/apt/history.log | tail -n 1 | sed 's/End-Date: *//' | tr -s ' ' || { error "Failed to parse apt history log"; return 1; }
 	elif [ -f /var/log/dpkg.log ]; then
-		tail -n 1 /var/log/dpkg.log | awk '{print $1, $2}' || { error "Failed to parse dpkg log"; return 1; }
 	elif command -v rpm >/dev/null 2>&1; then
-		rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}' || { error "Failed to retrieve RPM package information"; return 1; }
 	else
 		error "Unable to determine last update time"
-		return 1
 	fi
 }
 LINE() {
@@ -572,7 +521,6 @@ MAC_ADDR() {
 		echo "$mac_address"
 	else
 		error "Failed to retrieve MAC address"
-		return 1
 	fi
 }
 MEM_USAGE() {
@@ -587,7 +535,6 @@ NET_PROVIDER() {
 	curl -s https://ipwhois.app/json/ | jq -r .org || \
 	curl -s http://ip-api.com/json/ | jq -r .org || \
 	dig +short -x $(curl -s ipinfo.io/ip) | sed 's/\.$//' || \
-	{ error "Unable to determine network provider"; return 1; }
 }
 
 PKG_COUNT() {
@@ -595,42 +542,35 @@ PKG_COUNT() {
 		*apk)
 			if ! apk info | wc -l; then
 				error "Failed to count APK packages"
-				return 1
 			fi
 			;;
 		*apt)
 			if ! dpkg --get-selections | wc -l; then
 				error "Failed to count APT packages"
-				return 1
 			fi
 			;;
 		*dnf|*yum)
 			if ! rpm -qa | wc -l; then
 				error "Failed to count RPM packages"
-				return 1
 			fi
 			;;
 		*opkg)
 			if ! opkg list-installed | wc -l; then
 				error "Failed to count OPKG packages"
-				return 1
 			fi
 			;;
 		*pacman)
 			if ! pacman -Q | wc -l; then
 				error "Failed to count Pacman packages"
-				return 1
 			fi
 			;;
 		*zypper)
 			if ! zypper se --installed-only | wc -l; then
 				error "Failed to count Zypper packages"
-				return 1
 			fi
 			;;
 		*)
 			error "Unsupported package manager"
-			return 1
 			;;
 	esac
 }
@@ -648,7 +588,6 @@ PROGRESS() {
 			echo -e "\n$output"
 			stty echo
 			trap - SIGINT SIGQUIT SIGTSTP
-			return 1
 		fi
 	done
 	printf "\r\033[30;42mProgress: [100%%]\033[0m [%s]" "$(printf "%${bar_width}s" | tr ' ' '#')"
@@ -661,11 +600,10 @@ PUBLIC_IP() {
 	for service in "${services[@]}"; do
 		if ip=$(curl -s -m 5 "$service"); then
 			echo "$ip"
-			return 0
+			return
 		fi
 	done
 	error "Unable to determine public IP"
-	return 1
 }
 
 SHELL_VER() {
@@ -692,16 +630,12 @@ SYS_CLEAN() {
 		*apk)
 			if ! apk cache clean; then
 				error "Failed to clean APK cache"
-				return 1
 			fi
 			if ! rm -rf /tmp/* /var/cache/apk/* /var/log/*; then
 				error "Failed to remove temporary files"
-				return 1
 			fi
 			if ! apk fix; then
 				error "Failed to fix APK packages"
-				error "Failed to fix APK packages"
-				return 1
 			fi
 			;;
 		*apt)
@@ -710,105 +644,83 @@ SYS_CLEAN() {
 			done
 			if ! DEBIAN_FRONTEND=noninteractive dpkg --configure -a; then
 				error "Failed to configure pending packages"
-				return 1
 			fi
 			if ! apt autoremove --purge -y; then
 				error "Failed to autoremove packages"
-				return 1
 			fi
 			if ! apt clean -y; then
 				error "Failed to clean APT cache"
-				return 1
 			fi
 			if ! apt autoclean -y; then
 				error "Failed to autoclean APT cache"
-				return 1
 			fi
 			;;
 		*dnf)
 			if ! dnf autoremove -y; then
 				error "Failed to autoremove packages"
-				return 1
 			fi
 			if ! dnf clean all; then
 				error "Failed to clean DNF cache"
-				return 1
 			fi
 			if ! dnf makecache; then
 				error "Failed to make DNF cache"
-				return 1
 			fi
 			;;
 		*opkg)
 			if ! rm -rf /tmp/* /var/log/*; then
 				error "Failed to remove temporary files"
-				return 1
 			fi
 			if ! opkg update; then
 				error "Failed to update OPKG"
-				return 1
 			fi
 			if ! opkg clean; then
 				error "Failed to clean OPKG cache"
-				return 1
 			fi
 			;;
 		*pacman)
 			if ! pacman -Syu --noconfirm; then
 				error "Failed to update and upgrade packages"
-				return 1
 			fi
 			if ! pacman -Sc --noconfirm; then
 				error "Failed to clean pacman cache"
-				return 1
 			fi
 			if ! pacman -Scc --noconfirm; then
 				error "Failed to clean all pacman cache"
-				return 1
 			fi
 			;;
 		*yum)
 			if ! yum autoremove -y; then
 				error "Failed to autoremove packages"
-				return 1
 			fi
 			if ! yum clean all; then
 				error "Failed to clean YUM cache"
-				return 1
 			fi
 			if ! yum makecache; then
 				error "Failed to make YUM cache"
-				return 1
 			fi
 			;;
 		*zypper)
 			if ! zypper clean --all; then
 				error "Failed to clean Zypper cache"
-				return 1
 			fi
 			if ! zypper refresh; then
 				error "Failed to refresh Zypper repositories"
-				return 1
 			fi
 			;;
 		*)
 			error "Unsupported package manager. Skipping system-specific cleanup."
-			return 1
 			;;
 	esac
 	if command -v journalctl &>/dev/null; then
 		if ! journalctl --rotate --vacuum-time=1d --vacuum-size=500M; then
 			error "Failed to rotate and vacuum journalctl logs"
-			return 1
 		fi
 	fi
 	if ! find /var/log -type f -delete; then
 		error "Failed to delete log files"
-		return 1
 	fi
 	if ! rm -rf /tmp/*; then
 		error "Failed to remove temporary files"
-		return 1
 	fi
 	for cmd in docker npm pip; do
 		if command -v "$cmd" &>/dev/null; then
@@ -816,13 +728,11 @@ SYS_CLEAN() {
 				npm)
 					if ! npm cache clean --force; then
 						error "Failed to clean NPM cache"
-						return 1
 					fi
 					;;
 				pip)
 					if ! pip cache purge; then
 						error "Failed to purge PIP cache"
-						return 1
 					fi
 					;;
 			esac
@@ -830,11 +740,9 @@ SYS_CLEAN() {
 	done
 	if ! rm -rf ~/.cache/*; then
 		error "Failed to remove user cache files"
-		return 1
 	fi
 	if ! rm -rf ~/.thumbnails/*; then
 		error "Failed to remove thumbnail files"
-		return 1
 	fi
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
@@ -887,12 +795,10 @@ SYS_UPDATE() {
 			echo "Updating package lists..."
 			if ! apk update; then
 				error "Failed to update package lists using apk"
-				return 1
 			fi
 			echo "Upgrading packages..."
 			if ! apk upgrade; then
 				error "Failed to upgrade packages using apk"
-				return 1
 			fi
 			;;
 		*apt)
@@ -903,62 +809,52 @@ SYS_UPDATE() {
 			echo "Updating package lists..."
 			if ! DEBIAN_FRONTEND=noninteractive apt update -y; then
 				error "Failed to update package lists using apt"
-				return 1
 			fi
 			echo "Upgrading packages..."
 			if ! DEBIAN_FRONTEND=noninteractive apt full-upgrade -y; then
 				error "Failed to upgrade packages using apt"
-				return 1
 			fi
 			;;
 		*dnf)
 			echo "Updating packages..."
 			if ! dnf -y update; then
 				error "Failed to update packages using dnf"
-				return 1
 			fi
 			;;
 		*opkg)
 			echo "Updating package lists..."
 			if ! opkg update; then
 				error "Failed to update package lists using opkg"
-				return 1
 			fi
 			echo "Upgrading packages..."
 			if ! opkg upgrade; then
 				error "Failed to upgrade packages using opkg"
-				return 1
 			fi
 			;;
 		*pacman)
 			echo "Updating package databases and upgrading packages..."
 			if ! pacman -Syu --noconfirm; then
 				error "Failed to update and upgrade packages using pacman"
-				return 1
 			fi
 			;;
 		*yum)
 			echo "Updating packages..."
 			if ! yum -y update; then
 				error "Failed to update packages using yum"
-				return 1
 			fi
 			;;
 		*zypper)
 			echo "Refreshing repositories..."
 			if ! zypper refresh; then
 				error "Failed to refresh repositories using zypper"
-				return 1
 			fi
 			echo "Updating packages..."
 			if ! zypper update -y; then
 				error "Failed to update packages using zypper"
-				return 1
 			fi
 			;;
 		*)
 			error "Unsupported package manager"
-			return 1
 			;;
 	esac
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
