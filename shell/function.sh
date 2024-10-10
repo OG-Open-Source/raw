@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.032.006
+# Version: 2.032.007
 # License: MIT License
 
 SH="function.sh"
@@ -245,7 +245,7 @@ CHECK_VIRT() {
 	esac
 }
 CLEAN() {
-	cd ~
+	cd "$HOME" || return
 	clear
 }
 CPU_FREQ() {
