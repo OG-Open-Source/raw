@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.030.001
+# Version: 2.031.001
 # License: MIT License
 
 SH="function.sh"
@@ -247,7 +247,7 @@ CPU_MODEL() {
 	elif [ -f /proc/cpuinfo ]; then
 		awk -F': ' '/model name/ {print $2; exit}' /proc/cpuinfo
 	elif command -v sysctl >/dev/null 2>&1; then
-		sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Unknown CPU model"
+		sysctl -n machdep.cpu.brand_string 2>/dev/null || echo -e "${CLR1}Unknown${CLR0}"
 	else
 		log_error "Unable to determine CPU model"
 		return 1
@@ -496,19 +496,49 @@ FONT() {
 INPUT() {
 	read -e -p "$1" "$2"
 }
+INTERFACE() {
+    interfaces=$(cat /proc/net/dev | grep ':' | cut -d':' -f1 | sed 's/^\s*//;s/\s*$//' | grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | sort -n)
+    operation="$1"
+    direction="$2"
+    metric="$3"
+    for interface in $interfaces; do
+        stats=$(cat /proc/net/dev | grep "$interface" | awk '{print $2, $3, $5, $10, $11, $13}')
+        if [ -n "$stats" ]; then
+            rx_bytes=$(echo $stats | awk '{print $1}')
+            rx_packets=$(echo $stats | awk '{print $2}')
+            rx_drop=$(echo $stats | awk '{print $3}')
+            tx_bytes=$(echo $stats | awk '{print $4}')
+            tx_packets=$(echo $stats | awk '{print $5}')
+            tx_drop=$(echo $stats | awk '{print $6}')
+            if [ -z "$operation" ]; then
+                echo "$interface: RX: $rx_bytes bytes, TX: $tx_bytes bytes"
+            else
+                case "${operation^^}${direction^^}.${metric^^}" in
+                    "RX.BYTES") echo "$rx_bytes" ;;
+                    "RX.DROP") echo "$rx_drop" ;;
+                    "RX.PACKETS") echo "$rx_packets" ;;
+                    "TX.BYTES") echo "$tx_bytes" ;;
+                    "TX.DROP") echo "$tx_drop" ;;
+                    "TX.PACKETS") echo "$tx_packets" ;;
+                esac
+            fi
+        else
+            log_error "No stats found for interface: $interface"
+            return 1
+        fi
+    done
+}
 IPv4_ADDR() {
-	dig +short -4 myip.opendns.com @resolver1.opendns.com || \
-	curl -s ipv4.ip.sb || \
-	wget -qO- -4 ifconfig.me || \
-	log_error "N/A"
-	return 1
+	dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null || \
+	curl -s ipv4.ip.sb 2>/dev/null || \
+	wget -qO- -4 ifconfig.me 2>/dev/null || \
+	{ log_error "N/A"; return 1; }
 }
 IPv6_ADDR() {
-	dig +short -6 myip.opendns.com aaaa @resolver1.opendns.com || \
-	curl -s ipv6.ip.sb || \
-	wget -qO- -6 ifconfig.me || \
-	log_error "N/A"
-	return 1
+	dig +short -6 myip.opendns.com aaaa @resolver1.opendns.com 2>/dev/null || \
+	curl -s ipv6.ip.sb 2>/dev/null || \
+	wget -qO- -6 ifconfig.me 2>/dev/null || \
+	{ log_error "N/A"; return 1; }
 }
 
 LINE() {
@@ -818,7 +848,8 @@ SYS_INFO() {
 	echo -e "- Network Provider:\t${CLR2}$(curl -s ipinfo.io | jq -r .org)${CLR0}"
 	echo -e "- DNS Servers:\t\t${CLR2}$(DNS_ADDR)${CLR0}"
 	echo -e "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
-	echo -e "- Network Interface:\t${CLR2}$(cat /proc/net/dev | grep ':' | cut -d':' -f1 | sed 's/\s//g' | grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | sort -n)${CLR0}"
+	echo -e "- Network Interface:\t${CLR2}$(INTERFACE)${CLR0}"
+	echo -e "- Connection Speed:\t${CLR2}$(ethtool $(ip route show default | awk '/default/ {print $5}') | grep -oP 'Speed: \K[^ ]*')${CLR0}"
 	echo -e "- Timezone:\t\t${CLR2}$(TIMEZONE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
