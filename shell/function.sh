@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.032.004
+# Version: 2.032.005
 # License: MIT License
 
 SH="function.sh"
@@ -493,16 +493,21 @@ IPv4_ADDR() {
 	dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null || \
 	curl -s ipv4.ip.sb 2>/dev/null || \
 	wget -qO- -4 ifconfig.me 2>/dev/null || \
+	{ error "Unable to determine IPv4 address"; }
 }
 IPv6_ADDR() {
 	curl -s ipv6.ip.sb 2>/dev/null || \
 	wget -qO- -6 ifconfig.me 2>/dev/null || \
+	{ error "Unable to determine IPv6 address"; }
 }
 
 LAST_UPDATE() {
 	if [ -f /var/log/apt/history.log ]; then
+		grep 'End-Date:' /var/log/apt/history.log | tail -n 1 | sed 's/End-Date: *//' | tr -s ' ' || { error "Failed to parse apt history log"; }
 	elif [ -f /var/log/dpkg.log ]; then
+		tail -n 1 /var/log/dpkg.log | awk '{print $1, $2}' || { error "Failed to parse dpkg log"; }
 	elif command -v rpm >/dev/null 2>&1; then
+		rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}' || { error "Failed to retrieve RPM package information"; }
 	else
 		error "Unable to determine last update time"
 	fi
@@ -535,6 +540,7 @@ NET_PROVIDER() {
 	curl -s https://ipwhois.app/json/ | jq -r .org || \
 	curl -s http://ip-api.com/json/ | jq -r .org || \
 	dig +short -x $(curl -s ipinfo.io/ip) | sed 's/\.$//' || \
+	{ error "Unable to determine network provider"; }
 }
 
 PKG_COUNT() {
