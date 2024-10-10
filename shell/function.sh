@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.032.002
+# Version: 3.032.003
 # License: MIT License
 
 SH="function.sh"
@@ -915,8 +915,10 @@ TIMEZONE() {
 	echo "${timezone:-Unknown}"
 }
 
-if [[ -n "$(IPv4_ADDR)" && -z "$(IPv6_ADDR)" ]]; then
-	sysctl -w net.ipv6.conf.all.disable_ipv6=1 &>/dev/null
-elif [[ -z "$(IPv4_ADDR)" && -n "$(IPv6_ADDR)" ]]; then
-	sysctl -w net.ipv6.conf.all.disable_ipv6=0 &>/dev/null
+ipv4_output="$(IPv4_ADDR)"
+ipv6_output="$(IPv6_ADDR)"
+if [[ -n "$ipv4_output" && "$ipv6_output" == "Unable to determine IPv6 address" ]]; then
+    echo "ipv4"
+elif [[ -z "$ipv4_output" && -n "$ipv6_output" ]]; then
+    echo "ipv6"
 fi
