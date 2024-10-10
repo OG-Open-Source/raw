@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Version: 2024.10.08
+# Version: 2024.10.10
 # License: GPL
 # It can reinstall Debian, Ubuntu, Kali, AlpineLinux, CentOS, AlmaLinux, RockyLinux, Fedora and Windows OS via network automatically without any other external measures and manual operations.
 # Default root password: 1917159
@@ -85,7 +85,8 @@ GRUBVER=''
 VER=''
 setCMD=""
 setConsole=''
-setFail2ban=''
+setFail2ban='0'
+setKejilion='0'
 setAutoConfig='1'
 FirmwareImage=''
 AddNum='1'
@@ -240,12 +241,10 @@ while [[ $# -ge 1 ]]; do
 			setMotd='1'
 			;;
 		--fail2ban)
-			shift
 			setFail2ban='1'
 			shift
 			;;
 		--kejilion)
-			shift
 			setKejilion='1'
 			shift
 			;;
@@ -1292,7 +1291,6 @@ updateStatus() {
 	memStatus="$1"
 	configFlag="$2"
 	statusVar="$3"
-
 	if [[ "$memStatus" -ge "0" ]]; then
 		eval "$statusVar=0"
 		echo -e "$statusVar=0"
