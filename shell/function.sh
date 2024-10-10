@@ -915,10 +915,10 @@ TIMEZONE() {
 	echo "${timezone:-Unknown}"
 }
 
-ipv4_output="$(IPv4_ADDR)"
-ipv6_output="$(IPv6_ADDR)"
-if [[ -n "$ipv4_output" && "$ipv6_output" == "Unable to determine IPv6 address" ]]; then
-    echo "ipv4"
-elif [[ -z "$ipv4_output" && -n "$ipv6_output" ]]; then
-    echo "ipv6"
+ipv4="$(IPv4_ADDR)"
+ipv6="$(IPv6_ADDR)"
+if [[ -n "$ipv4" && "$ipv6" == "Unable to determine IPv6 address" ]]; then
+	sysctl -w net.ipv6.conf.all.disable_ipv6=1 &>/dev/null
+elif [[ -z "$ipv4" && -n "$ipv6" ]]; then
+	sysctl -w net.ipv6.conf.all.disable_ipv6=0 &>/dev/null
 fi
