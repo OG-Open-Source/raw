@@ -1,7 +1,7 @@
 #!/bin/bash
 # Support OS: apt (Debian, Ubuntu), apk (Alpine Linux), dnf (Fedora), opkg (OpenWrt), pacman (Arch Linux), yum (CentOS, RHEL, Oracle Linux), zypper (OpenSUSE, SLES)
 # Author: OGATA Open-Source
-# Version: 2.032.005
+# Version: 2.032.006
 # License: MIT License
 
 SH="function.sh"
@@ -35,11 +35,17 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! apk update; then
 						error "Failed to update package lists"
+						continue
 					fi
 					if ! apk add "$app"; then
 						error "Failed to install $app using apk"
+						continue
 					fi
-					echo "* Package $app installed successfully."
+					if apk info -e "$app" &>/dev/null; then
+						echo "* Package $app installed successfully."
+					else
+						error "Package $app installation failed or not verified."
+					fi
 				else
 					echo "* Package $app is already installed."
 				fi
@@ -49,11 +55,17 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! apt update; then
 						error "Failed to update package lists"
+						continue
 					fi
 					if ! apt install -y "$app"; then
 						error "Failed to install $app using apt"
+						continue
 					fi
-					echo "* Package $app installed successfully."
+					if dpkg-query -W -f='${Status}' "$app" 2>/dev/null | grep -q "ok installed"; then
+						echo "* Package $app installed successfully."
+					else
+						error "Package $app installation failed or not verified."
+					fi
 				else
 					echo "* Package $app is already installed."
 				fi
@@ -63,11 +75,17 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! dnf check-update; then
 						error "Failed to check for updates"
+						continue
 					fi
 					if ! dnf install -y "$app"; then
 						error "Failed to install $app using dnf"
+						continue
 					fi
-					echo "* Package $app installed successfully."
+					if dnf list installed "$app" &>/dev/null; then
+						echo "* Package $app installed successfully."
+					else
+						error "Package $app installation failed or not verified."
+					fi
 				else
 					echo "* Package $app is already installed."
 				fi
@@ -77,11 +95,17 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! opkg update; then
 						error "Failed to update package lists"
+						continue
 					fi
 					if ! opkg install "$app"; then
 						error "Failed to install $app using opkg"
+						continue
 					fi
-					echo "* Package $app installed successfully."
+					if opkg list-installed | grep -q "^$app "; then
+						echo "* Package $app installed successfully."
+					else
+						error "Package $app installation failed or not verified."
+					fi
 				else
 					echo "* Package $app is already installed."
 				fi
@@ -91,11 +115,17 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! pacman -Sy; then
 						error "Failed to synchronize package databases"
+						continue
 					fi
 					if ! pacman -S --noconfirm "$app"; then
 						error "Failed to install $app using pacman"
+						continue
 					fi
-					echo "* Package $app installed successfully."
+					if pacman -Qi "$app" &>/dev/null; then
+						echo "* Package $app installed successfully."
+					else
+						error "Package $app installation failed or not verified."
+					fi
 				else
 					echo "* Package $app is already installed."
 				fi
@@ -105,11 +135,17 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! yum check-update; then
 						error "Failed to check for updates"
+						continue
 					fi
 					if ! yum install -y "$app"; then
 						error "Failed to install $app using yum"
+						continue
 					fi
-					echo "* Package $app installed successfully."
+					if yum list installed "$app" &>/dev/null; then
+						echo "* Package $app installed successfully."
+					else
+						error "Package $app installation failed or not verified."
+					fi
 				else
 					echo "* Package $app is already installed."
 				fi
@@ -119,11 +155,17 @@ ADD() {
 					echo "* Package $app is not installed. Attempting installation..."
 					if ! zypper refresh; then
 						error "Failed to refresh repositories"
+						continue
 					fi
 					if ! zypper install -y "$app"; then
 						error "Failed to install $app using zypper"
+						continue
 					fi
-					echo "* Package $app installed successfully."
+					if zypper se -i -x "$app" &>/dev/null; then
+						echo "* Package $app installed successfully."
+					else
+						error "Package $app installation failed or not verified."
+					fi
 				else
 					echo "* Package $app is already installed."
 				fi
