@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Version: 2024.10.10
+# Version: 2024.10.11
 # License: GPL
 # It can reinstall Debian, Ubuntu, Kali, AlpineLinux, CentOS, AlmaLinux, RockyLinux, Fedora and Windows OS via network automatically without any other external measures and manual operations.
 # Default root password: 1917159
@@ -40,11 +40,11 @@ setIpStack=''
 ipAddr=''
 ipMask=''
 ipGate=''
-ipDNS='8.8.8.8 1.1.1.1'
+ipDNS='1.1.1.1 8.8.8.8'
 ip6Addr=''
 ip6Mask=''
 ip6Gate=''
-ip6DNS='2001:4860:4860::8888 2606:4700:4700::1111'
+ip6DNS='2606:4700:4700::1111 2001:4860:4860::8888'
 IncDisk=''
 interface=''
 interfaceSelect=''
@@ -2801,7 +2801,7 @@ DebianModifiedPreseed() {
 		}
 		AptUpdating="$1 apt update -y;"
 		# pre-install some commonly used software.
-		InstallComponents="$1 apt install apt-transport-https ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file gawk jq lrzsz lsb-release net-tools openssl sudo tar unzip vim wget xz-utils -y; $1 curl -sS -o /root/function.sh https://raw.ogtt.tk/shell/function.sh;"
+		InstallComponents="$1 apt install apt-transport-https ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file gawk jq lrzsz lsb-release net-tools openssl sudo tar unzip vim wget xz-utils -y; $1 curl -sS -o /root/function.sh https://raw.ogtt.tk/shell/function.sh; sysctl -w net.ipv6.conf.all.disable_ipv6=1; sysctl -w net.ipv6.conf.all.disable_ipv6=0"
 		# In Debian 9 and former, some certificates are expired.
 		DisableCertExpiredCheck="$1 sed -i '/^mozilla\/DST_Root_CA_X3/s/^/!/' /etc/ca-certificates.conf; $1 update-ca-certificates -f;"
 		if [[ "$IsCN" == "cn" ]]; then
