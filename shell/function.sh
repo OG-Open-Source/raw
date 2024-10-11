@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.032.004-beta
+# Version: 2.032.010
 # License: MIT License
 
 SH="function.sh"
@@ -914,69 +914,3 @@ TIMEZONE() {
 	timezone=$([ -f /etc/timezone ] && cat /etc/timezone)
 	echo "${timezone:-Unknown}"
 }
-
-ipv4="$(IPv4_ADDR)"
-ipv6="$(IPv6_ADDR)"
-
-check_connectivity() {
-    local ip_type=$1
-    local test_host="example.com"
-    if [ "$ip_type" = "ipv4" ]; then
-        ping -c 1 -W 1 -4 $test_host > /dev/null 2>&1
-    else
-        ping -c 1 -W 1 -6 $test_host > /dev/null 2>&1
-    fi
-    return $?
-}
-
-ipv4_available=false
-ipv6_available=false
-
-if [[ -n "$ipv4" && "$ipv4" != "Unable to determine IPv4 address" ]]; then
-    if check_connectivity ipv4; then
-        ipv4_available=true
-    fi
-fi
-
-if [[ -n "$ipv6" && "$ipv6" != "Unable to determine IPv6 address" ]]; then
-    if check_connectivity ipv6; then
-        ipv6_available=true
-    fi
-fi
-
-if $ipv4_available && ! $ipv6_available; then
-    echo "IPv4 available, IPv6 unavailable. Disabling IPv6."
-    sysctl -w net.ipv6.conf.all.disable_ipv6=1 &>/dev/null
-elif ! $ipv4_available && $ipv6_available; then
-    echo "IPv4 unavailable, IPv6 available. Enabling IPv6."
-    sysctl -w net.ipv6.conf.all.disable_ipv6=0 &>/dev/null
-elif $ipv4_available && $ipv6_available; then
-    echo "Both IPv4 and IPv6 are available. No changes made."
-else
-    echo "Neither IPv4 nor IPv6 is available. Please check your network connection."
-fi
-
-if $ipv4_available && $ipv6_available; then
-    if [ "$(sysctl -n net.ipv6.conf.all.disable_ipv6)" -eq 0 ]; then
-        ipv4_latency=$(ping -c 1 -W 1 -4 example.com | grep 'time=' | cut -d '=' -f 4 | cut -d ' ' -f 1)
-        ipv6_latency=$(ping -c 1 -W 1 -6 example.com | grep 'time=' | cut -d '=' -f 4 | cut -d ' ' -f 1)
-        
-        if (( $(echo "$ipv4_latency < $ipv6_latency" | bc -l) )); then
-            echo "IPv4 is faster. Prioritizing IPv4."
-            sysctl -w net.ipv6.conf.all.disable_ipv6=1 &>/dev/null
-        else
-            echo "IPv6 is faster or equal. Keeping IPv6 enabled."
-        fi
-    else
-        sysctl -w net.ipv6.conf.all.disable_ipv6=0 &>/dev/null
-        ipv4_latency=$(ping -c 1 -W 1 -4 example.com | grep 'time=' | cut -d '=' -f 4 | cut -d ' ' -f 1)
-        ipv6_latency=$(ping -c 1 -W 1 -6 example.com | grep 'time=' | cut -d '=' -f 4 | cut -d ' ' -f 1)
-        
-        if (( $(echo "$ipv6_latency < $ipv4_latency" | bc -l) )); then
-            echo "IPv6 is faster. Keeping IPv6 enabled."
-        else
-            echo "IPv4 is faster or equal. Disabling IPv6."
-            sysctl -w net.ipv6.conf.all.disable_ipv6=1 &>/dev/null
-        fi
-    fi
-fi
