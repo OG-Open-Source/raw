@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 2.034.001
+# Version: 2.034.002
 # License: MIT License
 
 SH="function.sh"
@@ -14,6 +14,9 @@ CLR7="\033[37m"
 CLR8="\033[96m"
 CLR9="\033[97m"
 CLR0="\033[0m"
+
+curl -sSL "https://raw.ogtt.tk/shell/function.sh" -o "function.sh"
+echo "source ./function.sh" >> ~/.bashrc && source ~/.bashrc
 
 error() {
 	echo -e "${CLR1}$1${CLR0}"
