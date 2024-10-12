@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.005
+# Version: 3.034.006
 # License: MIT License
 
 SH="function.sh"
@@ -701,7 +701,7 @@ SYS_INFO() {
 	echo -e "- DNS Servers:\t\t${CLR2}$(DNS_ADDR)${CLR0}"
 	echo -e "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
 	echo -e "- Network Interface:\t${CLR2}$(INTERFACE)${CLR0}"
-	echo -e "- Timezone:\t\t${CLR2}$(TIMEZONE)${CLR0}"
+	echo -e "- System Timezone:\t${CLR2}$(TIMEZONE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
 	echo -e "- Process Count:\t${CLR2}$(ps aux | wc -l)${CLR0}"
