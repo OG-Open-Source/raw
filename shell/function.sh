@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 2.032.011
+# Version: 2.034.001
 # License: MIT License
 
 SH="function.sh"
@@ -32,14 +32,8 @@ ADD() {
 			*apk)
 				if ! apk info -e "$app" &>/dev/null; then
 					echo "* Package $app is not installed. Attempting installation..."
-					if ! apk update; then
-						error "Failed to update package lists"
-						continue
-					fi
-					if ! apk add "$app"; then
-						error "Failed to install $app using apk"
-						continue
-					fi
+					apk update || { error "Failed to update package lists"; continue; }
+					apk add "$app" || { error "Failed to install $app using apk"; continue; }
 					if apk info -e "$app" &>/dev/null; then
 						echo "* Package $app installed successfully."
 					else
@@ -52,14 +46,8 @@ ADD() {
 			*apt)
 				if ! dpkg-query -W -f='${Status}' "$app" 2>/dev/null | grep -q "ok installed"; then
 					echo "* Package $app is not installed. Attempting installation..."
-					if ! apt update; then
-						error "Failed to update package lists"
-						continue
-					fi
-					if ! apt install -y "$app"; then
-						error "Failed to install $app using apt"
-						continue
-					fi
+					apt update || { error "Failed to update package lists"; continue; }
+					apt install -y "$app" || { error "Failed to install $app using apt"; continue; }
 					if dpkg-query -W -f='${Status}' "$app" 2>/dev/null | grep -q "ok installed"; then
 						echo "* Package $app installed successfully."
 					else
@@ -72,14 +60,8 @@ ADD() {
 			*dnf)
 				if ! dnf list installed "$app" &>/dev/null; then
 					echo "* Package $app is not installed. Attempting installation..."
-					if ! dnf check-update; then
-						error "Failed to check for updates"
-						continue
-					fi
-					if ! dnf install -y "$app"; then
-						error "Failed to install $app using dnf"
-						continue
-					fi
+					dnf check-update || { error "Failed to check for updates"; continue; }
+					dnf install -y "$app" || { error "Failed to install $app using dnf"; continue; }
 					if dnf list installed "$app" &>/dev/null; then
 						echo "* Package $app installed successfully."
 					else
@@ -92,14 +74,8 @@ ADD() {
 			*opkg)
 				if ! opkg list-installed | grep -q "^$app "; then
 					echo "* Package $app is not installed. Attempting installation..."
-					if ! opkg update; then
-						error "Failed to update package lists"
-						continue
-					fi
-					if ! opkg install "$app"; then
-						error "Failed to install $app using opkg"
-						continue
-					fi
+					opkg update || { error "Failed to update package lists"; continue; }
+					opkg install "$app" || { error "Failed to install $app using opkg"; continue; }
 					if opkg list-installed | grep -q "^$app "; then
 						echo "* Package $app installed successfully."
 					else
@@ -112,14 +88,8 @@ ADD() {
 			*pacman)
 				if ! pacman -Qi "$app" &>/dev/null; then
 					echo "* Package $app is not installed. Attempting installation..."
-					if ! pacman -Sy; then
-						error "Failed to synchronize package databases"
-						continue
-					fi
-					if ! pacman -S --noconfirm "$app"; then
-						error "Failed to install $app using pacman"
-						continue
-					fi
+					pacman -Sy || { error "Failed to synchronize package databases"; continue; }
+					pacman -S --noconfirm "$app" || { error "Failed to install $app using pacman"; continue; }
 					if pacman -Qi "$app" &>/dev/null; then
 						echo "* Package $app installed successfully."
 					else
@@ -132,14 +102,8 @@ ADD() {
 			*yum)
 				if ! yum list installed "$app" &>/dev/null; then
 					echo "* Package $app is not installed. Attempting installation..."
-					if ! yum check-update; then
-						error "Failed to check for updates"
-						continue
-					fi
-					if ! yum install -y "$app"; then
-						error "Failed to install $app using yum"
-						continue
-					fi
+					yum check-update || { error "Failed to check for updates"; continue; }
+					yum install -y "$app" || { error "Failed to install $app using yum"; continue; }
 					if yum list installed "$app" &>/dev/null; then
 						echo "* Package $app installed successfully."
 					else
@@ -152,14 +116,8 @@ ADD() {
 			*zypper)
 				if ! zypper se -i -x "$app" &>/dev/null; then
 					echo "* Package $app is not installed. Attempting installation..."
-					if ! zypper refresh; then
-						error "Failed to refresh repositories"
-						continue
-					fi
-					if ! zypper install -y "$app"; then
-						error "Failed to install $app using zypper"
-						continue
-					fi
+					zypper refresh || { error "Failed to refresh repositories"; continue; }
+					zypper install -y "$app" || { error "Failed to install $app using zypper"; continue; }
 					if zypper se -i -x "$app" &>/dev/null; then
 						echo "* Package $app installed successfully."
 					else
@@ -287,9 +245,7 @@ DEL() {
 			*apk)
 				if apk info "$app" &>/dev/null; then
 					echo "* Package $app is installed. Attempting removal..."
-					if ! apk del "$app"; then
-						error "Failed to remove package $app"
-					fi
+					apk del "$app" || error "Failed to remove package $app"
 					echo "* Package $app removed successfully."
 				else
 					echo "* Package $app is not installed."
@@ -298,12 +254,8 @@ DEL() {
 			*apt)
 				if dpkg -l | grep -q "^ii  $app"; then
 					echo "* Package $app is installed. Attempting removal..."
-					if ! apt purge -y "$app"; then
-						error "Failed to purge package $app"
-					fi
-					if ! apt autoremove -y; then
-						error "Failed to autoremove package $app"
-					fi
+					apt purge -y "$app" || error "Failed to purge package $app"
+					apt autoremove -y || error "Failed to autoremove package $app"
 					echo "* Package $app removed successfully."
 				else
 					echo "* Package $app is not installed."
@@ -312,9 +264,7 @@ DEL() {
 			*dnf)
 				if dnf list installed "$app" &>/dev/null; then
 					echo "* Package $app is installed. Attempting removal..."
-					if ! dnf remove -y "$app"; then
-						error "Failed to remove package $app"
-					fi
+					dnf remove -y "$app" || error "Failed to remove package $app"
 					echo "* Package $app removed successfully."
 				else
 					echo "* Package $app is not installed."
@@ -323,9 +273,7 @@ DEL() {
 			*opkg)
 				if opkg list-installed | grep -q "$app"; then
 					echo "* Package $app is installed. Attempting removal..."
-					if ! opkg remove "$app"; then
-						error "Failed to remove package $app"
-					fi
+					opkg remove "$app" || error "Failed to remove package $app"
 					echo "* Package $app removed successfully."
 				else
 					echo "* Package $app is not installed."
@@ -334,9 +282,7 @@ DEL() {
 			*pacman)
 				if pacman -Q "$app" &>/dev/null; then
 					echo "* Package $app is installed. Attempting removal..."
-					if ! pacman -Rns --noconfirm "$app"; then
-						error "Failed to remove package $app"
-					fi
+					pacman -Rns --noconfirm "$app" || error "Failed to remove package $app"
 					echo "* Package $app removed successfully."
 				else
 					echo "* Package $app is not installed."
@@ -345,9 +291,7 @@ DEL() {
 			*yum)
 				if yum list installed "$app" &>/dev/null; then
 					echo "* Package $app is installed. Attempting removal..."
-					if ! yum remove -y "$app"; then
-						error "Failed to remove package $app"
-					fi
+					yum remove -y "$app" || error "Failed to remove package $app"
 					echo "* Package $app removed successfully."
 				else
 					echo "* Package $app is not installed."
@@ -356,9 +300,7 @@ DEL() {
 			*zypper)
 				if zypper se --installed-only "$app" | grep -q "$app"; then
 					echo "* Package $app is installed. Attempting removal..."
-					if ! zypper remove -y "$app"; then
-						error "Failed to remove package $app"
-					fi
+					zypper remove -y "$app" || error "Failed to remove package $app"
 					echo "* Package $app removed successfully."
 				else
 					echo "* Package $app is not installed."
@@ -423,39 +365,25 @@ FIND() {
 		echo -e "${CLR3}SEARCH [$app]${CLR0}"
 		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 			*apk)
-				if ! apk search "$app"; then
-					error "No results found for $app"
-				fi
+				apk search "$app" || error "No results found for $app"
 				;;
 			*apt)
-				if ! apt-cache search "$app"; then
-					error "No results found for $app"
-				fi
+				apt-cache search "$app" || error "No results found for $app"
 				;;
 			*dnf)
-				if ! dnf search "$app"; then
-					error "No results found for $app"
-				fi
+				dnf search "$app" || error "No results found for $app"
 				;;
 			*opkg)
-				if ! opkg search "$app"; then
-					error "No results found for $app"
-				fi
+				opkg search "$app" || error "No results found for $app"
 				;;
 			*pacman)
-				if ! pacman -Ss "$app"; then
-					error "No results found for $app"
-				fi
+				pacman -Ss "$app" || error "No results found for $app"
 				;;
 			*yum)
-				if ! yum search "$app"; then
-					error "No results found for $app"
-				fi
+				yum search "$app" || error "No results found for $app"
 				;;
 			*zypper)
-				if ! zypper search "$app"; then
-					error "No results found for $app"
-				fi
+				zypper search "$app" || error "No results found for $app"
 				;;
 			*)
 				error "Unsupported package manager"
@@ -587,34 +515,22 @@ NET_PROVIDER() {
 PKG_COUNT() {
 	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk)
-			if ! apk info | wc -l; then
-				error "Failed to count APK packages"
-			fi
+			apk info | wc -l || error "Failed to count APK packages"
 			;;
 		*apt)
-			if ! dpkg --get-selections | wc -l; then
-				error "Failed to count APT packages"
-			fi
+			dpkg --get-selections | wc -l || error "Failed to count APT packages"
 			;;
 		*dnf|*yum)
-			if ! rpm -qa | wc -l; then
-				error "Failed to count RPM packages"
-			fi
+			rpm -qa | wc -l || error "Failed to count RPM packages"
 			;;
 		*opkg)
-			if ! opkg list-installed | wc -l; then
-				error "Failed to count OPKG packages"
-			fi
+			opkg list-installed | wc -l || error "Failed to count OPKG packages"
 			;;
 		*pacman)
-			if ! pacman -Q | wc -l; then
-				error "Failed to count Pacman packages"
-			fi
+			pacman -Q | wc -l || error "Failed to count Pacman packages"
 			;;
 		*zypper)
-			if ! zypper se --installed-only | wc -l; then
-				error "Failed to count Zypper packages"
-			fi
+			zypper se --installed-only | wc -l || error "Failed to count Zypper packages"
 			;;
 		*)
 			error "Unsupported package manager"
@@ -675,122 +591,66 @@ SYS_CLEAN() {
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk)
-			if ! apk cache clean; then
-				error "Failed to clean APK cache"
-			fi
-			if ! rm -rf /tmp/* /var/cache/apk/* /var/log/*; then
-				error "Failed to remove temporary files"
-			fi
-			if ! apk fix; then
-				error "Failed to fix APK packages"
-			fi
+			apk cache clean || error "Failed to clean APK cache"
+			rm -rf /tmp/* /var/cache/apk/* /var/log/* || error "Failed to remove temporary files"
+			apk fix || error "Failed to fix APK packages"
 			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
 				sleep 0.5
 			done
-			if ! DEBIAN_FRONTEND=noninteractive dpkg --configure -a; then
-				error "Failed to configure pending packages"
-			fi
-			if ! apt autoremove --purge -y; then
-				error "Failed to autoremove packages"
-			fi
-			if ! apt clean -y; then
-				error "Failed to clean APT cache"
-			fi
-			if ! apt autoclean -y; then
-				error "Failed to autoclean APT cache"
-			fi
+			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || error "Failed to configure pending packages"
+			apt autoremove --purge -y || error "Failed to autoremove packages"
+			apt clean -y || error "Failed to clean APT cache"
+			apt autoclean -y || error "Failed to autoclean APT cache"
 			;;
 		*dnf)
-			if ! dnf autoremove -y; then
-				error "Failed to autoremove packages"
-			fi
-			if ! dnf clean all; then
-				error "Failed to clean DNF cache"
-			fi
-			if ! dnf makecache; then
-				error "Failed to make DNF cache"
-			fi
+			dnf autoremove -y || error "Failed to autoremove packages"
+			dnf clean all || error "Failed to clean DNF cache"
+			dnf makecache || error "Failed to make DNF cache"
 			;;
 		*opkg)
-			if ! rm -rf /tmp/* /var/log/*; then
-				error "Failed to remove temporary files"
-			fi
-			if ! opkg update; then
-				error "Failed to update OPKG"
-			fi
-			if ! opkg clean; then
-				error "Failed to clean OPKG cache"
-			fi
+			rm -rf /tmp/* /var/log/* || error "Failed to remove temporary files"
+			opkg update || error "Failed to update OPKG"
+			opkg clean || error "Failed to clean OPKG cache"
 			;;
 		*pacman)
-			if ! pacman -Syu --noconfirm; then
-				error "Failed to update and upgrade packages"
-			fi
-			if ! pacman -Sc --noconfirm; then
-				error "Failed to clean pacman cache"
-			fi
-			if ! pacman -Scc --noconfirm; then
-				error "Failed to clean all pacman cache"
-			fi
+			pacman -Syu --noconfirm || error "Failed to update and upgrade packages"
+			pacman -Sc --noconfirm || error "Failed to clean pacman cache"
+			pacman -Scc --noconfirm || error "Failed to clean all pacman cache"
 			;;
 		*yum)
-			if ! yum autoremove -y; then
-				error "Failed to autoremove packages"
-			fi
-			if ! yum clean all; then
-				error "Failed to clean YUM cache"
-			fi
-			if ! yum makecache; then
-				error "Failed to make YUM cache"
-			fi
+			yum autoremove -y || error "Failed to autoremove packages"
+			yum clean all || error "Failed to clean YUM cache"
+			yum makecache || error "Failed to make YUM cache"
 			;;
 		*zypper)
-			if ! zypper clean --all; then
-				error "Failed to clean Zypper cache"
-			fi
-			if ! zypper refresh; then
-				error "Failed to refresh Zypper repositories"
-			fi
+			zypper clean --all || error "Failed to clean Zypper cache"
+			zypper refresh || error "Failed to refresh Zypper repositories"
 			;;
 		*)
 			error "Unsupported package manager. Skipping system-specific cleanup."
 			;;
 	esac
 	if command -v journalctl &>/dev/null; then
-		if ! journalctl --rotate --vacuum-time=1d --vacuum-size=500M; then
-			error "Failed to rotate and vacuum journalctl logs"
-		fi
+		journalctl --rotate --vacuum-time=1d --vacuum-size=500M || error "Failed to rotate and vacuum journalctl logs"
 	fi
-	if ! find /var/log -type f -delete; then
-		error "Failed to delete log files"
-	fi
-	if ! rm -rf /tmp/*; then
-		error "Failed to remove temporary files"
-	fi
+	find /var/log -type f -delete || error "Failed to delete log files"
+	rm -rf /tmp/* || error "Failed to remove temporary files"
 	for cmd in docker npm pip; do
 		if command -v "$cmd" &>/dev/null; then
 			case "$cmd" in
 				npm)
-					if ! npm cache clean --force; then
-						error "Failed to clean NPM cache"
-					fi
+					npm cache clean --force || error "Failed to clean NPM cache"
 					;;
 				pip)
-					if ! pip cache purge; then
-						error "Failed to purge PIP cache"
-					fi
+					pip cache purge || error "Failed to purge PIP cache"
 					;;
 			esac
 		fi
 	done
-	if ! rm -rf ~/.cache/*; then
-		error "Failed to remove user cache files"
-	fi
-	if ! rm -rf ~/.thumbnails/*; then
-		error "Failed to remove thumbnail files"
-	fi
+	rm -rf ~/.cache/* || error "Failed to remove user cache files"
+	rm -rf ~/.thumbnails/* || error "Failed to remove thumbnail files"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
@@ -833,6 +693,41 @@ SYS_INFO() {
 	echo -e "- Virtualization:\t${CLR2}$(CHECK_VIRT)${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
+SYS_OPTIMIZE() {
+	CHECK_ROOT
+	echo -e "${CLR3}Optimizing system configuration...${CLR0}"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+}
+SYS_REBOOT() {
+	CHECK_ROOT
+	echo -e "${CLR3}Preparing to reboot system...${CLR0}"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	active_users=$(who | wc -l)
+	if [ "$active_users" -gt 1 ]; then
+		echo -e "${CLR1}Warning: There are currently $active_users active users on the system.${CLR0}"
+		echo -e "Active users:"
+		who | awk '{print $1 " since " $3 " " $4}'
+		echo
+	fi
+	important_processes=$(ps aux --no-headers | grep -vE '^root|^\w+\s+[12]\s+' | wc -l)
+	if [ "$important_processes" -gt 0 ]; then
+		echo -e "${CLR1}Warning: There are $important_processes non-system processes running.${CLR0}"
+		echo -e "Top 5 processes by CPU usage:"
+		ps aux --sort=-%cpu | head -n 6
+		echo
+	fi
+	read -p "Are you sure you want to reboot the system now? (y/N) " -n 1 -r
+	echo
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		echo -e "${CLR2}Reboot cancelled.${CLR0}"
+		return 1
+	fi
+	echo "* Performing final checks before reboot..."
+	sync || error "Failed to sync filesystems"
+	echo -e "${CLR3}Initiating system reboot...${CLR0}"
+	shutdown -r now "System is going down for reboot" || error "Failed to initiate reboot"
+	echo -e "${CLR2}Reboot command issued successfully. The system will reboot momentarily.${CLR0}"
+}
 SYS_UPDATE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Updating system software...${CLR0}"
@@ -840,13 +735,9 @@ SYS_UPDATE() {
 	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk)
 			echo "* Updating package lists..."
-			if ! apk update; then
-				error "Failed to update package lists using apk"
-			fi
+			apk update || error "Failed to update package lists using apk"
 			echo "* Upgrading packages..."
-			if ! apk upgrade; then
-				error "Failed to upgrade packages using apk"
-			fi
+			apk upgrade || error "Failed to upgrade packages using apk"
 			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
@@ -854,51 +745,33 @@ SYS_UPDATE() {
 				sleep 1
 			done
 			echo "* Updating package lists..."
-			if ! DEBIAN_FRONTEND=noninteractive apt update -y; then
-				error "Failed to update package lists using apt"
-			fi
+			DEBIAN_FRONTEND=noninteractive apt update -y || error "Failed to update package lists using apt"
 			echo "* Upgrading packages..."
-			if ! DEBIAN_FRONTEND=noninteractive apt full-upgrade -y; then
-				error "Failed to upgrade packages using apt"
-			fi
+			DEBIAN_FRONTEND=noninteractive apt full-upgrade -y || error "Failed to upgrade packages using apt"
 			;;
 		*dnf)
 			echo "* Updating packages..."
-			if ! dnf -y update; then
-				error "Failed to update packages using dnf"
-			fi
+			dnf -y update || error "Failed to update packages using dnf"
 			;;
 		*opkg)
 			echo "* Updating package lists..."
-			if ! opkg update; then
-				error "Failed to update package lists using opkg"
-			fi
+			opkg update || error "Failed to update package lists using opkg"
 			echo "* Upgrading packages..."
-			if ! opkg upgrade; then
-				error "Failed to upgrade packages using opkg"
-			fi
+			opkg upgrade || error "Failed to upgrade packages using opkg"
 			;;
 		*pacman)
 			echo "* Updating package databases and upgrading packages..."
-			if ! pacman -Syu --noconfirm; then
-				error "Failed to update and upgrade packages using pacman"
-			fi
+			pacman -Syu --noconfirm || error "Failed to update and upgrade packages using pacman"
 			;;
 		*yum)
 			echo "* Updating packages..."
-			if ! yum -y update; then
-				error "Failed to update packages using yum"
-			fi
+			yum -y update || error "Failed to update packages using yum"
 			;;
 		*zypper)
 			echo "* Refreshing repositories..."
-			if ! zypper refresh; then
-				error "Failed to refresh repositories using zypper"
-			fi
+			zypper refresh || error "Failed to refresh repositories using zypper"
 			echo "* Updating packages..."
-			if ! zypper update -y; then
-				error "Failed to update packages using zypper"
-			fi
+			zypper update -y || error "Failed to update packages using zypper"
 			;;
 		*)
 			error "Unsupported package manager"
