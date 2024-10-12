@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.002
+# Version: 3.034.003
 # License: MIT License
 
 SH="function.sh"
@@ -19,6 +19,7 @@ crontab -l 2>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)
 curl -sSL "https://raw.ogtt.tk/shell/function.sh" -o "function.sh"
 grep -q "source ./function.sh" ~/.bashrc || {
 	echo "source ./function.sh" >> ~/.bashrc
+	sleep 1
 	source ~/.bashrc
 }
 
