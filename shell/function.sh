@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 2.032.010
+# Version: 2.032.011
 # License: MIT License
 
 SH="function.sh"
@@ -839,63 +839,63 @@ SYS_UPDATE() {
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk)
-			echo "Updating package lists..."
+			echo "* Updating package lists..."
 			if ! apk update; then
 				error "Failed to update package lists using apk"
 			fi
-			echo "Upgrading packages..."
+			echo "* Upgrading packages..."
 			if ! apk upgrade; then
 				error "Failed to upgrade packages using apk"
 			fi
 			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				echo "Waiting for dpkg lock to be released..."
+				echo "* Waiting for dpkg lock to be released..."
 				sleep 1
 			done
-			echo "Updating package lists..."
+			echo "* Updating package lists..."
 			if ! DEBIAN_FRONTEND=noninteractive apt update -y; then
 				error "Failed to update package lists using apt"
 			fi
-			echo "Upgrading packages..."
+			echo "* Upgrading packages..."
 			if ! DEBIAN_FRONTEND=noninteractive apt full-upgrade -y; then
 				error "Failed to upgrade packages using apt"
 			fi
 			;;
 		*dnf)
-			echo "Updating packages..."
+			echo "* Updating packages..."
 			if ! dnf -y update; then
 				error "Failed to update packages using dnf"
 			fi
 			;;
 		*opkg)
-			echo "Updating package lists..."
+			echo "* Updating package lists..."
 			if ! opkg update; then
 				error "Failed to update package lists using opkg"
 			fi
-			echo "Upgrading packages..."
+			echo "* Upgrading packages..."
 			if ! opkg upgrade; then
 				error "Failed to upgrade packages using opkg"
 			fi
 			;;
 		*pacman)
-			echo "Updating package databases and upgrading packages..."
+			echo "* Updating package databases and upgrading packages..."
 			if ! pacman -Syu --noconfirm; then
 				error "Failed to update and upgrade packages using pacman"
 			fi
 			;;
 		*yum)
-			echo "Updating packages..."
+			echo "* Updating packages..."
 			if ! yum -y update; then
 				error "Failed to update packages using yum"
 			fi
 			;;
 		*zypper)
-			echo "Refreshing repositories..."
+			echo "* Refreshing repositories..."
 			if ! zypper refresh; then
 				error "Failed to refresh repositories using zypper"
 			fi
-			echo "Updating packages..."
+			echo "* Updating packages..."
 			if ! zypper update -y; then
 				error "Failed to update packages using zypper"
 			fi
