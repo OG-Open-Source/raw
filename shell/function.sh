@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.009
+# Version: 3.034.010
 # License: MIT License
 
 SH="function.sh"
@@ -15,7 +15,7 @@ CLR8="\033[96m"
 CLR9="\033[97m"
 CLR0="\033[0m"
 
-crontab -l 2>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * bash <(curl -sL raw.ogtt.tk/shell/function.sh)" >> function-update && crontab function-update && rm function-update)
+crontab -l 2>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'" >> function-update && crontab function-update && rm function-update)
 curl -sSL "https://raw.ogtt.tk/shell/function.sh" -o "function.sh"
 grep -q "source ./function.sh" ~/.bashrc || echo "source ./function.sh" >> ~/.bashrc
 
@@ -267,7 +267,7 @@ DEL() {
 						apk del "$target" || error "Failed to remove package $target"
 						echo "* Package $target removed successfully."
 					else
-						echo "* $target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package."
 					fi
 					;;
 				*apt)
@@ -277,7 +277,7 @@ DEL() {
 						apt autoremove -y || error "Failed to autoremove package $target"
 						echo "* Package $target removed successfully."
 					else
-						echo "* $target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package."
 					fi
 					;;
 				*dnf)
@@ -286,7 +286,7 @@ DEL() {
 						dnf remove -y "$target" || error "Failed to remove package $target"
 						echo "* Package $target removed successfully."
 					else
-						echo "* $target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package."
 					fi
 					;;
 				*opkg)
@@ -295,7 +295,7 @@ DEL() {
 						opkg remove "$target" || error "Failed to remove package $target"
 						echo "* Package $target removed successfully."
 					else
-						echo "* $target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package."
 					fi
 					;;
 				*pacman)
@@ -304,7 +304,7 @@ DEL() {
 						pacman -Rns --noconfirm "$target" || error "Failed to remove package $target"
 						echo "* Package $target removed successfully."
 					else
-						echo "* $target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package."
 					fi
 					;;
 				*yum)
@@ -313,7 +313,7 @@ DEL() {
 						yum remove -y "$target" || error "Failed to remove package $target"
 						echo "* Package $target removed successfully."
 					else
-						echo "* $target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package."
 					fi
 					;;
 				*zypper)
@@ -322,7 +322,7 @@ DEL() {
 						zypper remove -y "$target" || error "Failed to remove package $target"
 						echo "* Package $target removed successfully."
 					else
-						echo "* $target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package."
 					fi
 					;;
 				*)
