@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 2.034.004
+# Version: 2.034.005
 # License: MIT License
 
 SH="function.sh"
@@ -832,6 +832,8 @@ SYS_UPDATE() {
 			error "Unsupported package manager"
 			;;
 	esac
+	echo "* Updating shell functions..."
+	bash <(curl -L raw.ogtt.tk/shell/function.sh) || error "Failed to update shell functions"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
