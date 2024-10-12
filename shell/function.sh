@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.004
+# Version: 3.034.005
 # License: MIT License
 
 SH="function.sh"
@@ -30,105 +30,105 @@ ADD() {
 	if [ $# -eq 0 ]; then
 		error "No packages specified for installation"
 	fi
-	for app in "$@"; do
-		echo -e "${CLR3}INSTALL [$app]${CLR0}"
+	for target in "$@"; do
+		echo -e "${CLR3}INSTALL [$target]${CLR0}"
 		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 			*apk)
-				if ! apk info -e "$app" &>/dev/null; then
-					echo "* Package $app is not installed. Attempting installation..."
+				if ! apk info -e "$target" &>/dev/null; then
+					echo "* Package $target is not installed. Attempting installation..."
 					apk update || { error "Failed to update package lists"; continue; }
-					apk add "$app" || { error "Failed to install $app using apk"; continue; }
-					if apk info -e "$app" &>/dev/null; then
-						echo "* Package $app installed successfully."
+					apk add "$target" || { error "Failed to install $target using apk"; continue; }
+					if apk info -e "$target" &>/dev/null; then
+						echo "* Package $target installed successfully."
 					else
-						error "Package $app installation failed or not verified."
+						error "Package $target installation failed or not verified."
 					fi
 				else
-					echo "* Package $app is already installed."
+					echo "* Package $target is already installed."
 				fi
 				;;
 			*apt)
-				if ! dpkg-query -W -f='${Status}' "$app" 2>/dev/null | grep -q "ok installed"; then
-					echo "* Package $app is not installed. Attempting installation..."
+				if ! dpkg-query -W -f='${Status}' "$target" 2>/dev/null | grep -q "ok installed"; then
+					echo "* Package $target is not installed. Attempting installation..."
 					apt update || { error "Failed to update package lists"; continue; }
-					apt install -y "$app" || { error "Failed to install $app using apt"; continue; }
-					if dpkg-query -W -f='${Status}' "$app" 2>/dev/null | grep -q "ok installed"; then
-						echo "* Package $app installed successfully."
+					apt install -y "$target" || { error "Failed to install $target using apt"; continue; }
+					if dpkg-query -W -f='${Status}' "$target" 2>/dev/null | grep -q "ok installed"; then
+						echo "* Package $target installed successfully."
 					else
-						error "Package $app installation failed or not verified."
+						error "Package $target installation failed or not verified."
 					fi
 				else
-					echo "* Package $app is already installed."
+					echo "* Package $target is already installed."
 				fi
 				;;
 			*dnf)
-				if ! dnf list installed "$app" &>/dev/null; then
-					echo "* Package $app is not installed. Attempting installation..."
+				if ! dnf list installed "$target" &>/dev/null; then
+					echo "* Package $target is not installed. Attempting installation..."
 					dnf check-update || { error "Failed to check for updates"; continue; }
-					dnf install -y "$app" || { error "Failed to install $app using dnf"; continue; }
-					if dnf list installed "$app" &>/dev/null; then
-						echo "* Package $app installed successfully."
+					dnf install -y "$target" || { error "Failed to install $target using dnf"; continue; }
+					if dnf list installed "$target" &>/dev/null; then
+						echo "* Package $target installed successfully."
 					else
-						error "Package $app installation failed or not verified."
+						error "Package $target installation failed or not verified."
 					fi
 				else
-					echo "* Package $app is already installed."
+					echo "* Package $target is already installed."
 				fi
 				;;
 			*opkg)
-				if ! opkg list-installed | grep -q "^$app "; then
-					echo "* Package $app is not installed. Attempting installation..."
+				if ! opkg list-installed | grep -q "^$target "; then
+					echo "* Package $target is not installed. Attempting installation..."
 					opkg update || { error "Failed to update package lists"; continue; }
-					opkg install "$app" || { error "Failed to install $app using opkg"; continue; }
-					if opkg list-installed | grep -q "^$app "; then
-						echo "* Package $app installed successfully."
+					opkg install "$target" || { error "Failed to install $target using opkg"; continue; }
+					if opkg list-installed | grep -q "^$target "; then
+						echo "* Package $target installed successfully."
 					else
-						error "Package $app installation failed or not verified."
+						error "Package $target installation failed or not verified."
 					fi
 				else
-					echo "* Package $app is already installed."
+					echo "* Package $target is already installed."
 				fi
 				;;
 			*pacman)
-				if ! pacman -Qi "$app" &>/dev/null; then
-					echo "* Package $app is not installed. Attempting installation..."
+				if ! pacman -Qi "$target" &>/dev/null; then
+					echo "* Package $target is not installed. Attempting installation..."
 					pacman -Sy || { error "Failed to synchronize package databases"; continue; }
-					pacman -S --noconfirm "$app" || { error "Failed to install $app using pacman"; continue; }
-					if pacman -Qi "$app" &>/dev/null; then
-						echo "* Package $app installed successfully."
+					pacman -S --noconfirm "$target" || { error "Failed to install $target using pacman"; continue; }
+					if pacman -Qi "$target" &>/dev/null; then
+						echo "* Package $target installed successfully."
 					else
-						error "Package $app installation failed or not verified."
+						error "Package $target installation failed or not verified."
 					fi
 				else
-					echo "* Package $app is already installed."
+					echo "* Package $target is already installed."
 				fi
 				;;
 			*yum)
-				if ! yum list installed "$app" &>/dev/null; then
-					echo "* Package $app is not installed. Attempting installation..."
+				if ! yum list installed "$target" &>/dev/null; then
+					echo "* Package $target is not installed. Attempting installation..."
 					yum check-update || { error "Failed to check for updates"; continue; }
-					yum install -y "$app" || { error "Failed to install $app using yum"; continue; }
-					if yum list installed "$app" &>/dev/null; then
-						echo "* Package $app installed successfully."
+					yum install -y "$target" || { error "Failed to install $target using yum"; continue; }
+					if yum list installed "$target" &>/dev/null; then
+						echo "* Package $target installed successfully."
 					else
-						error "Package $app installation failed or not verified."
+						error "Package $target installation failed or not verified."
 					fi
 				else
-					echo "* Package $app is already installed."
+					echo "* Package $target is already installed."
 				fi
 				;;
 			*zypper)
-				if ! zypper se -i -x "$app" &>/dev/null; then
-					echo "* Package $app is not installed. Attempting installation..."
+				if ! zypper se -i -x "$target" &>/dev/null; then
+					echo "* Package $target is not installed. Attempting installation..."
 					zypper refresh || { error "Failed to refresh repositories"; continue; }
-					zypper install -y "$app" || { error "Failed to install $app using zypper"; continue; }
-					if zypper se -i -x "$app" &>/dev/null; then
-						echo "* Package $app installed successfully."
+					zypper install -y "$target" || { error "Failed to install $target using zypper"; continue; }
+					if zypper se -i -x "$target" &>/dev/null; then
+						echo "* Package $target installed successfully."
 					else
-						error "Package $app installation failed or not verified."
+						error "Package $target installation failed or not verified."
 					fi
 				else
-					echo "* Package $app is already installed."
+					echo "* Package $target is already installed."
 				fi
 				;;
 			*)
@@ -241,79 +241,95 @@ COPYRIGHT() {
 DEL() {
 	CHECK_ROOT
 	if [ $# -eq 0 ]; then
-		error "No packages specified for removal"
+		error "No targets specified for deletion"
 	fi
-	for app in "$@"; do
-		echo -e "${CLR3}REMOVE [$app]${CLR0}"
-		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
-			*apk)
-				if apk info "$app" &>/dev/null; then
-					echo "* Package $app is installed. Attempting removal..."
-					apk del "$app" || error "Failed to remove package $app"
-					echo "* Package $app removed successfully."
-				else
-					echo "* Package $app is not installed."
-				fi
-				;;
-			*apt)
-				if dpkg -l | grep -q "^ii  $app"; then
-					echo "* Package $app is installed. Attempting removal..."
-					apt purge -y "$app" || error "Failed to purge package $app"
-					apt autoremove -y || error "Failed to autoremove package $app"
-					echo "* Package $app removed successfully."
-				else
-					echo "* Package $app is not installed."
-				fi
-				;;
-			*dnf)
-				if dnf list installed "$app" &>/dev/null; then
-					echo "* Package $app is installed. Attempting removal..."
-					dnf remove -y "$app" || error "Failed to remove package $app"
-					echo "* Package $app removed successfully."
-				else
-					echo "* Package $app is not installed."
-				fi
-				;;
-			*opkg)
-				if opkg list-installed | grep -q "$app"; then
-					echo "* Package $app is installed. Attempting removal..."
-					opkg remove "$app" || error "Failed to remove package $app"
-					echo "* Package $app removed successfully."
-				else
-					echo "* Package $app is not installed."
-				fi
-				;;
-			*pacman)
-				if pacman -Q "$app" &>/dev/null; then
-					echo "* Package $app is installed. Attempting removal..."
-					pacman -Rns --noconfirm "$app" || error "Failed to remove package $app"
-					echo "* Package $app removed successfully."
-				else
-					echo "* Package $app is not installed."
-				fi
-				;;
-			*yum)
-				if yum list installed "$app" &>/dev/null; then
-					echo "* Package $app is installed. Attempting removal..."
-					yum remove -y "$app" || error "Failed to remove package $app"
-					echo "* Package $app removed successfully."
-				else
-					echo "* Package $app is not installed."
-				fi
-				;;
-			*zypper)
-				if zypper se --installed-only "$app" | grep -q "$app"; then
-					echo "* Package $app is installed. Attempting removal..."
-					zypper remove -y "$app" || error "Failed to remove package $app"
-					echo "* Package $app removed successfully."
-				else
-					echo "* Package $app is not installed."
-				fi
-				;;
-			*)
-				error "Unsupported package manager"
-				;;
-		esac
+	for target in "$@"; do
+		echo -e "${CLR3}DELETE [$target]${CLR0}"
+		if [ -e "$target" ]; then
+			if [ -d "$target" ]; then
+				echo "* Directory $target exists. Attempting removal..."
+				rm -rf "$target" || error "Failed to remove directory $target"
+				echo "* Directory $target removed successfully."
+			elif [ -f "$target" ]; then
+				echo "* File $target exists. Attempting removal..."
+				rm -f "$target" || error "Failed to remove file $target"
+				echo "* File $target removed successfully."
+			else
+				echo "* $target exists but is neither a file nor a directory. Attempting removal..."
+				rm -f "$target" || error "Failed to remove $target"
+				echo "* $target removed successfully."
+			fi
+		else
+			case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
+				*apk)
+					if apk info "$target" &>/dev/null; then
+						echo "* Package $target is installed. Attempting removal..."
+						apk del "$target" || error "Failed to remove package $target"
+						echo "* Package $target removed successfully."
+					else
+						echo "* $target is not a file, directory, or installed package."
+					fi
+					;;
+				*apt)
+					if dpkg -l | grep -q "^ii  $target"; then
+						echo "* Package $target is installed. Attempting removal..."
+						apt purge -y "$target" || error "Failed to purge package $target"
+						apt autoremove -y || error "Failed to autoremove package $target"
+						echo "* Package $target removed successfully."
+					else
+						echo "* $target is not a file, directory, or installed package."
+					fi
+					;;
+				*dnf)
+					if dnf list installed "$target" &>/dev/null; then
+						echo "* Package $target is installed. Attempting removal..."
+						dnf remove -y "$target" || error "Failed to remove package $target"
+						echo "* Package $target removed successfully."
+					else
+						echo "* $target is not a file, directory, or installed package."
+					fi
+					;;
+				*opkg)
+					if opkg list-installed | grep -q "$target"; then
+						echo "* Package $target is installed. Attempting removal..."
+						opkg remove "$target" || error "Failed to remove package $target"
+						echo "* Package $target removed successfully."
+					else
+						echo "* $target is not a file, directory, or installed package."
+					fi
+					;;
+				*pacman)
+					if pacman -Q "$target" &>/dev/null; then
+						echo "* Package $target is installed. Attempting removal..."
+						pacman -Rns --noconfirm "$target" || error "Failed to remove package $target"
+						echo "* Package $target removed successfully."
+					else
+						echo "* $target is not a file, directory, or installed package."
+					fi
+					;;
+				*yum)
+					if yum list installed "$target" &>/dev/null; then
+						echo "* Package $target is installed. Attempting removal..."
+						yum remove -y "$target" || error "Failed to remove package $target"
+						echo "* Package $target removed successfully."
+					else
+						echo "* $target is not a file, directory, or installed package."
+					fi
+					;;
+				*zypper)
+					if zypper se --installed-only "$target" | grep -q "$target"; then
+						echo "* Package $target is installed. Attempting removal..."
+						zypper remove -y "$target" || error "Failed to remove package $target"
+						echo "* Package $target removed successfully."
+					else
+						echo "* $target is not a file, directory, or installed package."
+					fi
+					;;
+				*)
+					error "Unsupported package manager and $target is not a file or directory"
+					;;
+			esac
+		fi
 		echo -e "${CLR2}FINISHED${CLR0}\n"
 	done
 }
@@ -365,29 +381,29 @@ FIND() {
 	if [ $# -eq 0 ]; then
 		error "No search terms provided"
 	fi
-	for app in "$@"; do
-		echo -e "${CLR3}SEARCH [$app]${CLR0}"
+	for target in "$@"; do
+		echo -e "${CLR3}SEARCH [$target]${CLR0}"
 		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 			*apk)
-				apk search "$app" || error "No results found for $app"
+				apk search "$target" || error "No results found for $target"
 				;;
 			*apt)
-				apt-cache search "$app" || error "No results found for $app"
+				apt-cache search "$target" || error "No results found for $target"
 				;;
 			*dnf)
-				dnf search "$app" || error "No results found for $app"
+				dnf search "$target" || error "No results found for $target"
 				;;
 			*opkg)
-				opkg search "$app" || error "No results found for $app"
+				opkg search "$target" || error "No results found for $target"
 				;;
 			*pacman)
-				pacman -Ss "$app" || error "No results found for $app"
+				pacman -Ss "$target" || error "No results found for $target"
 				;;
 			*yum)
-				yum search "$app" || error "No results found for $app"
+				yum search "$target" || error "No results found for $target"
 				;;
 			*zypper)
-				zypper search "$app" || error "No results found for $app"
+				zypper search "$target" || error "No results found for $target"
 				;;
 			*)
 				error "Unsupported package manager"
