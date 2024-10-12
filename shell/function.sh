@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 2.034.005
+# Version: 2.034.006
 # License: MIT License
 
 SH="function.sh"
@@ -751,7 +751,7 @@ SYS_OPTIMIZE() {
 	echo "* Applying all sysctl changes..."
 	sysctl -p "$SYSCTL_CONF" || error "Failed to apply sysctl changes"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	echo -e "${CLR2}System optimization completed. Changes will persist after reboot.${CLR0}\n"
+	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
 SYS_REBOOT() {
 	CHECK_ROOT
