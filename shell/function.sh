@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.006
+# Version: 3.034.007
 # License: MIT License
 
 SH="function.sh"
@@ -655,7 +655,6 @@ SYS_CLEAN() {
 	if command -v journalctl &>/dev/null; then
 		journalctl --rotate --vacuum-time=1d --vacuum-size=500M || error "Failed to rotate and vacuum journalctl logs"
 	fi
-	find /var/log -type f -delete || error "Failed to delete log files"
 	rm -rf /tmp/* || error "Failed to remove temporary files"
 	for cmd in docker npm pip; do
 		if command -v "$cmd" &>/dev/null; then
