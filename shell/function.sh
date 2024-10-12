@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.008
+# Version: 3.034.009
 # License: MIT License
 
 SH="function.sh"
@@ -612,7 +612,7 @@ SYS_CLEAN() {
 	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
 		*apk)
 			apk cache clean || error "Failed to clean APK cache"
-			rm -rf /tmp/* /var/cache/apk/* /var/log/* || error "Failed to remove temporary files"
+			rm -rf /tmp/* /var/cache/apk/* || error "Failed to remove temporary files"
 			apk fix || error "Failed to fix APK packages"
 			;;
 		*apt)
@@ -630,7 +630,7 @@ SYS_CLEAN() {
 			dnf makecache || error "Failed to make DNF cache"
 			;;
 		*opkg)
-			rm -rf /tmp/* /var/log/* || error "Failed to remove temporary files"
+			rm -rf /tmp/* || error "Failed to remove temporary files"
 			opkg update || error "Failed to update OPKG"
 			opkg clean || error "Failed to clean OPKG cache"
 			;;
