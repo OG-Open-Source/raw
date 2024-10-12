@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.010
+# Version: 3.034.011
 # License: MIT License
 
 SH="function.sh"
@@ -21,7 +21,7 @@ grep -q "source ./function.sh" ~/.bashrc || echo "source ./function.sh" >> ~/.ba
 
 error() {
 	echo -e "${CLR1}$1${CLR0}"
-	echo "$(date '+%Y-%m-%d %H:%M:%S') - $SH - $1" >> ./ogos-error.log
+	echo "$(date '+%Y-%m-%d %H:%M:%S') - $SH - $1" >> /var/log/ogos-error.log
 	return 1
 }
 
