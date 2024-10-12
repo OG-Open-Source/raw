@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 2.034.002
+# Version: 2.034.003
 # License: MIT License
 
 SH="function.sh"
@@ -700,6 +700,55 @@ SYS_OPTIMIZE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Optimizing system configuration...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	SYSCTL_CONF="/etc/sysctl.d/99-custom-optimizations.conf"
+	echo "# Custom system optimizations" > "$SYSCTL_CONF"
+	echo "* Adjusting swappiness..."
+	echo "vm.swappiness = 10" >> "$SYSCTL_CONF"
+	if command -v systemctl &>/dev/null && systemctl list-unit-files | grep -q systemd-oomd; then
+		echo "* Enabling and starting systemd-oomd..."
+		systemctl enable --now systemd-oomd || error "Failed to enable and start systemd-oomd"
+	fi
+	echo "* Optimizing disk I/O scheduler..."
+	for disk in /sys/block/sd*; do
+		if [ -e "$disk/queue/scheduler" ]; then
+			echo "mq-deadline" > "$disk/queue/scheduler" || error "Failed to set I/O scheduler for $disk"
+			echo "echo mq-deadline > $disk/queue/scheduler" >> /etc/rc.local
+		fi
+	done
+	echo "* Disabling unnecessary services..."
+	services_to_disable=("bluetooth" "cups" "avahi-daemon")
+	for service in "${services_to_disable[@]}"; do
+		if systemctl is-active --quiet "$service"; then
+			systemctl disable --now "$service" || error "Failed to disable $service"
+		fi
+	done
+	echo "* Updating system limits..."
+	limits_file="/etc/security/limits.conf"
+	grep -qxF "* soft nofile 65535" "$limits_file" || echo "* soft nofile 65535" >> "$limits_file"
+	grep -qxF "* hard nofile 65535" "$limits_file" || echo "* hard nofile 65535" >> "$limits_file"
+	echo "* Adjusting TCP settings and kernel parameters..."
+	kernel_params=(
+		"net.ipv4.tcp_fin_timeout = 30"
+		"net.ipv4.tcp_keepalive_time = 1200"
+		"net.ipv4.tcp_max_syn_backlog = 8192"
+		"net.ipv4.tcp_tw_reuse = 1"
+		"vm.dirty_ratio = 10"
+		"vm.dirty_background_ratio = 5"
+		"net.core.rmem_max = 16777216"
+		"net.core.wmem_max = 16777216"
+		"net.ipv4.tcp_rmem = 4096 87380 16777216"
+		"net.ipv4.tcp_wmem = 4096 65536 16777216"
+		"vm.vfs_cache_pressure = 50"
+	)
+	for param in "${kernel_params[@]}"; do
+		echo "$param" >> "$SYSCTL_CONF"
+	done
+	echo "* Clearing ARP cache..."
+	ip -s -s neigh flush all || error "Failed to clear ARP cache"
+	echo "* Applying all sysctl changes..."
+	sysctl -p "$SYSCTL_CONF" || error "Failed to apply sysctl changes"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	echo -e "${CLR2}System optimization completed. Changes will persist after reboot.${CLR0}\n"
 }
 SYS_REBOOT() {
 	CHECK_ROOT
