@@ -1455,7 +1455,7 @@ checkSys() {
 	DEL inetutils-ping kdump-tools kexec-tools
 	# Debian like linux OS necessary components.
 	ADD cpio curl dmidecode dnsutils efibootmgr fdisk file gzip iputils-ping jq net-tools openssl tuned util-linux virt-what wget xz-utils
-
+	
 	# Redhat like Linux OS prefer to use dnf instead of yum because former has a higher execute efficiency.
 	yum install dnf -y
 	if [[ $? -eq 0 ]]; then
