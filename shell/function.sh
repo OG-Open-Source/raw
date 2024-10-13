@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.014
+# Version: 3.034.015
 # License: MIT License
 
 SH="function.sh"
@@ -64,7 +64,6 @@ ADD() {
 			*dnf)
 				if ! dnf list installed "$target" &>/dev/null; then
 					echo "* Package $target is not installed. Attempting installation..."
-					dnf check-update || { error "Failed to check for updates"; continue; }
 					dnf install -y "$target" || { error "Failed to install $target using dnf"; continue; }
 					if dnf list installed "$target" &>/dev/null; then
 						echo "* Package $target installed successfully."
@@ -106,7 +105,6 @@ ADD() {
 			*yum)
 				if ! yum list installed "$target" &>/dev/null; then
 					echo "* Package $target is not installed. Attempting installation..."
-					yum check-update || { error "Failed to check for updates"; continue; }
 					yum install -y "$target" || { error "Failed to install $target using yum"; continue; }
 					if yum list installed "$target" &>/dev/null; then
 						echo "* Package $target installed successfully."
