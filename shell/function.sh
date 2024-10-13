@@ -1,18 +1,18 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.020
+# Version: 3.034.021
 # License: MIT License
 
 SH="function.sh"
-CLR1="\033[31m"
-CLR2="\033[32m"
+CLR1="\033[0;31m"
+CLR2="\033[0;32m"
 CLR3="\033[0;33m"
-CLR4="\033[34m"
-CLR5="\033[35m"
-CLR6="\033[36m"
-CLR7="\033[37m"
-CLR8="\033[96m"
-CLR9="\033[97m"
+CLR4="\033[0;34m"
+CLR5="\033[0;35m"
+CLR6="\033[0;36m"
+CLR7="\033[0;37m"
+CLR8="\033[0;96m"
+CLR9="\033[0;97m"
 CLR0="\033[0m"
 
 crontab -l 2>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'" >> function-update && crontab function-update && rm -f function-update)
@@ -28,109 +28,153 @@ error() {
 ADD() {
 	CHECK_ROOT
 	if [ $# -eq 0 ]; then
-		error "No packages specified for installation\n"
+		error "No packages, files, or directories specified for installation\n"
+		return 1
 	fi
-	for target in "$@"; do
-		echo -e "${CLR3}INSTALL [$target]${CLR0}"
-		case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
-			*apk)
-				if ! apk info -e "$target" &>/dev/null; then
-					echo "* Package $target is not installed. Attempting installation..."
-					apk update || { error "Failed to update package lists\n"; continue; }
-					apk add "$target" || { error "Failed to install $target using apk\n"; continue; }
-					if apk info -e "$target" &>/dev/null; then
-						echo "* Package $target installed successfully."
-					else
-						error "Package $target installation failed or not verified.\n"
-					fi
-				else
-					echo "* Package $target is already installed."
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			-f)
+				if [ -z "$2" ]; then
+					error "No file specified after -f option\n"
+					return 1
 				fi
+				echo -e "${CLR3}CREATE FILE [$2]${CLR0}"
+				if [ -f "$2" ] || [ -d "$2" ]; then
+					error "File $2 already exists\n"
+					return 1
+				else
+					touch "$2" || { error "Failed to create file $2\n"; return 1; }
+					echo "* File $2 created successfully"
+				fi
+				shift 2
 				;;
-			*apt)
-				if ! dpkg-query -W -f='${Status}' "$target" 2>/dev/null | grep -q "ok installed"; then
-					echo "* Package $target is not installed. Attempting installation..."
-					apt update || { error "Failed to update package lists\n"; continue; }
-					apt install -y "$target" || { error "Failed to install $target using apt\n"; continue; }
-					if dpkg-query -W -f='${Status}' "$target" 2>/dev/null | grep -q "ok installed"; then
-						echo "* Package $target installed successfully."
-					else
-						error "Package $target installation failed or not verified.\n"
-					fi
-				else
-					echo "* Package $target is already installed."
+			-d)
+				if [ -z "$2" ]; then
+					error "No directory specified after -d option\n"
+					return 1
 				fi
-				;;
-			*opkg)
-				if ! opkg list-installed | grep -q "^$target "; then
-					echo "* Package $target is not installed. Attempting installation..."
-					opkg update || { error "Failed to update package lists\n"; continue; }
-					opkg install "$target" || { error "Failed to install $target using opkg\n"; continue; }
-					if opkg list-installed | grep -q "^$target "; then
-						echo "* Package $target installed successfully."
-					else
-						error "Package $target installation failed or not verified.\n"
-					fi
+				echo -e "${CLR3}CREATE DIRECTORY [$2]${CLR0}"
+				if [ -d "$2" ] || [ -f "$2" ]; then
+					error "Directory $2 already exists\n"
+					return 1
 				else
-					echo "* Package $target is already installed."
+					mkdir -p "$2" || { error "Failed to create directory $2\n"; return 1; }
+					echo "* Directory $2 created successfully"
 				fi
-				;;
-			*pacman)
-				if ! pacman -Qi "$target" &>/dev/null; then
-					echo "* Package $target is not installed. Attempting installation..."
-					pacman -Sy || { error "Failed to synchronize package databases\n"; continue; }
-					pacman -S --noconfirm "$target" || { error "Failed to install $target using pacman\n"; continue; }
-					if pacman -Qi "$target" &>/dev/null; then
-						echo "* Package $target installed successfully."
-					else
-						error "Package $target installation failed or not verified.\n"
-					fi
-				else
-					echo "* Package $target is already installed."
-				fi
-				;;
-			*yum)
-				if ! yum list installed "$target" &>/dev/null; then
-					echo "* Package $target is not installed. Attempting installation..."
-					yum install -y "$target" || { error "Failed to install $target using yum\n"; continue; }
-					if yum list installed "$target" &>/dev/null; then
-						echo "* Package $target installed successfully."
-					else
-						error "Package $target installation failed or not verified.\n"
-					fi
-				else
-					echo "* Package $target is already installed."
-				fi
-				;;
-			*zypper)
-				if ! zypper se -i -x "$target" &>/dev/null; then
-					echo "* Package $target is not installed. Attempting installation..."
-					zypper refresh || { error "Failed to refresh repositories\n"; continue; }
-					zypper install -y "$target" || { error "Failed to install $target using zypper\n"; continue; }
-					if zypper se -i -x "$target" &>/dev/null; then
-						echo "* Package $target installed successfully."
-					else
-						error "Package $target installation failed or not verified.\n"
-					fi
-				else
-					echo "* Package $target is already installed."
-				fi
-				;;
-			*dnf)
-				if ! dnf list installed "$target" &>/dev/null; then
-					echo "* Package $target is not installed. Attempting installation..."
-					dnf install -y "$target" || { error "Failed to install $target using dnf\n"; continue; }
-					if dnf list installed "$target" &>/dev/null; then
-						echo "* Package $target installed successfully."
-					else
-						error "Package $target installation failed or not verified.\n"
-					fi
-				else
-					echo "* Package $target is already installed."
-				fi
+				shift 2
 				;;
 			*)
-				error "No supported package manager found\n"
+				echo -e "${CLR3}INSTALL [$1]${CLR0}"
+				case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
+					*apk)
+						if ! apk info -e "$1" &>/dev/null; then
+							echo "* Package $1 is not installed. Attempting installation..."
+							apk update || { error "Failed to update package lists\n"; return 1; }
+							apk add "$1" || { error "Failed to install $1 using apk\n"; return 1; }
+							if apk info -e "$1" &>/dev/null; then
+								echo "* Package $1 installed successfully"
+							else
+								error "Package $1 installation failed or not verified\n"
+								return 1
+							fi
+						else
+							echo "* Package $1 is already installed"
+						fi
+						;;
+					*apt)
+						if ! dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
+							echo "* Package $1 is not installed. Attempting installation..."
+							apt update || { error "Failed to update package lists\n"; return 1; }
+							apt install -y "$1" || { error "Failed to install $1 using apt\n"; return 1; }
+							if dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
+								echo "* Package $1 installed successfully"
+							else
+								error "Package $1 installation failed or not verified\n"
+								return 1
+							fi
+						else
+							echo "* Package $1 is already installed"
+						fi
+						;;
+					*opkg)
+						if ! opkg list-installed | grep -q "^$1 "; then
+							echo "* Package $1 is not installed. Attempting installation..."
+							opkg update || { error "Failed to update package lists\n"; return 1; }
+							opkg install "$1" || { error "Failed to install $1 using opkg\n"; return 1; }
+							if opkg list-installed | grep -q "^$1 "; then
+								echo "* Package $1 installed successfully"
+							else
+								error "Package $1 installation failed or not verified\n"
+								return 1
+							fi
+						else
+							echo "* Package $1 is already installed"
+						fi
+						;;
+					*pacman)
+						if ! pacman -Qi "$1" &>/dev/null; then
+							echo "* Package $1 is not installed. Attempting installation..."
+							pacman -Sy || { error "Failed to synchronize package databases\n"; return 1; }
+							pacman -S --noconfirm "$1" || { error "Failed to install $1 using pacman\n"; return 1; }
+							if pacman -Qi "$1" &>/dev/null; then
+								echo "* Package $1 installed successfully"
+							else
+								error "Package $1 installation failed or not verified\n"
+								return 1
+							fi
+						else
+							echo "* Package $1 is already installed"
+						fi
+						;;
+					*yum)
+						if ! yum list installed "$1" &>/dev/null; then
+							echo "* Package $1 is not installed. Attempting installation..."
+							yum install -y "$1" || { error "Failed to install $1 using yum\n"; return 1; }
+							if yum list installed "$1" &>/dev/null; then
+								echo "* Package $1 installed successfully"
+							else
+								error "Package $1 installation failed or not verified\n"
+								return 1
+							fi
+						else
+							echo "* Package $1 is already installed"
+						fi
+						;;
+					*zypper)
+						if ! zypper se -i -x "$1" &>/dev/null; then
+							echo "* Package $1 is not installed. Attempting installation..."
+							zypper refresh || { error "Failed to refresh repositories\n"; return 1; }
+							zypper install -y "$1" || { error "Failed to install $1 using zypper\n"; return 1; }
+							if zypper se -i -x "$1" &>/dev/null; then
+								echo "* Package $1 installed successfully"
+							else
+								error "Package $1 installation failed or not verified\n"
+								return 1
+							fi
+						else
+							echo "* Package $1 is already installed"
+						fi
+						;;
+					*dnf)
+						if ! dnf list installed "$1" &>/dev/null; then
+							echo "* Package $1 is not installed. Attempting installation..."
+							dnf install -y "$1" || { error "Failed to install $1 using dnf\n"; return 1; }
+							if dnf list installed "$1" &>/dev/null; then
+								echo "* Package $1 installed successfully"
+							else
+								error "Package $1 installation failed or not verified\n"
+								return 1
+							fi
+						else
+							echo "* Package $1 is already installed"
+						fi
+						;;
+					*)
+						error "Unsupported package manager\n"
+						return 1
+						;;
+				esac
+				shift
 				;;
 		esac
 		echo -e "${CLR2}FINISHED${CLR0}\n"
@@ -165,11 +209,12 @@ CHECK_OS() {
 		grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
 	else
 		error "Unknown distribution"
+		return 1
 	fi
 }
 CHECK_ROOT() {
 	if [ "$EUID" -ne 0 ] || [ "$(id -u)" -ne 0 ]; then
-		error "Please run this script as root user.\n"
+		error "Please run this script as root user\n"
 		exit 1
 	fi
 }
@@ -177,6 +222,7 @@ CHECK_VIRT() {
 	virt_type=$(systemd-detect-virt 2>/dev/null)
 	if [ -z "$virt_type" ]; then
 		error "Failed to detect virtualization"
+		return 1
 	fi
 	case "$virt_type" in
 		kvm)
@@ -210,14 +256,17 @@ CLEAN() {
 CPU_FREQ() {
 	if [ ! -f /proc/cpuinfo ]; then
 		error "Unable to access /proc/cpuinfo"
+		return 1
 	fi
 	cpu_freq=$(awk -F ': ' '/^cpu MHz/ {sum += $2; count++} END {if (count > 0) print sum / count; else print "N/A"}' /proc/cpuinfo)
 	if [ "$cpu_freq" = "N/A" ]; then
 		error "Failed to calculate CPU frequency"
+		return 1
 	fi
 	cpu_freq_ghz=$(awk -v freq="$cpu_freq" 'BEGIN {printf "%.2f", freq / 1000}')
 	if [ -z "$cpu_freq_ghz" ]; then
 		error "Failed to convert CPU frequency to GHz"
+		return 1
 	fi
 	echo "${cpu_freq_ghz} GHz"
 }
@@ -230,6 +279,7 @@ CPU_MODEL() {
 		sysctl -n machdep.cpu.brand_string 2>/dev/null || echo -e "${CLR1}Unknown${CLR0}"
 	else
 		error "Unable to determine CPU model"
+		return 1
 	fi
 }
 COPYRIGHT() {
@@ -240,94 +290,124 @@ DEL() {
 	CHECK_ROOT
 	if [ $# -eq 0 ]; then
 		error "No targets specified for deletion\n"
+		return 1
 	fi
-	for target in "$@"; do
-		echo -e "${CLR3}DELETE [$target]${CLR0}"
-		if [ -e "$target" ]; then
-			if [ -d "$target" ]; then
-				echo "* Directory $target exists. Attempting removal..."
-				rm -rf "$target" || error "Failed to remove directory $target\n"
-				echo "* Directory $target removed successfully."
-			elif [ -f "$target" ]; then
-				echo "* File $target exists. Attempting removal..."
-				rm -f "$target" || error "Failed to remove file $target\n"
-				echo "* File $target removed successfully."
-			else
-				echo "* $target exists but is neither a file nor a directory. Attempting removal..."
-				rm -f "$target" || error "Failed to remove $target\n"
-				echo "* $target removed successfully."
-			fi
-		else
-			case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
-				*apk)
-					if apk info "$target" &>/dev/null; then
-						echo "* Package $target is installed. Attempting removal..."
-						apk del "$target" || error "Failed to remove package $target\n"
-						echo "* Package $target removed successfully."
-					else
-						error "$target is not a file, directory, or installed package.\n"
-					fi
-					;;
-				*apt)
-					if dpkg -l | grep -q "^ii  $target"; then
-						echo "* Package $target is installed. Attempting removal..."
-						apt purge -y "$target" || error "Failed to purge package $target\n"
-						apt autoremove -y || error "Failed to autoremove package $target\n"
-						echo "* Package $target removed successfully."
-					else
-						error "$target is not a file, directory, or installed package."
-					fi
-					;;
-				*opkg)
-					if opkg list-installed | grep -q "$target"; then
-						echo "* Package $target is installed. Attempting removal..."
-						opkg remove "$target" || error "Failed to remove package $target\n"
-						echo "* Package $target removed successfully."
-					else
-						error "$target is not a file, directory, or installed package.\n"
-					fi
-					;;
-				*pacman)
-					if pacman -Q "$target" &>/dev/null; then
-						echo "* Package $target is installed. Attempting removal..."
-						pacman -Rns --noconfirm "$target" || error "Failed to remove package $target\n"
-						echo "* Package $target removed successfully."
-					else
-						error "$target is not a file, directory, or installed package.\n"
-					fi
-					;;
-				*yum)
-					if yum list installed "$target" &>/dev/null; then
-						echo "* Package $target is installed. Attempting removal..."
-						yum remove -y "$target" || error "Failed to remove package $target\n"
-						echo "* Package $target removed successfully."
-					else
-						error "$target is not a file, directory, or installed package.\n"
-					fi
-					;;
-				*zypper)
-					if zypper se --installed-only "$target" | grep -q "$target"; then
-						echo "* Package $target is installed. Attempting removal..."
-						zypper remove -y "$target" || error "Failed to remove package $target\n"
-						echo "* Package $target removed successfully."
-					else
-						error "$target is not a file, directory, or installed package.\n"
-					fi
-					;;
-				*dnf)
-					if dnf list installed "$target" &>/dev/null; then
-						echo "* Package $target is installed. Attempting removal..."
-						dnf remove -y "$target" || error "Failed to remove package $target\n"
-						echo "* Package $target removed successfully."
-					else
-						error "$target is not a file, directory, or installed package.\n"
-					fi
-					;;
-				*)
-					error "Unsupported package manager and $target is not a file or directory\n"
-					;;
-			esac
-		fi
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			-f)
+				if [ -z "$2" ]; then
+					error "No file specified after -f option\n"
+					return 1
+				fi
+				echo -e "${CLR3}DELETE FILE [$2]${CLR0}"
+				if [ -f "$2" ]; then
+					echo "* File $2 exists. Attempting removal..."
+					rm -f "$2" || { error "Failed to remove file $2\n"; return 1; }
+					echo "* File $2 removed successfully"
+				else
+					error "File $2 does not exist\n"
+					return 1
+				fi
+				shift 2
+				;;
+			-d)
+				if [ -z "$2" ]; then
+					error "No directory specified after -d option\n"
+					return 1
+				fi
+				echo -e "${CLR3}DELETE DIRECTORY [$2]${CLR0}"
+				if [ -d "$2" ]; then
+					echo "* Directory $2 exists. Attempting removal..."
+					rm -rf "$2" || { error "Failed to remove directory $2\n"; return 1; }
+					echo "* Directory $2 removed successfully"
+				else
+					error "Directory $2 does not exist\n"
+					return 1
+				fi
+				shift 2
+				;;
+			*)
+				echo -e "${CLR3}DELETE [$1]${CLR0}"
+				case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
+					*apk)
+						if apk info -e "$1" &>/dev/null; then
+							echo "* Package $1 is installed. Attempting removal..."
+							apk del "$1" || { error "Failed to remove package $1\n"; return 1; }
+							echo "* Package $1 removed successfully"
+						else
+							error "Package $1 is not installed\n"
+							return 1
+						fi
+						;;
+					*apt)
+						if dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
+							echo "* Package $1 is installed. Attempting removal..."
+							apt purge -y "$1" || { error "Failed to purge package $1\n"; return 1; }
+							apt autoremove -y || { error "Failed to autoremove package $1\n"; return 1; }
+							echo "* Package $1 removed successfully"
+						else
+							error "Package $1 is not installed\n"
+							return 1
+						fi
+						;;
+					*opkg)
+						if opkg list-installed | grep -q "^$1 "; then
+							echo "* Package $1 is installed. Attempting removal..."
+							opkg remove "$1" || { error "Failed to remove package $1\n"; return 1; }
+							echo "* Package $1 removed successfully"
+						else
+							error "Package $1 is not installed\n"
+							return 1
+						fi
+						;;
+					*pacman)
+						if pacman -Qi "$1" &>/dev/null; then
+							echo "* Package $1 is installed. Attempting removal..."
+							pacman -Rns --noconfirm "$1" || { error "Failed to remove package $1\n"; return 1; }
+							echo "* Package $1 removed successfully"
+						else
+							error "Package $1 is not installed\n"
+							return 1
+						fi
+						;;
+					*yum)
+						if yum list installed "$1" &>/dev/null; then
+							echo "* Package $1 is installed. Attempting removal..."
+							yum remove -y "$1" || { error "Failed to remove package $1\n"; return 1; }
+							echo "* Package $1 removed successfully"
+						else
+							error "Package $1 is not installed\n"
+							return 1
+						fi
+						;;
+					*zypper)
+						if zypper se -i -x "$1" &>/dev/null; then
+							echo "* Package $1 is installed. Attempting removal..."
+							zypper remove -y "$1" || { error "Failed to remove package $1\n"; return 1; }
+							echo "* Package $1 removed successfully"
+						else
+							error "Package $1 is not installed\n"
+							return 1
+						fi
+						;;
+					*dnf)
+						if dnf list installed "$1" &>/dev/null; then
+							echo "* Package $1 is installed. Attempting removal..."
+							dnf remove -y "$1" || { error "Failed to remove package $1\n"; return 1; }
+							echo "* Package $1 removed successfully"
+						else
+							error "Package $1 is not installed\n"
+							return 1
+						fi
+						;;
+					*)
+						error "Unsupported package manager\n"
+						return 1
+						;;
+				esac
+				shift
+				;;
+		esac
 		echo -e "${CLR2}FINISHED${CLR0}\n"
 	done
 }
@@ -340,12 +420,14 @@ DISK_USAGE() {
 DNS_ADDR () {
 	if [ ! -f /etc/resolv.conf ]; then
 		error "/etc/resolv.conf file not found"
+		return 1
 	fi
 	ipv4_servers=$(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
 	ipv6_servers=$(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}' | grep -E '^[0-9a-fA-F:]+$')
 
 	if [ -z "$ipv4_servers" ] && [ -z "$ipv6_servers" ]; then
 		error "No DNS servers found in /etc/resolv.conf"
+		return 1
 	fi
 	ipv4_result=""
 	ipv6_result=""
@@ -365,6 +447,7 @@ DNS_ADDR () {
 	done
 	if [ -z "$ipv4_result" ] && [ -z "$ipv6_result" ]; then
 		error "Failed to parse DNS server addresses"
+		return 1
 	fi
 	if [ "$1" = "-4" ]; then
 		echo "$ipv4_result"
@@ -378,33 +461,35 @@ DNS_ADDR () {
 FIND() {
 	if [ $# -eq 0 ]; then
 		error "No search terms provided\n"
+		return 1
 	fi
 	for target in "$@"; do
 		echo -e "${CLR3}SEARCH [$target]${CLR0}"
 		case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 			*apk)
-				apk search "$target" || error "No results found for $target\n"
+				apk search "$target" || { error "No results found for $target\n"; return 1; }
 				;;
 			*apt)
-				apt-cache search "$target" || error "No results found for $target\n"
+				apt-cache search "$target" || { error "No results found for $target\n"; return 1; }
 				;;
 			*opkg)
-				opkg search "$target" || error "No results found for $target\n"
+				opkg search "$target" || { error "No results found for $target\n"; return 1; }
 				;;
 			*pacman)
-				pacman -Ss "$target" || error "No results found for $target\n"
+				pacman -Ss "$target" || { error "No results found for $target\n"; return 1; }
 				;;
 			*yum)
-				yum search "$target" || error "No results found for $target\n"
+				yum search "$target" || { error "No results found for $target\n"; return 1; }
 				;;
 			*zypper)
-				zypper search "$target" || error "No results found for $target\n"
+				zypper search "$target" || { error "No results found for $target\n"; return 1; }
 				;;
 			*dnf)
-				dnf search "$target" || error "No results found for $target\n"
+				dnf search "$target" || { error "No results found for $target\n"; return 1; }
 				;;
 			*)
 				error "Unsupported package manager\n"
+				return 1
 				;;
 		esac
 		echo -e "${CLR2}FINISHED${CLR0}\n"
@@ -473,6 +558,7 @@ INTERFACE() {
 			fi
 		else
 			error "No stats found for interface: $interface"
+			return 1
 		fi
 	done
 }
@@ -480,23 +566,24 @@ IPv4_ADDR() {
 	timeout 1s dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null || \
 	timeout 1s curl -s ipv4.ip.sb 2>/dev/null || \
 	timeout 1s wget -qO- -4 ifconfig.me 2>/dev/null || \
-	{ error "Unable to determine IPv4 address"; }
+	{ error "Unable to determine IPv4 address"; return 1; }
 }
 IPv6_ADDR() {
 	timeout 1s curl -s ipv6.ip.sb 2>/dev/null || \
 	timeout 1s wget -qO- -6 ifconfig.me 2>/dev/null || \
-	{ error "Unable to determine IPv6 address"; }
+	{ error "Unable to determine IPv6 address"; return 1; }
 }
 
 LAST_UPDATE() {
 	if [ -f /var/log/apt/history.log ]; then
-		grep 'End-Date:' /var/log/apt/history.log | tail -n 1 | sed 's/End-Date: *//' | tr -s ' ' || { error "Failed to parse apt history log"; }
+		grep 'End-Date:' /var/log/apt/history.log | tail -n 1 | sed 's/End-Date: *//' | tr -s ' ' || { error "Failed to parse apt history log"; return 1; }
 	elif [ -f /var/log/dpkg.log ]; then
-		tail -n 1 /var/log/dpkg.log | awk '{print $1, $2}' || { error "Failed to parse dpkg log"; }
+		tail -n 1 /var/log/dpkg.log | awk '{print $1, $2}' || { error "Failed to parse dpkg log"; return 1; }
 	elif command -v rpm &>/dev/null; then
-		rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}' || { error "Failed to retrieve RPM package information"; }
+		rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}' || { error "Failed to retrieve RPM package information"; return 1; }
 	else
 		error "Unable to determine last update time"
+		return 1
 	fi
 }
 LINE() {
@@ -513,6 +600,7 @@ MAC_ADDR() {
 		echo "$mac_address"
 	else
 		error "Failed to retrieve MAC address"
+		return 1
 	fi
 }
 MEM_USAGE() {
@@ -527,34 +615,35 @@ NET_PROVIDER() {
 	curl -s https://ipwhois.app/json/ | jq -r .org || \
 	curl -s http://ip-api.com/json/ | jq -r .org || \
 	dig +short -x $(curl -s ipinfo.io/ip) | sed 's/\.$//' || \
-	{ error "Unable to determine network provider"; }
+	{ error "Unable to determine network provider"; return 1; }
 }
 
 PKG_COUNT() {
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk)
-			apk info | wc -l || error "Failed to count APK packages"
+			apk info | wc -l || { error "Failed to count APK packages";	return 1; }
 			;;
 		*apt)
-			dpkg --get-selections | wc -l || error "Failed to count APT packages"
+			dpkg --get-selections | wc -l || { error "Failed to count APT packages"; return 1; }
 			;;
 		*opkg)
-			opkg list-installed | wc -l || error "Failed to count OPKG packages"
+			opkg list-installed | wc -l || { error "Failed to count OPKG packages"; return 1; }
 			;;
 		*pacman)
-			pacman -Q | wc -l || error "Failed to count Pacman packages"
+			pacman -Q | wc -l || { error "Failed to count Pacman packages"; return 1; }
 			;;
 		*yum)
-			rpm -qa | wc -l || error "Failed to count RPM packages"
+			rpm -qa | wc -l || { error "Failed to count RPM packages"; return 1; }
 			;;
 		*zypper)
-			zypper se --installed-only | wc -l || error "Failed to count Zypper packages"
+			zypper se --installed-only | wc -l || { error "Failed to count Zypper packages"; return 1; }
 			;;
 		*dnf)
-			rpm -qa | wc -l || error "Failed to count RPM packages"
+			rpm -qa | wc -l || { error "Failed to count RPM packages"; return 1; }
 			;;
 		*)
 			error "Unsupported package manager"
+			return 1
 			;;
 	esac
 }
@@ -588,6 +677,7 @@ PUBLIC_IP() {
 		fi
 	done
 	error "Unable to determine public IP"
+	return 1
 }
 
 SHELL_VER() {
@@ -612,65 +702,66 @@ SYS_CLEAN() {
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk)
-			apk cache clean || error "Failed to clean APK cache"
-			rm -rf /tmp/* /var/cache/apk/* || error "Failed to remove temporary files"
-			apk fix || error "Failed to fix APK packages"
+			apk cache clean || { error "Failed to clean APK cache"; return 1; }
+			rm -rf /tmp/* /var/cache/apk/* || { error "Failed to remove temporary files"; return 1; }
+			apk fix || { error "Failed to fix APK packages"; return 1; }
 			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
 				sleep 0.5
 			done
-			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || error "Failed to configure pending packages"
-			apt autoremove --purge -y || error "Failed to autoremove packages"
-			apt clean -y || error "Failed to clean APT cache"
-			apt autoclean -y || error "Failed to autoclean APT cache"
+			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || { error "Failed to configure pending packages"; return 1; }
+			apt autoremove --purge -y || { error "Failed to autoremove packages"; return 1; }
+			apt clean -y || { error "Failed to clean APT cache"; return 1; }
+			apt autoclean -y || { error "Failed to autoclean APT cache"; return 1; }
 			;;
 		*opkg)
-			rm -rf /tmp/* || error "Failed to remove temporary files"
-			opkg update || error "Failed to update OPKG"
-			opkg clean || error "Failed to clean OPKG cache"
+			rm -rf /tmp/* || { error "Failed to remove temporary files"; return 1; }
+			opkg update || { error "Failed to update OPKG"; return 1; }
+			opkg clean || { error "Failed to clean OPKG cache"; return 1; }
 			;;
 		*pacman)
-			pacman -Syu --noconfirm || error "Failed to update and upgrade packages"
-			pacman -Sc --noconfirm || error "Failed to clean pacman cache"
-			pacman -Scc --noconfirm || error "Failed to clean all pacman cache"
+			pacman -Syu --noconfirm || { error "Failed to update and upgrade packages"; return 1; }
+			pacman -Sc --noconfirm || { error "Failed to clean pacman cache"; return 1; }
+			pacman -Scc --noconfirm || { error "Failed to clean all pacman cache"; return 1; }
 			;;
 		*yum)
-			yum autoremove -y || error "Failed to autoremove packages"
-			yum clean all || error "Failed to clean YUM cache"
-			yum makecache || error "Failed to make YUM cache"
+			yum autoremove -y || { error "Failed to autoremove packages"; return 1; }
+			yum clean all || { error "Failed to clean YUM cache"; return 1; }
+			yum makecache || { error "Failed to make YUM cache"; return 1; }
 			;;
 		*zypper)
-			zypper clean --all || error "Failed to clean Zypper cache"
-			zypper refresh || error "Failed to refresh Zypper repositories"
+			zypper clean --all || { error "Failed to clean Zypper cache"; return 1; }
+			zypper refresh || { error "Failed to refresh Zypper repositories"; return 1; }
 			;;
 		*dnf)
-			dnf autoremove -y || error "Failed to autoremove packages"
-			dnf clean all || error "Failed to clean DNF cache"
-			dnf makecache || error "Failed to make DNF cache"
+			dnf autoremove -y || { error "Failed to autoremove packages"; return 1; }
+			dnf clean all || { error "Failed to clean DNF cache"; return 1; }
+			dnf makecache || { error "Failed to make DNF cache"; return 1; }
 			;;
 		*)
-			error "Unsupported package manager. Skipping system-specific cleanup."
+			error "Unsupported package manager. Skipping system-specific cleanup"
+			return 1
 			;;
 	esac
 	if command -v journalctl &>/dev/null; then
-		journalctl --rotate --vacuum-time=1d --vacuum-size=500M || error "Failed to rotate and vacuum journalctl logs"
+		journalctl --rotate --vacuum-time=1d --vacuum-size=500M || { error "Failed to rotate and vacuum journalctl logs"; return 1; }
 	fi
-	rm -rf /tmp/* || error "Failed to remove temporary files"
+	rm -rf /tmp/* || { error "Failed to remove temporary files"; return 1; }
 	for cmd in docker npm pip; do
 		if command -v "$cmd" &>/dev/null; then
 			case "$cmd" in
 				npm)
-					npm cache clean --force || error "Failed to clean NPM cache"
+					npm cache clean --force || { error "Failed to clean NPM cache"; return 1; }
 					;;
 				pip)
-					pip cache purge || error "Failed to purge PIP cache"
+					pip cache purge || { error "Failed to purge PIP cache"; return 1; }
 					;;
 			esac
 		fi
 	done
-	rm -rf ~/.cache/* || error "Failed to remove user cache files"
-	rm -rf ~/.thumbnails/* || error "Failed to remove thumbnail files"
+	rm -rf ~/.cache/* || { error "Failed to remove user cache files"; return 1; }
+	rm -rf ~/.thumbnails/* || { error "Failed to remove thumbnail files"; return 1; }
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
@@ -723,12 +814,12 @@ SYS_OPTIMIZE() {
 	echo "vm.swappiness = 10" >> "$SYSCTL_CONF"
 	if command -v systemctl &>/dev/null && systemctl list-unit-files | grep -q systemd-oomd; then
 		echo "* Enabling and starting systemd-oomd..."
-		systemctl enable --now systemd-oomd || error "Failed to enable and start systemd-oomd"
+		systemctl enable --now systemd-oomd || { error "Failed to enable and start systemd-oomd"; return 1; }
 	fi
 	echo "* Optimizing disk I/O scheduler..."
 	for disk in /sys/block/sd*; do
 		if [ -e "$disk/queue/scheduler" ]; then
-			echo "mq-deadline" > "$disk/queue/scheduler" || error "Failed to set I/O scheduler for $disk"
+			echo "mq-deadline" > "$disk/queue/scheduler" || { error "Failed to set I/O scheduler for $disk"; return 1; }
 			echo "echo mq-deadline > $disk/queue/scheduler" >> /etc/rc.local
 		fi
 	done
@@ -736,7 +827,7 @@ SYS_OPTIMIZE() {
 	services_to_disable=("bluetooth" "cups" "avahi-daemon")
 	for service in "${services_to_disable[@]}"; do
 		if systemctl is-active --quiet "$service"; then
-			systemctl disable --now "$service" || error "Failed to disable $service"
+			systemctl disable --now "$service" || { error "Failed to disable $service"; return 1; }
 		fi
 	done
 	echo "* Updating system limits..."
@@ -761,9 +852,9 @@ SYS_OPTIMIZE() {
 		echo "$param" >> "$SYSCTL_CONF"
 	done
 	echo "* Clearing ARP cache..."
-	ip -s -s neigh flush all || error "Failed to clear ARP cache"
+	ip -s -s neigh flush all || { error "Failed to clear ARP cache"; return 1; }
 	echo "* Applying all sysctl changes..."
-	sysctl -p "$SYSCTL_CONF" || error "Failed to apply sysctl changes"
+	sysctl -p "$SYSCTL_CONF" || { error "Failed to apply sysctl changes"; return 1; }
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
@@ -792,9 +883,9 @@ SYS_REBOOT() {
 		return 1
 	fi
 	echo "* Performing final checks before reboot..."
-	sync || error "Failed to sync filesystems"
+	sync || { error "Failed to sync filesystems"; return 1; }
 	echo -e "${CLR3}Initiating system reboot...${CLR0}"
-	reboot || error "Failed to initiate reboot"
+	reboot || { error "Failed to initiate reboot"; return 1; }
 	echo -e "${CLR2}Reboot command issued successfully. The system will reboot momentarily.${CLR0}"
 }
 SYS_UPDATE() {
@@ -804,9 +895,9 @@ SYS_UPDATE() {
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk)
 			echo "* Updating package lists..."
-			apk update || error "Failed to update package lists using apk"
+			apk update || { error "Failed to update package lists using apk"; return 1; }
 			echo "* Upgrading packages..."
-			apk upgrade || error "Failed to upgrade packages using apk"
+			apk upgrade || { error "Failed to upgrade packages using apk"; return 1; }
 			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
@@ -814,40 +905,41 @@ SYS_UPDATE() {
 				sleep 1
 			done
 			echo "* Updating package lists..."
-			DEBIAN_FRONTEND=noninteractive apt update -y || error "Failed to update package lists using apt"
+			DEBIAN_FRONTEND=noninteractive apt update -y || { error "Failed to update package lists using apt"; return 1; }
 			echo "* Upgrading packages..."
-			DEBIAN_FRONTEND=noninteractive apt full-upgrade -y || error "Failed to upgrade packages using apt"
+			DEBIAN_FRONTEND=noninteractive apt full-upgrade -y || { error "Failed to upgrade packages using apt"; return 1; }
 			;;
 		*opkg)
 			echo "* Updating package lists..."
-			opkg update || error "Failed to update package lists using opkg"
+			opkg update || { error "Failed to update package lists using opkg"; return 1; }
 			echo "* Upgrading packages..."
-			opkg upgrade || error "Failed to upgrade packages using opkg"
+			opkg upgrade || { error "Failed to upgrade packages using opkg"; return 1; }
 			;;
 		*pacman)
 			echo "* Updating package databases and upgrading packages..."
-			pacman -Syu --noconfirm || error "Failed to update and upgrade packages using pacman"
+			pacman -Syu --noconfirm || { error "Failed to update and upgrade packages using pacman"; return 1; }
 			;;
 		*yum)
 			echo "* Updating packages..."
-			yum -y update || error "Failed to update packages using yum"
+			yum -y update || { error "Failed to update packages using yum"; return 1; }
 			;;
 		*zypper)
 			echo "* Refreshing repositories..."
-			zypper refresh || error "Failed to refresh repositories using zypper"
+			zypper refresh || { error "Failed to refresh repositories using zypper"; return 1; }
 			echo "* Updating packages..."
-			zypper update -y || error "Failed to update packages using zypper"
+			zypper update -y || { rror "Failed to update packages using zypper"; return 1; }
 			;;
 		*dnf)
 			echo "* Updating packages..."
-			dnf -y update || error "Failed to update packages using dnf"
+			dnf -y update || { error "Failed to update packages using dnf"; return 1; }
 			;;
 		*)
 			error "Unsupported package manager"
+			return 1
 			;;
 	esac
 	echo "* Updating shell functions..."
-	bash <(curl -L raw.ogtt.tk/shell/function.sh) || error "Failed to update shell functions"
+	bash <(curl -L raw.ogtt.tk/shell/function.sh) || { error "Failed to update shell functions"; return 1; }
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
