@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.016
+# Version: 3.034.017
 # License: MIT License
 
 SH="function.sh"
@@ -222,11 +222,11 @@ CPU_FREQ() {
 	echo "${cpu_freq_ghz} GHz"
 }
 CPU_MODEL() {
-	if command -v lscpu >/dev/null 2>&1; then
+	if command -v lscpu &>/dev/null; then
 		lscpu | awk -F': +' '/Model name:/ {print $2; exit}'
 	elif [ -f /proc/cpuinfo ]; then
 		awk -F': ' '/model name/ {print $2; exit}' /proc/cpuinfo
-	elif command -v sysctl >/dev/null 2>&1; then
+	elif command -v sysctl &>/dev/null; then
 		sysctl -n machdep.cpu.brand_string 2>/dev/null || echo -e "${CLR1}Unknown${CLR0}"
 	else
 		error "Unable to determine CPU model"
@@ -493,7 +493,7 @@ LAST_UPDATE() {
 		grep 'End-Date:' /var/log/apt/history.log | tail -n 1 | sed 's/End-Date: *//' | tr -s ' ' || { error "Failed to parse apt history log"; }
 	elif [ -f /var/log/dpkg.log ]; then
 		tail -n 1 /var/log/dpkg.log | awk '{print $1, $2}' || { error "Failed to parse dpkg log"; }
-	elif command -v rpm >/dev/null 2>&1; then
+	elif command -v rpm &>/dev/null; then
 		rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}' || { error "Failed to retrieve RPM package information"; }
 	else
 		error "Unable to determine last update time"
@@ -854,7 +854,7 @@ SYS_UPDATE() {
 
 TIMEZONE() {
 	timezone=$(readlink /etc/localtime | sed 's|^.*/zoneinfo/||' 2>/dev/null) ||
-	timezone=$(command -v timedatectl >/dev/null 2>&1 && timedatectl status | awk '/Time zone:/ {print $3}') ||
+	timezone=$(command -v timedatectl &>/dev/null && timedatectl status | awk '/Time zone:/ {print $3}') ||
 	timezone=$([ -f /etc/timezone ] && cat /etc/timezone)
 	echo "${timezone:-Unknown}"
 }
