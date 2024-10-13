@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.018
+# Version: 3.034.019
 # License: MIT License
 
 SH="function.sh"
@@ -28,7 +28,7 @@ error() {
 ADD() {
 	CHECK_ROOT
 	if [ $# -eq 0 ]; then
-		error "No packages specified for installation"
+		error "No packages specified for installation\n"
 	fi
 	for target in "$@"; do
 		echo -e "${CLR3}INSTALL [$target]${CLR0}"
@@ -36,12 +36,12 @@ ADD() {
 			*apk)
 				if ! apk info -e "$target" &>/dev/null; then
 					echo "* Package $target is not installed. Attempting installation..."
-					apk update || { error "Failed to update package lists"; continue; }
-					apk add "$target" || { error "Failed to install $target using apk"; continue; }
+					apk update || { error "Failed to update package lists\n"; continue; }
+					apk add "$target" || { error "Failed to install $target using apk\n"; continue; }
 					if apk info -e "$target" &>/dev/null; then
 						echo "* Package $target installed successfully."
 					else
-						error "Package $target installation failed or not verified."
+						error "Package $target installation failed or not verified.\n"
 					fi
 				else
 					echo "* Package $target is already installed."
@@ -50,12 +50,12 @@ ADD() {
 			*apt)
 				if ! dpkg-query -W -f='${Status}' "$target" 2>/dev/null | grep -q "ok installed"; then
 					echo "* Package $target is not installed. Attempting installation..."
-					apt update || { error "Failed to update package lists"; continue; }
-					apt install -y "$target" || { error "Failed to install $target using apt"; continue; }
+					apt update || { error "Failed to update package lists\n"; continue; }
+					apt install -y "$target" || { error "Failed to install $target using apt\n"; continue; }
 					if dpkg-query -W -f='${Status}' "$target" 2>/dev/null | grep -q "ok installed"; then
 						echo "* Package $target installed successfully."
 					else
-						error "Package $target installation failed or not verified."
+						error "Package $target installation failed or not verified.\n"
 					fi
 				else
 					echo "* Package $target is already installed."
@@ -64,12 +64,12 @@ ADD() {
 			*opkg)
 				if ! opkg list-installed | grep -q "^$target "; then
 					echo "* Package $target is not installed. Attempting installation..."
-					opkg update || { error "Failed to update package lists"; continue; }
-					opkg install "$target" || { error "Failed to install $target using opkg"; continue; }
+					opkg update || { error "Failed to update package lists\n"; continue; }
+					opkg install "$target" || { error "Failed to install $target using opkg\n"; continue; }
 					if opkg list-installed | grep -q "^$target "; then
 						echo "* Package $target installed successfully."
 					else
-						error "Package $target installation failed or not verified."
+						error "Package $target installation failed or not verified.\n"
 					fi
 				else
 					echo "* Package $target is already installed."
@@ -78,12 +78,12 @@ ADD() {
 			*pacman)
 				if ! pacman -Qi "$target" &>/dev/null; then
 					echo "* Package $target is not installed. Attempting installation..."
-					pacman -Sy || { error "Failed to synchronize package databases"; continue; }
-					pacman -S --noconfirm "$target" || { error "Failed to install $target using pacman"; continue; }
+					pacman -Sy || { error "Failed to synchronize package databases\n"; continue; }
+					pacman -S --noconfirm "$target" || { error "Failed to install $target using pacman\n"; continue; }
 					if pacman -Qi "$target" &>/dev/null; then
 						echo "* Package $target installed successfully."
 					else
-						error "Package $target installation failed or not verified."
+						error "Package $target installation failed or not verified.\n"
 					fi
 				else
 					echo "* Package $target is already installed."
@@ -92,11 +92,11 @@ ADD() {
 			*yum)
 				if ! yum list installed "$target" &>/dev/null; then
 					echo "* Package $target is not installed. Attempting installation..."
-					yum install -y "$target" || { error "Failed to install $target using yum"; continue; }
+					yum install -y "$target" || { error "Failed to install $target using yum\n"; continue; }
 					if yum list installed "$target" &>/dev/null; then
 						echo "* Package $target installed successfully."
 					else
-						error "Package $target installation failed or not verified."
+						error "Package $target installation failed or not verified.\n"
 					fi
 				else
 					echo "* Package $target is already installed."
@@ -105,12 +105,12 @@ ADD() {
 			*zypper)
 				if ! zypper se -i -x "$target" &>/dev/null; then
 					echo "* Package $target is not installed. Attempting installation..."
-					zypper refresh || { error "Failed to refresh repositories"; continue; }
-					zypper install -y "$target" || { error "Failed to install $target using zypper"; continue; }
+					zypper refresh || { error "Failed to refresh repositories\n"; continue; }
+					zypper install -y "$target" || { error "Failed to install $target using zypper\n"; continue; }
 					if zypper se -i -x "$target" &>/dev/null; then
 						echo "* Package $target installed successfully."
 					else
-						error "Package $target installation failed or not verified."
+						error "Package $target installation failed or not verified.\n"
 					fi
 				else
 					echo "* Package $target is already installed."
@@ -119,18 +119,18 @@ ADD() {
 			*dnf)
 				if ! dnf list installed "$target" &>/dev/null; then
 					echo "* Package $target is not installed. Attempting installation..."
-					dnf install -y "$target" || { error "Failed to install $target using dnf"; continue; }
+					dnf install -y "$target" || { error "Failed to install $target using dnf\n"; continue; }
 					if dnf list installed "$target" &>/dev/null; then
 						echo "* Package $target installed successfully."
 					else
-						error "Package $target installation failed or not verified."
+						error "Package $target installation failed or not verified.\n"
 					fi
 				else
 					echo "* Package $target is already installed."
 				fi
 				;;
 			*)
-				error "No supported package manager found"
+				error "No supported package manager found\n"
 				;;
 		esac
 		echo -e "${CLR2}FINISHED${CLR0}\n"
@@ -169,7 +169,7 @@ CHECK_OS() {
 }
 CHECK_ROOT() {
 	if [ "$EUID" -ne 0 ] || [ "$(id -u)" -ne 0 ]; then
-		error "Please run this script as root user."
+		error "Please run this script as root user.\n"
 		exit 1
 	fi
 }
@@ -239,22 +239,22 @@ COPYRIGHT() {
 DEL() {
 	CHECK_ROOT
 	if [ $# -eq 0 ]; then
-		error "No targets specified for deletion"
+		error "No targets specified for deletion\n"
 	fi
 	for target in "$@"; do
 		echo -e "${CLR3}DELETE [$target]${CLR0}"
 		if [ -e "$target" ]; then
 			if [ -d "$target" ]; then
 				echo "* Directory $target exists. Attempting removal..."
-				rm -rf "$target" || error "Failed to remove directory $target"
+				rm -rf "$target" || error "Failed to remove directory $target\n"
 				echo "* Directory $target removed successfully."
 			elif [ -f "$target" ]; then
 				echo "* File $target exists. Attempting removal..."
-				rm -f "$target" || error "Failed to remove file $target"
+				rm -f "$target" || error "Failed to remove file $target\n"
 				echo "* File $target removed successfully."
 			else
 				echo "* $target exists but is neither a file nor a directory. Attempting removal..."
-				rm -f "$target" || error "Failed to remove $target"
+				rm -f "$target" || error "Failed to remove $target\n"
 				echo "* $target removed successfully."
 			fi
 		else
@@ -262,17 +262,17 @@ DEL() {
 				*apk)
 					if apk info "$target" &>/dev/null; then
 						echo "* Package $target is installed. Attempting removal..."
-						apk del "$target" || error "Failed to remove package $target"
+						apk del "$target" || error "Failed to remove package $target\n"
 						echo "* Package $target removed successfully."
 					else
-						error "$target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package.\n"
 					fi
 					;;
 				*apt)
 					if dpkg -l | grep -q "^ii  $target"; then
 						echo "* Package $target is installed. Attempting removal..."
-						apt purge -y "$target" || error "Failed to purge package $target"
-						apt autoremove -y || error "Failed to autoremove package $target"
+						apt purge -y "$target" || error "Failed to purge package $target\n"
+						apt autoremove -y || error "Failed to autoremove package $target\n"
 						echo "* Package $target removed successfully."
 					else
 						error "$target is not a file, directory, or installed package."
@@ -281,50 +281,50 @@ DEL() {
 				*opkg)
 					if opkg list-installed | grep -q "$target"; then
 						echo "* Package $target is installed. Attempting removal..."
-						opkg remove "$target" || error "Failed to remove package $target"
+						opkg remove "$target" || error "Failed to remove package $target\n"
 						echo "* Package $target removed successfully."
 					else
-						error "$target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package.\n"
 					fi
 					;;
 				*pacman)
 					if pacman -Q "$target" &>/dev/null; then
 						echo "* Package $target is installed. Attempting removal..."
-						pacman -Rns --noconfirm "$target" || error "Failed to remove package $target"
+						pacman -Rns --noconfirm "$target" || error "Failed to remove package $target\n"
 						echo "* Package $target removed successfully."
 					else
-						error "$target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package.\n"
 					fi
 					;;
 				*yum)
 					if yum list installed "$target" &>/dev/null; then
 						echo "* Package $target is installed. Attempting removal..."
-						yum remove -y "$target" || error "Failed to remove package $target"
+						yum remove -y "$target" || error "Failed to remove package $target\n"
 						echo "* Package $target removed successfully."
 					else
-						error "$target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package.\n"
 					fi
 					;;
 				*zypper)
 					if zypper se --installed-only "$target" | grep -q "$target"; then
 						echo "* Package $target is installed. Attempting removal..."
-						zypper remove -y "$target" || error "Failed to remove package $target"
+						zypper remove -y "$target" || error "Failed to remove package $target\n"
 						echo "* Package $target removed successfully."
 					else
-						error "$target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package.\n"
 					fi
 					;;
 				*dnf)
 					if dnf list installed "$target" &>/dev/null; then
 						echo "* Package $target is installed. Attempting removal..."
-						dnf remove -y "$target" || error "Failed to remove package $target"
+						dnf remove -y "$target" || error "Failed to remove package $target\n"
 						echo "* Package $target removed successfully."
 					else
-						error "$target is not a file, directory, or installed package."
+						error "$target is not a file, directory, or installed package.\n"
 					fi
 					;;
 				*)
-					error "Unsupported package manager and $target is not a file or directory"
+					error "Unsupported package manager and $target is not a file or directory\n"
 					;;
 			esac
 		fi
@@ -377,34 +377,34 @@ DNS_ADDR () {
 
 FIND() {
 	if [ $# -eq 0 ]; then
-		error "No search terms provided"
+		error "No search terms provided\n"
 	fi
 	for target in "$@"; do
 		echo -e "${CLR3}SEARCH [$target]${CLR0}"
 		case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 			*apk)
-				apk search "$target" || error "No results found for $target"
+				apk search "$target" || error "No results found for $target\n"
 				;;
 			*apt)
-				apt-cache search "$target" || error "No results found for $target"
+				apt-cache search "$target" || error "No results found for $target\n"
 				;;
 			*opkg)
-				opkg search "$target" || error "No results found for $target"
+				opkg search "$target" || error "No results found for $target\n"
 				;;
 			*pacman)
-				pacman -Ss "$target" || error "No results found for $target"
+				pacman -Ss "$target" || error "No results found for $target\n"
 				;;
 			*yum)
-				yum search "$target" || error "No results found for $target"
+				yum search "$target" || error "No results found for $target\n"
 				;;
 			*zypper)
-				zypper search "$target" || error "No results found for $target"
+				zypper search "$target" || error "No results found for $target\n"
 				;;
 			*dnf)
-				dnf search "$target" || error "No results found for $target"
+				dnf search "$target" || error "No results found for $target\n"
 				;;
 			*)
-				error "Unsupported package manager"
+				error "Unsupported package manager\n"
 				;;
 		esac
 		echo -e "${CLR2}FINISHED${CLR0}\n"
