@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.013
+# Version: 3.034.014
 # License: MIT License
 
 SH="function.sh"
@@ -15,7 +15,7 @@ CLR8="\033[96m"
 CLR9="\033[97m"
 CLR0="\033[0m"
 
-crontab -l 2>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'" >> function-update && crontab function-update && rm function-update)
+crontab -l 2>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'" >> function-update && crontab function-update && rm -f function-update)
 curl -sSL "https://raw.ogtt.tk/shell/function.sh" -o "/root/function.sh"
 grep -q "source /root/function.sh" /root/.bashrc || echo "source /root/function.sh" >> /root/.bashrc
 
