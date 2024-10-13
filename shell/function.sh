@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.015
+# Version: 3.034.016
 # License: MIT License
 
 SH="function.sh"
@@ -32,7 +32,20 @@ ADD() {
 	fi
 	for target in "$@"; do
 		echo -e "${CLR3}INSTALL [$target]${CLR0}"
-		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
+		case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
+			*dnf)
+				if ! dnf list installed "$target" &>/dev/null; then
+					echo "* Package $target is not installed. Attempting installation..."
+					dnf install -y "$target" || { error "Failed to install $target using dnf"; continue; }
+					if dnf list installed "$target" &>/dev/null; then
+						echo "* Package $target installed successfully."
+					else
+						error "Package $target installation failed or not verified."
+					fi
+				else
+					echo "* Package $target is already installed."
+				fi
+				;;
 			*apk)
 				if ! apk info -e "$target" &>/dev/null; then
 					echo "* Package $target is not installed. Attempting installation..."
@@ -53,19 +66,6 @@ ADD() {
 					apt update || { error "Failed to update package lists"; continue; }
 					apt install -y "$target" || { error "Failed to install $target using apt"; continue; }
 					if dpkg-query -W -f='${Status}' "$target" 2>/dev/null | grep -q "ok installed"; then
-						echo "* Package $target installed successfully."
-					else
-						error "Package $target installation failed or not verified."
-					fi
-				else
-					echo "* Package $target is already installed."
-				fi
-				;;
-			*dnf)
-				if ! dnf list installed "$target" &>/dev/null; then
-					echo "* Package $target is not installed. Attempting installation..."
-					dnf install -y "$target" || { error "Failed to install $target using dnf"; continue; }
-					if dnf list installed "$target" &>/dev/null; then
 						echo "* Package $target installed successfully."
 					else
 						error "Package $target installation failed or not verified."
@@ -258,7 +258,16 @@ DEL() {
 				echo "* $target removed successfully."
 			fi
 		else
-			case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
+			case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
+				*dnf)
+					if dnf list installed "$target" &>/dev/null; then
+						echo "* Package $target is installed. Attempting removal..."
+						dnf remove -y "$target" || error "Failed to remove package $target"
+						echo "* Package $target removed successfully."
+					else
+						error "$target is not a file, directory, or installed package."
+					fi
+					;;
 				*apk)
 					if apk info "$target" &>/dev/null; then
 						echo "* Package $target is installed. Attempting removal..."
@@ -273,15 +282,6 @@ DEL() {
 						echo "* Package $target is installed. Attempting removal..."
 						apt purge -y "$target" || error "Failed to purge package $target"
 						apt autoremove -y || error "Failed to autoremove package $target"
-						echo "* Package $target removed successfully."
-					else
-						error "$target is not a file, directory, or installed package."
-					fi
-					;;
-				*dnf)
-					if dnf list installed "$target" &>/dev/null; then
-						echo "* Package $target is installed. Attempting removal..."
-						dnf remove -y "$target" || error "Failed to remove package $target"
 						echo "* Package $target removed successfully."
 					else
 						error "$target is not a file, directory, or installed package."
@@ -381,15 +381,15 @@ FIND() {
 	fi
 	for target in "$@"; do
 		echo -e "${CLR3}SEARCH [$target]${CLR0}"
-		case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
+		case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
+			*dnf)
+				dnf search "$target" || error "No results found for $target"
+				;;
 			*apk)
 				apk search "$target" || error "No results found for $target"
 				;;
 			*apt)
 				apt-cache search "$target" || error "No results found for $target"
-				;;
-			*dnf)
-				dnf search "$target" || error "No results found for $target"
 				;;
 			*opkg)
 				opkg search "$target" || error "No results found for $target"
@@ -531,21 +531,24 @@ NET_PROVIDER() {
 }
 
 PKG_COUNT() {
-	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
+	case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
+		*dnf)
+			rpm -qa | wc -l || error "Failed to count RPM packages"
+			;;
 		*apk)
 			apk info | wc -l || error "Failed to count APK packages"
 			;;
 		*apt)
 			dpkg --get-selections | wc -l || error "Failed to count APT packages"
 			;;
-		*dnf|*yum)
-			rpm -qa | wc -l || error "Failed to count RPM packages"
-			;;
 		*opkg)
 			opkg list-installed | wc -l || error "Failed to count OPKG packages"
 			;;
 		*pacman)
 			pacman -Q | wc -l || error "Failed to count Pacman packages"
+			;;
+		*yum)
+			rpm -qa | wc -l || error "Failed to count RPM packages"
 			;;
 		*zypper)
 			zypper se --installed-only | wc -l || error "Failed to count Zypper packages"
@@ -607,7 +610,12 @@ SYS_CLEAN() {
 	CHECK_ROOT
 	echo -e "${CLR3}Performing system cleanup...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
+	case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
+		*dnf)
+			dnf autoremove -y || error "Failed to autoremove packages"
+			dnf clean all || error "Failed to clean DNF cache"
+			dnf makecache || error "Failed to make DNF cache"
+			;;
 		*apk)
 			apk cache clean || error "Failed to clean APK cache"
 			rm -rf /tmp/* /var/cache/apk/* || error "Failed to remove temporary files"
@@ -621,11 +629,6 @@ SYS_CLEAN() {
 			apt autoremove --purge -y || error "Failed to autoremove packages"
 			apt clean -y || error "Failed to clean APT cache"
 			apt autoclean -y || error "Failed to autoclean APT cache"
-			;;
-		*dnf)
-			dnf autoremove -y || error "Failed to autoremove packages"
-			dnf clean all || error "Failed to clean DNF cache"
-			dnf makecache || error "Failed to make DNF cache"
 			;;
 		*opkg)
 			rm -rf /tmp/* || error "Failed to remove temporary files"
@@ -798,7 +801,11 @@ SYS_UPDATE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Updating system software...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	case $(command -v apk apt dnf opkg pacman yum zypper | head -n1) in
+	case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
+		*dnf)
+			echo "* Updating packages..."
+			dnf -y update || error "Failed to update packages using dnf"
+			;;
 		*apk)
 			echo "* Updating package lists..."
 			apk update || error "Failed to update package lists using apk"
@@ -814,10 +821,6 @@ SYS_UPDATE() {
 			DEBIAN_FRONTEND=noninteractive apt update -y || error "Failed to update package lists using apt"
 			echo "* Upgrading packages..."
 			DEBIAN_FRONTEND=noninteractive apt full-upgrade -y || error "Failed to upgrade packages using apt"
-			;;
-		*dnf)
-			echo "* Updating packages..."
-			dnf -y update || error "Failed to update packages using dnf"
 			;;
 		*opkg)
 			echo "* Updating package lists..."
