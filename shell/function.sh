@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.019
+# Version: 3.034.020
 # License: MIT License
 
 SH="function.sh"
@@ -794,7 +794,7 @@ SYS_REBOOT() {
 	echo "* Performing final checks before reboot..."
 	sync || error "Failed to sync filesystems"
 	echo -e "${CLR3}Initiating system reboot...${CLR0}"
-	shutdown -r now "System is going down for reboot" || error "Failed to initiate reboot"
+	reboot || error "Failed to initiate reboot"
 	echo -e "${CLR2}Reboot command issued successfully. The system will reboot momentarily.${CLR0}"
 }
 SYS_UPDATE() {
