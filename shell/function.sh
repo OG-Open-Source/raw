@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.017
+# Version: 3.034.018
 # License: MIT License
 
 SH="function.sh"
@@ -32,20 +32,7 @@ ADD() {
 	fi
 	for target in "$@"; do
 		echo -e "${CLR3}INSTALL [$target]${CLR0}"
-		case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
-			*dnf)
-				if ! dnf list installed "$target" &>/dev/null; then
-					echo "* Package $target is not installed. Attempting installation..."
-					dnf install -y "$target" || { error "Failed to install $target using dnf"; continue; }
-					if dnf list installed "$target" &>/dev/null; then
-						echo "* Package $target installed successfully."
-					else
-						error "Package $target installation failed or not verified."
-					fi
-				else
-					echo "* Package $target is already installed."
-				fi
-				;;
+		case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 			*apk)
 				if ! apk info -e "$target" &>/dev/null; then
 					echo "* Package $target is not installed. Attempting installation..."
@@ -121,6 +108,19 @@ ADD() {
 					zypper refresh || { error "Failed to refresh repositories"; continue; }
 					zypper install -y "$target" || { error "Failed to install $target using zypper"; continue; }
 					if zypper se -i -x "$target" &>/dev/null; then
+						echo "* Package $target installed successfully."
+					else
+						error "Package $target installation failed or not verified."
+					fi
+				else
+					echo "* Package $target is already installed."
+				fi
+				;;
+			*dnf)
+				if ! dnf list installed "$target" &>/dev/null; then
+					echo "* Package $target is not installed. Attempting installation..."
+					dnf install -y "$target" || { error "Failed to install $target using dnf"; continue; }
+					if dnf list installed "$target" &>/dev/null; then
 						echo "* Package $target installed successfully."
 					else
 						error "Package $target installation failed or not verified."
@@ -258,16 +258,7 @@ DEL() {
 				echo "* $target removed successfully."
 			fi
 		else
-			case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
-				*dnf)
-					if dnf list installed "$target" &>/dev/null; then
-						echo "* Package $target is installed. Attempting removal..."
-						dnf remove -y "$target" || error "Failed to remove package $target"
-						echo "* Package $target removed successfully."
-					else
-						error "$target is not a file, directory, or installed package."
-					fi
-					;;
+			case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 				*apk)
 					if apk info "$target" &>/dev/null; then
 						echo "* Package $target is installed. Attempting removal..."
@@ -318,6 +309,15 @@ DEL() {
 					if zypper se --installed-only "$target" | grep -q "$target"; then
 						echo "* Package $target is installed. Attempting removal..."
 						zypper remove -y "$target" || error "Failed to remove package $target"
+						echo "* Package $target removed successfully."
+					else
+						error "$target is not a file, directory, or installed package."
+					fi
+					;;
+				*dnf)
+					if dnf list installed "$target" &>/dev/null; then
+						echo "* Package $target is installed. Attempting removal..."
+						dnf remove -y "$target" || error "Failed to remove package $target"
 						echo "* Package $target removed successfully."
 					else
 						error "$target is not a file, directory, or installed package."
@@ -381,10 +381,7 @@ FIND() {
 	fi
 	for target in "$@"; do
 		echo -e "${CLR3}SEARCH [$target]${CLR0}"
-		case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
-			*dnf)
-				dnf search "$target" || error "No results found for $target"
-				;;
+		case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 			*apk)
 				apk search "$target" || error "No results found for $target"
 				;;
@@ -402,6 +399,9 @@ FIND() {
 				;;
 			*zypper)
 				zypper search "$target" || error "No results found for $target"
+				;;
+			*dnf)
+				dnf search "$target" || error "No results found for $target"
 				;;
 			*)
 				error "Unsupported package manager"
@@ -531,10 +531,7 @@ NET_PROVIDER() {
 }
 
 PKG_COUNT() {
-	case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
-		*dnf)
-			rpm -qa | wc -l || error "Failed to count RPM packages"
-			;;
+	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk)
 			apk info | wc -l || error "Failed to count APK packages"
 			;;
@@ -552,6 +549,9 @@ PKG_COUNT() {
 			;;
 		*zypper)
 			zypper se --installed-only | wc -l || error "Failed to count Zypper packages"
+			;;
+		*dnf)
+			rpm -qa | wc -l || error "Failed to count RPM packages"
 			;;
 		*)
 			error "Unsupported package manager"
@@ -610,12 +610,7 @@ SYS_CLEAN() {
 	CHECK_ROOT
 	echo -e "${CLR3}Performing system cleanup...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
-		*dnf)
-			dnf autoremove -y || error "Failed to autoremove packages"
-			dnf clean all || error "Failed to clean DNF cache"
-			dnf makecache || error "Failed to make DNF cache"
-			;;
+	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk)
 			apk cache clean || error "Failed to clean APK cache"
 			rm -rf /tmp/* /var/cache/apk/* || error "Failed to remove temporary files"
@@ -648,6 +643,11 @@ SYS_CLEAN() {
 		*zypper)
 			zypper clean --all || error "Failed to clean Zypper cache"
 			zypper refresh || error "Failed to refresh Zypper repositories"
+			;;
+		*dnf)
+			dnf autoremove -y || error "Failed to autoremove packages"
+			dnf clean all || error "Failed to clean DNF cache"
+			dnf makecache || error "Failed to make DNF cache"
 			;;
 		*)
 			error "Unsupported package manager. Skipping system-specific cleanup."
@@ -801,11 +801,7 @@ SYS_UPDATE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Updating system software...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	case $(command -v dnf apk apt opkg pacman yum zypper | head -n1) in
-		*dnf)
-			echo "* Updating packages..."
-			dnf -y update || error "Failed to update packages using dnf"
-			;;
+	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk)
 			echo "* Updating package lists..."
 			apk update || error "Failed to update package lists using apk"
@@ -841,6 +837,10 @@ SYS_UPDATE() {
 			zypper refresh || error "Failed to refresh repositories using zypper"
 			echo "* Updating packages..."
 			zypper update -y || error "Failed to update packages using zypper"
+			;;
+		*dnf)
+			echo "* Updating packages..."
+			dnf -y update || error "Failed to update packages using dnf"
 			;;
 		*)
 			error "Unsupported package manager"
