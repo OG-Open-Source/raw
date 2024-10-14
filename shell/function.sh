@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.034.021
+# Version: 3.035.001
 # License: MIT License
 
 SH="function.sh"
@@ -14,10 +14,6 @@ CLR7="\033[0;37m"
 CLR8="\033[0;96m"
 CLR9="\033[0;97m"
 CLR0="\033[0m"
-
-crontab -l 2>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'" >> function-update && crontab function-update && rm -f function-update)
-curl -sSL "https://raw.ogtt.tk/shell/function.sh" -o "/root/function.sh"
-grep -q "source /root/function.sh" /root/.bashrc || echo "source /root/function.sh" >> /root/.bashrc
 
 error() {
 	echo -e "${CLR1}$1${CLR0}"
@@ -527,6 +523,34 @@ FONT() {
 	echo -e "${font}${1}${CLR0}"
 }
 
+GET() {
+	if [ $# -eq 0 ]; then
+		error "No URL specified for download\n"
+		return 1
+	fi
+	url="$1"
+	if [ $# -eq 2 ]; then
+		target_dir="$2"
+		if [ ! -d "$target_dir" ]; then
+			mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }
+		fi
+		output_file="$target_dir/${url##*/}"
+	else
+		output_file="${url##*/}"
+	fi
+	echo -e "${CLR3}DOWNLOAD [$url]${CLR0}"
+	if ! curl -sSL -k "$url" -o "$output_file" &>/dev/null; then
+		wget -q --no-check-certificate "$url" -O "$output_file" &>/dev/null || { error "Failed to download file using curl and wget is not available\n"; return 1; }
+	fi
+	if [ -f "$output_file" ]; then
+		echo "* File downloaded successfully to $output_file"
+		echo -e "${CLR2}FINISHED${CLR0}\n"
+	else
+		error "Failed to download file\n"
+		return 1
+	fi
+}
+
 INPUT() {
 	read -e -p "$1" "$2"
 }
@@ -950,3 +974,7 @@ TIMEZONE() {
 	timezone=$([ -f /etc/timezone ] && cat /etc/timezone)
 	echo "${timezone:-Unknown}"
 }
+
+crontab -l &>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'" >> function-update && crontab function-update && rm -f function-update)
+GET https://raw.ogtt.tk/shell/function.sh /root
+grep -q "source /root/function.sh" /root/.bashrc || echo "source /root/function.sh" >> /root/.bashrc
