@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.035.001
+# Version: 3.035.002-beta
 # License: MIT License
 
 SH="function.sh"
@@ -24,7 +24,7 @@ error() {
 ADD() {
 	CHECK_ROOT
 	if [ $# -eq 0 ]; then
-		error "No packages, files, or directories specified for installation\n"
+		error "No packages, files, directories, or URLs specified for installation\n"
 		return 1
 	fi
 	while [ $# -gt 0 ]; do
@@ -58,6 +58,21 @@ ADD() {
 					echo "* Directory $2 created successfully"
 				fi
 				shift 2
+				;;
+			*.deb)
+				deb_file=$(basename "$1")
+				echo -e "${CLR3}INSTALL DEB PACKAGE [$deb_file]${CLR0}"
+				GET "$1" &>/dev/null || { error "Failed to download $1\n"; return 1; }
+				if [ -f "$deb_file" ]; then
+					dpkg -i "$deb_file" || { error "Failed to install $deb_file using dpkg\n"; return 1; }
+					apt install -f -y || { error "Failed to fix dependencies\n"; return 1; }
+					echo "* DEB package $deb_file installed successfully"
+					rm -f "$deb_file"
+				else
+					error "DEB package file $deb_file not found\n"
+					return 1
+				fi
+				shift
 				;;
 			*)
 				echo -e "${CLR3}INSTALL [$1]${CLR0}"
@@ -976,5 +991,5 @@ TIMEZONE() {
 }
 
 crontab -l &>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'" >> function-update && crontab function-update && rm -f function-update)
-GET https://raw.ogtt.tk/shell/function.sh /root
+GET https://raw.ogtt.tk/shell/function.sh /root &>/dev/null || { error "Failed to download function.sh"; return 1; }
 grep -q "source /root/function.sh" /root/.bashrc || echo "source /root/function.sh" >> /root/.bashrc
