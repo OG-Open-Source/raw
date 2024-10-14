@@ -1,7 +1,8 @@
 #!/bin/bash
-# Author: OGATA Open-Source
-# Version: 3.035.003-beta
-# License: MIT License
+
+Author="OGATA Open-Source"
+Version="000.035.003"
+License="MIT License"
 
 SH="function.sh"
 CLR1="\033[0;31m"
@@ -17,7 +18,7 @@ CLR0="\033[0m"
 
 error() {
 	echo -e "${CLR1}$1${CLR0}"
-	echo "$(date '+%Y-%m-%d %H:%M:%S') - $SH - $1" >> /var/log/ogos-error.log
+	echo "$(date '+%Y-%m-%d %H:%M:%S') - $SH - $Version - $(echo -e "$1" | tr -d '\n')" >> /var/log/ogos-error.log
 	return 1
 }
 
