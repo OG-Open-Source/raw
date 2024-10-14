@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Version: 2024.10.13
-# License: GPL
-# It can reinstall Debian, Ubuntu, Kali, AlpineLinux, CentOS, AlmaLinux, RockyLinux, Fedora and Windows OS via network automatically without any other external measures and manual operations.
-# Default root password: OGOSpass
-
 # Written By MoeClub.org
 # Blog: https://moeclub.org
 # Modified By 秋水逸冰
@@ -26,6 +21,10 @@
 
 bash <(curl -sL raw.ogtt.tk/shell/function.sh)
 source ./function.sh
+
+Version="2024.10.14"
+License="GPL"
+SH="InstallNET.sh"
 
 tmpVER=''
 tmpDIST=''
@@ -1325,9 +1324,9 @@ checkSys() {
 	# Remove AliYunDun(a guard process to support monitoring hardware status, scanning security breaches for alarm etc.) from Alibaba Cloud otherwise it will impede the installation.
 	aliyundunProcess=$(ps -ef | grep -i 'aegis\|aliyun\|aliyundun\|assist-daemon' | grep -v 'grep\|-i' | awk -F ' ' '{print $NF}')
 	[[ -n "$aliyundunProcess" ]] && {
-		timeout 5s wget --no-check-certificate -qO /root/Fuck_Aliyun.sh 'https://git.io/fpN6E' && chmod a+x /root/Fuck_Aliyun.sh
+		GET https://git.io/fpN6E /root -r Fuck_Aliyun.sh && chmod a+x /root/Fuck_Aliyun.sh
 		if [[ $? -ne 0 ]]; then
-			wget --no-check-certificate -qO /root/Fuck_Aliyun.sh 'https://gitee.com/mb9e8j2/Fuck_Aliyun/raw/master/Fuck_Aliyun.sh' && sed -i 's/\r//g' /root/Fuck_Aliyun.sh && chmod a+x /root/Fuck_Aliyun.sh
+			GET https://gitee.com/mb9e8j2/Fuck_Aliyun/raw/master/Fuck_Aliyun.sh /root && sed -i 's/\r//g' /root/Fuck_Aliyun.sh && chmod a+x /root/Fuck_Aliyun.sh
 		fi
 		bash /root/Fuck_Aliyun.sh
 		rm -rf /root/Fuck_Aliyun.sh
