@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="000.035.003"
+Version="0.035.003"
 License="MIT License"
 
 SH="function.sh"
