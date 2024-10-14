@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: OGATA Open-Source
-# Version: 3.035.002-beta
+# Version: 3.035.003-beta
 # License: MIT License
 
 SH="function.sh"
@@ -544,15 +544,31 @@ GET() {
 		return 1
 	fi
 	url="$1"
-	if [ $# -eq 2 ]; then
-		target_dir="$2"
-		if [ ! -d "$target_dir" ]; then
-			mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }
-		fi
-		output_file="$target_dir/${url##*/}"
-	else
-		output_file="${url##*/}"
+	target_dir="."
+	output_file="${url##*/}"
+	rename_flag=false
+	shift
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			-r)
+				rename_flag=true
+				if [ -z "$2" ] || [[ "$2" == -* ]]; then
+					error "No filename specified after -r option\n"
+					return 1
+				fi
+				output_file="$2"
+				shift 2
+				;;
+			*)
+				target_dir="$1"
+				shift
+				;;
+		esac
+	done
+	if [ ! -d "$target_dir" ]; then
+		mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }
 	fi
+	output_file="$target_dir/$output_file"
 	echo -e "${CLR3}DOWNLOAD [$url]${CLR0}"
 	if ! curl -sSL -k "$url" -o "$output_file" &>/dev/null; then
 		wget -q --no-check-certificate "$url" -O "$output_file" &>/dev/null || { error "Failed to download file using curl and wget is not available\n"; return 1; }
