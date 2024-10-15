@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.035.039"
+Version="3.035.040"
 License="MIT License"
 
 SH="function.sh"
@@ -24,36 +24,19 @@ error() {
 
 ADD() {
 	CHECK_ROOT
-	[ $# -eq 0 ] && { error "No items specified for installation\n"; return 1; }
+	[ $# -eq 0 ] && error "No items specified for installation\n" && return 1
+	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			-f)
-				[ -z "$2" ] && { error "No file specified after -f option\n"; return 1; }
-				echo -e "${CLR3}CREATE FILE [$2]${CLR0}"
-				if [ -f "$2" ] || [ -d "$2" ]; then
-					error "File $2 already exists\n"
-					shift 2
-					continue
-				else
-					touch "$2" || { error "Failed to create file $2\n"; shift 2; continue; }
-					echo "* File $2 created successfully"
-					echo -e "${CLR2}FINISHED${CLR0}\n"
-				fi
-				shift 2
+				mode="file"
+				shift
+				continue
 				;;
 			-d)
-				[ -z "$2" ] && { error "No directory specified after -d option\n"; return 1; }
-				echo -e "${CLR3}CREATE DIRECTORY [$2]${CLR0}"
-				if [ -d "$2" ] || [ -f "$2" ]; then
-					error "Directory $2 already exists\n"
-					shift 2
-					continue
-				else
-					mkdir -p "$2" || { error "Failed to create directory $2\n"; shift 2; continue; }
-					echo "* Directory $2 created successfully"
-					echo -e "${CLR2}FINISHED${CLR0}\n"
-				fi
-				shift 2
+				mode="directory"
+				shift
+				continue
 				;;
 			*.deb)
 				deb_file=$(basename "$1")
@@ -73,132 +56,162 @@ ADD() {
 				shift
 				;;
 			*)
-				echo -e "${CLR3}INSTALL [$1]${CLR0}"
-				case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
-					*apk)
-						if ! apk info -e "$1" &>/dev/null; then
-							echo "* Package $1 is not installed. Attempting installation..."
-							apk update || { error "Failed to update package lists\n"; shift; continue; }
-							apk add "$1" || { error "Failed to install $1 using apk\n"; shift; continue; }
-							if apk info -e "$1" &>/dev/null; then
-								echo "* Package $1 installed successfully"
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-							else
-								error "Failed to install $1 using apk\n"
-								shift
-								continue
-							fi
+				case "$mode" in
+					"file")
+						echo -e "${CLR3}CREATE FILE [$1]${CLR0}"
+						if [ -f "$1" ] || [ -d "$1" ]; then
+							error "File $1 already exists\n"
+							shift
+							continue
 						else
-							echo "* Package $1 is already installed"
+							touch "$1" || { error "Failed to create file $1\n"; shift; continue; }
+							echo "* File $1 created successfully"
+							echo -e "${CLR2}FINISHED${CLR0}\n"
 						fi
-						;;
-					*apt)
-						if ! dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
-							echo "* Package $1 is not installed. Attempting installation..."
-							apt update || { error "Failed to update package lists\n"; shift; continue; }
-							apt install -y "$1" || { error "Failed to install $1 using apt\n"; shift; continue; }
-							if dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
-								echo "* Package $1 installed successfully"
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-							else
-								error "Failed to install $1 using apt\n"
-								shift
-								continue
-							fi
-						else
-							echo "* Package $1 is already installed"
-						fi
-						;;
-					*opkg)
-						if ! opkg list-installed | grep -q "^$1 "; then
-							echo "* Package $1 is not installed. Attempting installation..."
-							opkg update || { error "Failed to update package lists\n"; shift; continue; }
-							opkg install "$1" || { error "Failed to install $1 using opkg\n"; shift; continue; }
-							if opkg list-installed | grep -q "^$1 "; then
-								echo "* Package $1 installed successfully"
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-							else
-								error "Failed to install $1 using opkg\n"
-								shift
-								continue
-							fi
-						else
-							echo "* Package $1 is already installed"
-						fi
-						;;
-					*pacman)
-						if ! pacman -Qi "$1" &>/dev/null; then
-							echo "* Package $1 is not installed. Attempting installation..."
-							pacman -Sy || { error "Failed to synchronize package databases\n"; shift; continue; }
-							pacman -S --noconfirm "$1" || { error "Failed to install $1 using pacman\n"; shift; continue; }
-							if pacman -Qi "$1" &>/dev/null; then
-								echo "* Package $1 installed successfully"
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-							else
-								error "Failed to install $1 using pacman\n"
-								shift
-								continue
-							fi
-						else
-							echo "* Package $1 is already installed"
-						fi
-						;;
-					*yum)
-						if ! yum list installed "$1" &>/dev/null; then
-							echo "* Package $1 is not installed. Attempting installation..."
-							yum install -y "$1" || { error "Failed to install $1 using yum\n"; shift; continue; }
-							if yum list installed "$1" &>/dev/null; then
-								echo "* Package $1 installed successfully"
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-							else
-								error "Failed to install $1 using yum\n"
-								shift
-								continue
-							fi
-						else
-							echo "* Package $1 is already installed"
-						fi
-						;;
-					*zypper)
-						if ! zypper se -i -x "$1" &>/dev/null; then
-							echo "* Package $1 is not installed. Attempting installation..."
-							zypper refresh || { error "Failed to refresh repositories\n"; shift; continue; }
-							zypper install -y "$1" || { error "Failed to install $1 using zypper\n"; shift; continue; }
-							if zypper se -i -x "$1" &>/dev/null; then
-								echo "* Package $1 installed successfully"
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-							else
-								error "Failed to install $1 using zypper\n"
-								shift
-								continue
-							fi
-						else
-							echo "* Package $1 is already installed"
-						fi
-						;;
-					*dnf)
-						if ! dnf list installed "$1" &>/dev/null; then
-							echo "* Package $1 is not installed. Attempting installation..."
-							dnf install -y "$1" || { error "Failed to install $1 using dnf\n"; shift; continue; }
-							if dnf list installed "$1" &>/dev/null; then
-								echo "* Package $1 installed successfully"
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-							else
-								error "Failed to install $1 using dnf\n"
-								shift
-								continue
-							fi
-						else
-							echo "* Package $1 is already installed"
-						fi
-						;;
-					*)
-						error "Unsupported package manager\n"
 						shift
-						continue
+						;;
+					"directory")
+						echo -e "${CLR3}CREATE DIRECTORY [$1]${CLR0}"
+						if [ -d "$1" ] || [ -f "$1" ]; then
+							error "Directory $1 already exists\n"
+							shift
+							continue
+						else
+							mkdir -p "$1" || { error "Failed to create directory $1\n"; shift; continue; }
+							echo "* Directory $1 created successfully"
+							echo -e "${CLR2}FINISHED${CLR0}\n"
+						fi
+						shift
+						;;
+					"package")
+						echo -e "${CLR3}INSTALL [$1]${CLR0}"
+						case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
+							*apk)
+								if ! apk info -e "$1" &>/dev/null; then
+									echo "* Package $1 is not installed. Attempting installation..."
+									apk update || { error "Failed to update package lists\n"; shift; continue; }
+									apk add "$1" || { error "Failed to install $1 using apk\n"; shift; continue; }
+									if apk info -e "$1" &>/dev/null; then
+										echo "* Package $1 installed successfully"
+									else
+										error "Failed to install $1 using apk\n"
+										shift
+										continue
+									fi
+								else
+									echo "* Package $1 is already installed"
+								fi
+								echo -e "${CLR2}FINISHED${CLR0}\n"
+								;;
+							*apt)
+								if ! dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
+									echo "* Package $1 is not installed. Attempting installation..."
+									apt update || { error "Failed to update package lists\n"; shift; continue; }
+									apt install -y "$1" || { error "Failed to install $1 using apt\n"; shift; continue; }
+									if dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
+										echo "* Package $1 installed successfully"
+									else
+										error "Failed to install $1 using apt\n"
+										shift
+										continue
+									fi
+								else
+									echo "* Package $1 is already installed"
+								fi
+								echo -e "${CLR2}FINISHED${CLR0}\n"
+								;;
+							*opkg)
+								if ! opkg list-installed | grep -q "^$1 "; then
+									echo "* Package $1 is not installed. Attempting installation..."
+									opkg update || { error "Failed to update package lists\n"; shift; continue; }
+									opkg install "$1" || { error "Failed to install $1 using opkg\n"; shift; continue; }
+									if opkg list-installed | grep -q "^$1 "; then
+										echo "* Package $1 installed successfully"
+									else
+										error "Failed to install $1 using opkg\n"
+										shift
+										continue
+									fi
+								else
+									echo "* Package $1 is already installed"
+								fi
+								echo -e "${CLR2}FINISHED${CLR0}\n"
+								;;
+							*pacman)
+								if ! pacman -Qi "$1" &>/dev/null; then
+									echo "* Package $1 is not installed. Attempting installation..."
+									pacman -Sy || { error "Failed to synchronize package databases\n"; shift; continue; }
+									pacman -S --noconfirm "$1" || { error "Failed to install $1 using pacman\n"; shift; continue; }
+									if pacman -Qi "$1" &>/dev/null; then
+										echo "* Package $1 installed successfully"
+									else
+										error "Failed to install $1 using pacman\n"
+										shift
+										continue
+									fi
+								else
+									echo "* Package $1 is already installed"
+								fi
+								echo -e "${CLR2}FINISHED${CLR0}\n"
+								;;
+							*yum)
+								if ! yum list installed "$1" &>/dev/null; then
+									echo "* Package $1 is not installed. Attempting installation..."
+									yum install -y "$1" || { error "Failed to install $1 using yum\n"; shift; continue; }
+									if yum list installed "$1" &>/dev/null; then
+										echo "* Package $1 installed successfully"
+									else
+										error "Failed to install $1 using yum\n"
+										shift
+										continue
+									fi
+								else
+									echo "* Package $1 is already installed"
+								fi
+								echo -e "${CLR2}FINISHED${CLR0}\n"
+								;;
+							*zypper)
+								if ! zypper se -i -x "$1" &>/dev/null; then
+									echo "* Package $1 is not installed. Attempting installation..."
+									zypper refresh || { error "Failed to refresh repositories\n"; shift; continue; }
+									zypper install -y "$1" || { error "Failed to install $1 using zypper\n"; shift; continue; }
+									if zypper se -i -x "$1" &>/dev/null; then
+										echo "* Package $1 installed successfully"
+									else
+										error "Failed to install $1 using zypper\n"
+										shift
+										continue
+									fi
+								else
+									echo "* Package $1 is already installed"
+								fi
+								echo -e "${CLR2}FINISHED${CLR0}\n"
+								;;
+							*dnf)
+								if ! dnf list installed "$1" &>/dev/null; then
+									echo "* Package $1 is not installed. Attempting installation..."
+									dnf install -y "$1" || { error "Failed to install $1 using dnf\n"; shift; continue; }
+									if dnf list installed "$1" &>/dev/null; then
+										echo "* Package $1 installed successfully"
+									else
+										error "Failed to install $1 using dnf\n"
+										shift
+										continue
+									fi
+								else
+									echo "* Package $1 is already installed"
+								fi
+								echo -e "${CLR2}FINISHED${CLR0}\n"
+								;;
+							*)
+								error "Unsupported package manager\n"
+								shift
+								continue
+								;;
+						esac
+						shift
 						;;
 				esac
-				shift
 				;;
 		esac
 	done
@@ -311,127 +324,138 @@ COPYRIGHT() {
 
 DEL() {
 	CHECK_ROOT
-	[ $# -eq 0 ] && { error "No items specified for deletion\n"; return 1; }
+	[ $# -eq 0 ] && error "No items specified for deletion\n" && return 1
+	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			-f)
-				[ -z "$2" ] && { error "No file specified after -f option\n"; shift; continue; }
-				echo -e "${CLR3}REMOVE FILE [$2]${CLR0}"
-				if [ -f "$2" ]; then
-					echo "* File $2 exists. Attempting removal..."
-					rm -f "$2" || { error "Failed to remove file $2\n"; shift; continue; }
-					echo "* File $2 removed successfully"
-					echo -e "${CLR2}FINISHED${CLR0}\n"
-				else
-					error "File $2 does not exist\n"
-				fi
-				shift 2
+				mode="file"
+				shift
+				continue
 				;;
 			-d)
-				[ -z "$2" ] && { error "No directory specified after -d option\n"; shift; continue; }
-				echo -e "${CLR3}REMOVE DIRECTORY [$2]${CLR0}"
-				if [ -d "$2" ]; then
-					echo "* Directory $2 exists. Attempting removal..."
-					rm -rf "$2" || { error "Failed to remove directory $2\n"; shift 2; continue; }
-					echo "* Directory $2 removed successfully"
-					echo -e "${CLR2}FINISHED${CLR0}\n"
-				else
-					error "Directory $2 does not exist\n"
-				fi
-				shift 2
+				mode="directory"
+				shift
+				continue
 				;;
 			*)
-				echo -e "${CLR3}DELETE [$1]${CLR0}"
-				case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
-					*apk)
-						if apk info -e "$1" &>/dev/null; then
-							echo "* Package $1 is installed. Attempting removal..."
-							apk del "$1" || { error "Failed to remove $1 using apk\n"; shift; continue; }
-							echo "* Package $1 removed successfully"
+				case "$mode" in
+					"file")
+						echo -e "${CLR3}REMOVE FILE [$1]${CLR0}"
+						if [ -f "$1" ]; then
+							echo "* File $1 exists. Attempting removal..."
+							rm -f "$1" || { error "Failed to remove file $1\n"; shift; continue; }
+							echo "* File $1 removed successfully"
 							echo -e "${CLR2}FINISHED${CLR0}\n"
 						else
-							error "Package $1 is not installed\n"
-							shift
-							continue
+							error "File $1 does not exist\n"
 						fi
 						;;
-					*apt)
-						if dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
-							echo "* Package $1 is installed. Attempting removal..."
-							apt purge -y "$1" || { error "Failed to purge $1 using apt\n"; shift; continue; }
-							apt autoremove -y || { error "Failed to autoremove $1 using apt\n"; shift; continue; }
-							echo "* Package $1 removed successfully"
+					"directory")
+						echo -e "${CLR3}REMOVE DIRECTORY [$1]${CLR0}"
+						if [ -d "$1" ]; then
+							echo "* Directory $1 exists. Attempting removal..."
+							rm -rf "$1" || { error "Failed to remove directory $1\n"; shift; continue; }
+							echo "* Directory $1 removed successfully"
 							echo -e "${CLR2}FINISHED${CLR0}\n"
 						else
-							error "Package $1 is not installed\n"
-							shift
-							continue
+							error "Directory $1 does not exist\n"
 						fi
 						;;
-					*opkg)
-						if opkg list-installed | grep -q "^$1 "; then
-							echo "* Package $1 is installed. Attempting removal..."
-							opkg remove "$1" || { error "Failed to remove $1 using opkg\n"; shift; continue; }
-							echo "* Package $1 removed successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						else
-							error "Package $1 is not installed\n"
-							shift
-							continue
-						fi
-						;;
-					*pacman)
-						if pacman -Qi "$1" &>/dev/null; then
-							echo "* Package $1 is installed. Attempting removal..."
-							pacman -Rns --noconfirm "$1" || { error "Failed to remove $1 using pacman\n"; shift; continue; }
-							echo "* Package $1 removed successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						else
-							error "Package $1 is not installed\n"
-							shift
-							continue
-						fi
-						;;
-					*yum)
-						if yum list installed "$1" &>/dev/null; then
-							echo "* Package $1 is installed. Attempting removal..."
-							yum remove -y "$1" || { error "Failed to remove $1 using yum\n"; shift; continue; }
-							echo "* Package $1 removed successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						else
-							error "Package $1 is not installed\n"
-							shift
-							continue
-						fi
-						;;
-					*zypper)
-						if zypper se -i -x "$1" &>/dev/null; then
-							echo "* Package $1 is installed. Attempting removal..."
-							zypper remove -y "$1" || { error "Failed to remove $1 using zypper\n"; shift; continue; }
-							echo "* Package $1 removed successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						else
-							error "Package $1 is not installed\n"
-							shift
-							continue
-						fi
-						;;
-					*dnf)
-						if dnf list installed "$1" &>/dev/null; then
-							echo "* Package $1 is installed. Attempting removal..."
-							dnf remove -y "$1" || { error "Failed to remove $1 using dnf\n"; shift; continue; }
-							echo "* Package $1 removed successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						else
-							error "Package $1 is not installed\n"
-							shift
-							continue
-						fi
-						;;
-					*)
-						error "Unsupported package manager\n"
-						shift
-						continue
+					"package")
+						echo -e "${CLR3}DELETE [$1]${CLR0}"
+						case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
+							*apk)
+								if apk info -e "$1" &>/dev/null; then
+									echo "* Package $1 is installed. Attempting removal..."
+									apk del "$1" || { error "Failed to remove $1 using apk\n"; shift; continue; }
+									echo "* Package $1 removed successfully"
+									echo -e "${CLR2}FINISHED${CLR0}\n"
+								else
+									error "Package $1 is not installed\n"
+									shift
+									continue
+								fi
+								;;
+							*apt)
+								if dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
+									echo "* Package $1 is installed. Attempting removal..."
+									apt purge -y "$1" || { error "Failed to purge $1 using apt\n"; shift; continue; }
+									apt autoremove -y || { error "Failed to autoremove $1 using apt\n"; shift; continue; }
+									echo "* Package $1 removed successfully"
+									echo -e "${CLR2}FINISHED${CLR0}\n"
+								else
+									error "Package $1 is not installed\n"
+									shift
+									continue
+								fi
+								;;
+							*opkg)
+								if opkg list-installed | grep -q "^$1 "; then
+									echo "* Package $1 is installed. Attempting removal..."
+									opkg remove "$1" || { error "Failed to remove $1 using opkg\n"; shift; continue; }
+									echo "* Package $1 removed successfully"
+									echo -e "${CLR2}FINISHED${CLR0}\n"
+								else
+									error "Package $1 is not installed\n"
+									shift
+									continue
+								fi
+								;;
+							*pacman)
+								if pacman -Qi "$1" &>/dev/null; then
+									echo "* Package $1 is installed. Attempting removal..."
+									pacman -Rns --noconfirm "$1" || { error "Failed to remove $1 using pacman\n"; shift; continue; }
+									echo "* Package $1 removed successfully"
+									echo -e "${CLR2}FINISHED${CLR0}\n"
+								else
+									error "Package $1 is not installed\n"
+									shift
+									continue
+								fi
+								;;
+							*yum)
+								if yum list installed "$1" &>/dev/null; then
+									echo "* Package $1 is installed. Attempting removal..."
+									yum remove -y "$1" || { error "Failed to remove $1 using yum\n"; shift; continue; }
+									echo "* Package $1 removed successfully"
+									echo -e "${CLR2}FINISHED${CLR0}\n"
+								else
+									error "Package $1 is not installed\n"
+									shift
+									continue
+								fi
+								;;
+							*zypper)
+								if zypper se -i -x "$1" &>/dev/null; then
+									echo "* Package $1 is installed. Attempting removal..."
+									zypper remove -y "$1" || { error "Failed to remove $1 using zypper\n"; shift; continue; }
+									echo "* Package $1 removed successfully"
+									echo -e "${CLR2}FINISHED${CLR0}\n"
+								else
+									error "Package $1 is not installed\n"
+									shift
+									continue
+								fi
+								;;
+							*dnf)
+								if dnf list installed "$1" &>/dev/null; then
+									echo "* Package $1 is installed. Attempting removal..."
+									dnf remove -y "$1" || { error "Failed to remove $1 using dnf\n"; shift; continue; }
+									echo "* Package $1 removed successfully"
+									echo -e "${CLR2}FINISHED${CLR0}\n"
+								else
+									error "Package $1 is not installed\n"
+									shift
+									continue
+								fi
+								;;
+							*)
+								error "Unsupported package manager\n"
+								shift
+								continue
+								;;
+						esac
 						;;
 				esac
 				shift
@@ -446,48 +470,35 @@ DISK_USAGE() {
 	echo "$used / $total ($percentage%)"
 }
 DNS_ADDR () {
-	if [ ! -f /etc/resolv.conf ]; then
-		error "/etc/resolv.conf file not found"
-		return 1
-	fi
-	ipv4_servers=$(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
-	ipv6_servers=$(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}' | grep -E '^[0-9a-fA-F:]+$')
-
-	if [ -z "$ipv4_servers" ] && [ -z "$ipv6_servers" ]; then
-		error "No DNS servers found in /etc/resolv.conf"
-		return 1
-	fi
-	ipv4_result=""
-	ipv6_result=""
-	for server in $ipv4_servers; do
-		if [ -z "$ipv4_result" ]; then
-			ipv4_result="$server"
-		else
-			ipv4_result="$ipv4_result $server"
+	[ ! -f /etc/resolv.conf ] && error "/etc/resolv.conf file not found" && return 1
+	ipv4_servers=()
+	ipv6_servers=()
+	while read -r server; do
+		if [[ $server =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+			ipv4_servers+=("$server")
+		elif [[ $server =~ ^[0-9a-fA-F:]+$ ]]; then
+			ipv6_servers+=("$server")
 		fi
-	done
-	for server in $ipv6_servers; do
-		if [ -z "$ipv6_result" ]; then
-			ipv6_result="$server"
-		else
-			ipv6_result="$ipv6_result $server"
-		fi
-	done
-	if [ -z "$ipv4_result" ] && [ -z "$ipv6_result" ]; then
-		error "Failed to parse DNS server addresses"
-		return 1
-	fi
-	if [ "$1" = "-4" ]; then
-		echo "$ipv4_result"
-	elif [ "$1" = "-6" ]; then
-		echo "$ipv6_result"
-	else
-		echo "$ipv4_result   $ipv6_result"
-	fi
+	done < <(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}')
+	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && error "No DNS servers found in /etc/resolv.conf" && return 1
+	case "$1" in
+		-4)
+			[ ${#ipv4_servers[@]} -eq 0 ] && error "No IPv4 DNS servers found" && return 1
+			echo "${ipv4_servers[*]}"
+			;;
+		-6)
+			[ ${#ipv6_servers[@]} -eq 0 ] && error "No IPv6 DNS servers found" && return 1
+			echo "${ipv6_servers[*]}"
+			;;
+		*)
+			[ ${#ipv4_servers[@]} -eq 0 ] && [ ${#ipv6_servers[@]} -eq 0 ] && error "No DNS servers found" && return 1
+			echo "${ipv4_servers[*]}   ${ipv6_servers[*]}"
+			;;
+	esac
 }
 
 FIND() {
-	[ $# -eq 0 ] && { error "No search terms provided\n"; return 1; }
+	[ $# -eq 0 ] && error "No search terms provided\n" && return 1
 	for target in "$@"; do
 		echo -e "${CLR3}SEARCH [$target]${CLR0}"
 		case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
@@ -553,7 +564,7 @@ FONT() {
 }
 
 GET() {
-	[ $# -eq 0 ] && { error "No URL specified for download\n"; return 1; }
+	[ $# -eq 0 ] && error "No URL specified for download\n" && return 1
 	url="$1"
 	target_dir="."
 	output_file="${url##*/}"
@@ -632,12 +643,12 @@ IPv4_ADDR() {
 	timeout 1s dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null || \
 	timeout 1s curl -s ipv4.ip.sb 2>/dev/null || \
 	timeout 1s wget -qO- -4 ifconfig.me 2>/dev/null || \
-	{ error "Unable to determine IPv4 address"; return 1; }
+	error "Unable to determine IPv4 address" && return 1
 }
 IPv6_ADDR() {
 	timeout 1s curl -s ipv6.ip.sb 2>/dev/null || \
 	timeout 1s wget -qO- -6 ifconfig.me 2>/dev/null || \
-	{ error "Unable to determine IPv6 address"; return 1; }
+	error "Unable to determine IPv6 address" && return 1
 }
 
 LAST_UPDATE() {
@@ -735,26 +746,21 @@ PROGRESS() {
 	trap - SIGINT SIGQUIT SIGTSTP
 }
 PUBLIC_IP() {
-	services=("https://ifconfig.me")
-	for service in "${services[@]}"; do
-		if ip=$(curl -s -m 5 "$service"); then
-			echo "$ip"
-			return
-		fi
-	done
-	error "Unable to determine public IP"
-	return 1
+	ip=$(curl -s -m 5 https://ifconfig.me)
+	if [ -n "$ip" ]; then
+		echo "$ip"
+	else
+		error "Unable to determine public IP"
+		return 1
+	fi
 }
 
 SHELL_VER() {
-	case "${SHELL##*/}" in
-		bash)
-			${SHELL} --version | head -n 1 | awk '{print "Bash " $4}'
-			;;
-		*)
-			echo "Unknown (${SHELL##*/})"
-			;;
-	esac
+	if [[ "${SHELL##*/}" == "bash" ]]; then
+		${SHELL} --version | awk 'NR==1 {print "Bash " $4}'
+	else
+		echo "Unknown (${SHELL##*/})"
+	fi
 }
 SWAP_USAGE() {
 	used=$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $3}')
