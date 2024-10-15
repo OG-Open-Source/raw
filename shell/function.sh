@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.036.001"
+Version="3.036.002"
 License="MIT License"
 
 SH="function.sh"
@@ -634,7 +634,7 @@ INTERFACE() {
 			tx_packets=$(echo $stats | awk '{print $5}')
 			tx_drop=$(echo $stats | awk '{print $6}')
 			if [ -z "$operation" ]; then
-				echo "$interface: RX: $(CONVERT_SIZE "$rx_bytes") , TX: $(CONVERT_SIZE "$tx_bytes")"
+				echo "$interface: RX: $(CONVERT_SIZE "$rx_bytes"), TX: $(CONVERT_SIZE "$tx_bytes")"
 			else
 				case "${operation^^}" in
 					"RX.BYTES") echo "$rx_bytes" ;;
