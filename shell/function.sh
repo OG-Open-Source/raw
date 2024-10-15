@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="0.035.004"
+Version="3.035.039"
 License="MIT License"
 
 SH="function.sh"
@@ -57,11 +57,11 @@ ADD() {
 				;;
 			*.deb)
 				deb_file=$(basename "$1")
-				echo -e "${CLR3}INSTALL DEB PACKAGE [$deb_file]${CLR0}"
-				GET "$1" &>/dev/null || { error "Failed to download $1\n"; shift; continue; }
+				echo -e "${CLR3}INSTALL DEB PACKAGE [$deb_file]\n${CLR0}"
+				GET "$1" || { error "Failed to download $1\n"; shift; continue; }
 				if [ -f "$deb_file" ]; then
 					dpkg -i "$deb_file" || { error "Failed to install $deb_file using dpkg\n"; rm -f "$deb_file"; shift; continue; }
-					apt install -f -y || { error "Failed to fix dependencies\n"; rm -f "$deb_file"; shift; continue; }
+					apt --fix-broken install -y || { error "Failed to fix dependencies\n"; rm -f "$deb_file"; shift; continue; }
 					echo "* DEB package $deb_file installed successfully"
 					rm -f "$deb_file"
 					echo -e "${CLR2}FINISHED${CLR0}\n"
@@ -581,8 +581,8 @@ GET() {
 	fi
 	output_file="$target_dir/$output_file"
 	echo -e "${CLR3}DOWNLOAD [$url]${CLR0}"
-	if ! curl -sSL -k "$url" -o "$output_file" &>/dev/null; then
-		wget -q --no-check-certificate "$url" -O "$output_file" &>/dev/null || { error "Failed to download file using curl and wget is not available\n"; return 1; }
+	if ! curl -L -k "$url" -o "$output_file"; then
+		wget --no-check-certificate "$url" -O "$output_file" || { error "Failed to download file using curl and wget is not available\n"; return 1; }
 	fi
 	if [ -f "$output_file" ]; then
 		echo "* File downloaded successfully to $output_file"
