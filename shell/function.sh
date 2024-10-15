@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.035.040"
+Version="3.036.001"
 License="MIT License"
 
 SH="function.sh"
@@ -216,7 +216,6 @@ ADD() {
 		esac
 	done
 }
-
 CHECK_OS() {
 	if [ -f /etc/debian_version ]; then
 		. /etc/os-release
@@ -317,6 +316,19 @@ CPU_MODEL() {
 		error "Unable to determine CPU model"
 		return 1
 	fi
+}
+CONVERT_SIZE() {
+	size=$1
+	unit=${2:-B}
+	base=${3:-1024}
+	suffixes=("B" "KiB" "MiB" "GiB" "TiB" "PiB" "EiB" "ZiB" "YiB")
+	[ "$base" -eq 1000 ] && suffixes=("B" "KB" "MB" "GB" "TB" "PB" "EB" "ZB" "YB")
+	i=0
+	while (( $(echo "$size >= $base" | bc -l) )); do
+		size=$(echo "scale=2; $size / $base" | bc -l)
+		((i++))
+	done
+	printf "%.2f %s\n" $size "${suffixes[$i]}"
 }
 COPYRIGHT() {
 	echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."
@@ -464,10 +476,10 @@ DEL() {
 	done
 }
 DISK_USAGE() {
-	used=$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $3}')
-	total=$(df -BM / | awk 'NR==2 {gsub("M",""); printf "%.0f MiB", $2}')
+	used=$(df -B1 / | awk 'NR==2 {printf "%.0f", $3}')
+	total=$(df -B1 / | awk 'NR==2 {printf "%.0f", $2}')
 	percentage=$(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')
-	echo "$used / $total ($percentage%)"
+	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 DNS_ADDR () {
 	[ ! -f /etc/resolv.conf ] && error "/etc/resolv.conf file not found" && return 1
@@ -622,7 +634,7 @@ INTERFACE() {
 			tx_packets=$(echo $stats | awk '{print $5}')
 			tx_drop=$(echo $stats | awk '{print $6}')
 			if [ -z "$operation" ]; then
-				echo "$interface: RX: $rx_bytes bytes, TX: $tx_bytes bytes"
+				echo "$interface: RX: $(CONVERT_SIZE "$rx_bytes") , TX: $(CONVERT_SIZE "$tx_bytes")"
 			else
 				case "${operation^^}" in
 					"RX.BYTES") echo "$rx_bytes" ;;
@@ -681,10 +693,10 @@ MAC_ADDR() {
 	fi
 }
 MEM_USAGE() {
-	used=$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $3}')
-	total=$(free -m | awk '/^Mem:/ {printf "%.0f MiB", $2}')
+	used=$(free -b | awk '/^Mem:/ {print $3}')
+	total=$(free -b | awk '/^Mem:/ {print $2}')
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')
-	echo "$used / $total ($percentage%)"
+	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 
 NET_PROVIDER() {
@@ -763,10 +775,10 @@ SHELL_VER() {
 	fi
 }
 SWAP_USAGE() {
-	used=$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $3}')
-	total=$(free -m | awk '/^Swap:/ {printf "%.0f MiB", $2}')
+	used=$(free -b | awk '/^Swap:/ {printf "%.0f", $3}')
+	total=$(free -b | awk '/^Swap:/ {printf "%.0f", $2}')
 	percentage=$(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')
-	echo "$used / $total ($percentage%)"
+	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 SYS_CLEAN() {
 	CHECK_ROOT
