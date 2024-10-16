@@ -22,7 +22,7 @@
 bash <(curl -sL raw.ogtt.tk/shell/function.sh)
 source ./function.sh
 
-Version="2024.10.16"
+Version="2024.10.17"
 License="GPL"
 SH="InstallNET.sh"
 
@@ -1326,7 +1326,7 @@ checkSys() {
 	[[ -n "$aliyundunProcess" ]] && {
 		GET https://git.io/fpN6E /root -r Fuck_Aliyun.sh && chmod a+x /root/Fuck_Aliyun.sh
 		if [[ $? -ne 0 ]]; then
-			GET https://gitee.com/mb9e8j2/Fuck_Aliyun/raw/master/Fuck_Aliyun.sh /root && sed -i 's/\r//g' /root/Fuck_Aliyun.sh && chmod a+x /root/Fuck_Aliyun.sh
+			GET https://gitee.com/mb9e8j2/Fuck_Aliyun/raw/master/Fuck_Aliyun.sh /root &>/dev/null && sed -i 's/\r//g' /root/Fuck_Aliyun.sh && chmod a+x /root/Fuck_Aliyun.sh
 		fi
 		bash /root/Fuck_Aliyun.sh
 		rm -rf /root/Fuck_Aliyun.sh
@@ -3789,9 +3789,9 @@ elif [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]] || [
 		VmLinuzUrl="${LinuxMirror}/dists/${DIST}/main/installer-${VER}/current/images/netboot/debian-installer/${VER}/linux"
 	}
 	echo -ne "\n- initrd.gz:\t${CLR2}$InitrdUrl${CLR0}\n- linux:\t${CLR2}$VmLinuzUrl${CLR0}\n"
-	GET "$InitrdUrl" /tmp -r initrd.img
+	GET "$InitrdUrl" /tmp -r initrd.img &>/dev/null
 	[[ $? -ne '0' ]] && error "Download 'initrd.img' for ${CLR3}$linux_relese${CLR0} failed!\n" && exit 1
-	GET "$VmLinuzUrl" /tmp -r vmlinuz
+	GET "$VmLinuzUrl" /tmp -r vmlinuz &>/dev/null
 	[[ $? -ne '0' ]] && error "Download 'vmlinuz' for ${CLR3}$linux_relese${CLR0} failed!\n" && exit 1
 	MirrorHost="$(echo "$LinuxMirror" | awk -F'://|/' '{print $2}')"
 	MirrorFolder="$(echo "$LinuxMirror" | awk -F''${MirrorHost}'' '{print $2}')/"
@@ -3801,33 +3801,33 @@ elif [[ "$linux_relese" == 'alpinelinux' ]]; then
 	VmLinuzUrl="${LinuxMirror}/${DIST}/releases/${VER}/netboot/${VmLinuzName}"
 	ModLoopUrl="${LinuxMirror}/${DIST}/releases/${VER}/netboot/${ModLoopName}"
 	echo -ne "\n- initrd.gz:\t${CLR2}$InitrdUrl${CLR0}\n- linux:\t${CLR2}$VmLinuzUrl${CLR0}\n"
-	GET "$InitrdUrl" /tmp -r initrd.img
+	GET "$InitrdUrl" /tmp -r initrd.img &>/dev/null
 	[[ $? -ne '0' ]] && error "Download '$InitrdName' for ${CLR3}$linux_relese${CLR0} failed!\n" && exit 1
-	GET "$VmLinuzUrl" /tmp -r vmlinuz
+	GET "$VmLinuzUrl" /tmp -r vmlinuz &>/dev/null
 	[[ $? -ne '0' ]] && error "Download '$VmLinuzName' for ${CLR3}$linux_relese${CLR0} failed!\n" && exit 1
 elif [[ "$linux_relese" == 'centos' ]] && [[ "$RedHatSeries" -le "7" ]]; then
 	InitrdUrl="${LinuxMirror}/${DIST}/os/${VER}/images/pxeboot/initrd.img"
 	VmLinuzUrl="${LinuxMirror}/${DIST}/os/${VER}/images/pxeboot/vmlinuz"
 	echo -ne "\n- initrd.gz:\t${CLR2}$InitrdUrl${CLR0}\n- linux:\t${CLR2}$VmLinuzUrl${CLR0}\n"
-	GET "$InitrdUrl" /tmp -r initrd.img
+	GET "$InitrdUrl" /tmp -r initrd.img &>/dev/null
 	[[ $? -ne '0' ]] && error "Download 'initrd.img' for ${CLR3}$linux_relese${CLR0} failed!\n" && exit 1
-	GET "$VmLinuzUrl" /tmp -r vmlinuz
+	GET "$VmLinuzUrl" /tmp -r vmlinuz &>/dev/null
 	[[ $? -ne '0' ]] && error "Download 'vmlinuz' for ${CLR3}$linux_relese${CLR0} failed!\n" && exit 1
 elif [[ "$linux_relese" == 'centos' && "$RedHatSeries" -ge "8" ]] || [[ "$linux_relese" == 'rockylinux' ]] || [[ "$linux_relese" == 'almalinux' ]]; then
 	InitrdUrl="${LinuxMirror}/${DIST}/BaseOS/${VER}/os/images/pxeboot/initrd.img"
 	VmLinuzUrl="${LinuxMirror}/${DIST}/BaseOS/${VER}/os/images/pxeboot/vmlinuz"
 	echo -ne "\n- initrd.gz:\t${CLR2}$InitrdUrl${CLR0}\n- linux:\t${CLR2}$VmLinuzUrl${CLR0}\n"
-	GET "$InitrdUrl" /tmp -r initrd.img
+	GET "$InitrdUrl" /tmp -r initrd.img &>/dev/null
 	[[ $? -ne '0' ]] && error "Download 'initrd.img' for ${CLR3}$linux_relese${CLR0} failed!\n" && exit 1
-	GET "$VmLinuzUrl" /tmp -r vmlinuz
+	GET "$VmLinuzUrl" /tmp -r vmlinuz &>/dev/null
 	[[ $? -ne '0' ]] && error "Download 'vmlinuz' for ${CLR3}$linux_relese${CLR0} failed!\n" && exit 1
 elif [[ "$linux_relese" == 'fedora' ]]; then
 	InitrdUrl="${LinuxMirror}/releases/${DIST}/Server/${VER}/os/images/pxeboot/initrd.img"
 	VmLinuzUrl="${LinuxMirror}/releases/${DIST}/Server/${VER}/os/images/pxeboot/vmlinuz"
 	echo -ne "\n- initrd.gz:\t${CLR2}$InitrdUrl${CLR0}\n- linux:\t${CLR2}$VmLinuzUrl${CLR0}\n"
-	GET "$InitrdUrl" /tmp -r initrd.img
+	GET "$InitrdUrl" /tmp -r initrd.img &>/dev/null
 	[[ $? -ne '0' ]] && error "Download 'initrd.img' for ${CLR3}$linux_relese${CLR0} failed!\n" && exit 1
-	GET "$VmLinuzUrl" /tmp -r vmlinuz
+	GET "$VmLinuzUrl" /tmp -r vmlinuz &>/dev/null
 	[[ $? -ne '0' ]] && error "Download 'vmlinuz' for ${CLR3}$linux_relese${CLR0} failed!\n" && exit 1
 else
 	bash $0 error
