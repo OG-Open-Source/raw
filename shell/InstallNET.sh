@@ -22,7 +22,7 @@
 bash <(curl -sL raw.ogtt.tk/shell/function.sh)
 source ./function.sh
 
-Version="2024.10.14"
+Version="2024.10.16"
 License="GPL"
 SH="InstallNET.sh"
 
@@ -2799,7 +2799,7 @@ DebianModifiedPreseed() {
 		}
 		AptUpdating="$1 apt update -y;"
 		# pre-install some commonly used software.
-		InstallComponents="$1 apt install apt-transport-https ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file gawk jq lrzsz lsb-release net-tools openssl sudo tar unzip vim wget xz-utils -y; $1 bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'; sysctl -w net.ipv6.conf.all.disable_ipv6=1; sysctl -w net.ipv6.conf.all.disable_ipv6=0"
+		InstallComponents="$1 apt install apt-transport-https ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file gawk jq lrzsz lsb-release net-tools openssl sudo tar unzip vim wget xz-utils -y; $1 bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'"
 		# In Debian 9 and former, some certificates are expired.
 		DisableCertExpiredCheck="$1 sed -i '/^mozilla\/DST_Root_CA_X3/s/^/!/' /etc/ca-certificates.conf; $1 update-ca-certificates -f;"
 		if [[ "$IsCN" == "cn" ]]; then
