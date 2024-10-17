@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.036.003"
+Version="3.036.004"
 License="MIT License"
 
 SH="function.sh"
@@ -768,10 +768,15 @@ PUBLIC_IP() {
 }
 
 SHELL_VER() {
-	if [[ "${SHELL##*/}" == "bash" ]]; then
-		${SHELL} --version | awk 'NR==1 {print "Bash " $4}'
+	if [ -n "${BASH_VERSION-}" ]; then
+		echo "Bash ${BASH_VERSION}"
+	elif [ -n "${ZSH_VERSION-}" ]; then
+		echo "Zsh ${ZSH_VERSION}"
+	elif [ -n "${KSH_VERSION-}" ]; then
+		echo "Ksh ${KSH_VERSION}"
 	else
-		echo "Unknown (${SHELL##*/})"
+		error "Unsupported shell"
+		return 1
 	fi
 }
 SWAP_USAGE() {
