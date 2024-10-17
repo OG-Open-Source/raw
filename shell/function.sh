@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.036.004"
+Version="3.036.005"
 License="MIT License"
 
 SH="function.sh"
@@ -24,7 +24,7 @@ error() {
 
 ADD() {
 	CHECK_ROOT
-	[ $# -eq 0 ] && error "No items specified for installation\n" && return 1
+	[ $# -eq 0 ] && { error "No items specified for installation\n"; return 1; }
 	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -336,7 +336,7 @@ COPYRIGHT() {
 
 DEL() {
 	CHECK_ROOT
-	[ $# -eq 0 ] && error "No items specified for deletion\n" && return 1
+	[ $# -eq 0 ] && { error "No items specified for deletion\n"; return 1; }
 	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -482,7 +482,7 @@ DISK_USAGE() {
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 DNS_ADDR () {
-	[ ! -f /etc/resolv.conf ] && error "/etc/resolv.conf file not found" && return 1
+	[ ! -f /etc/resolv.conf ] && { error "/etc/resolv.conf file not found"; return 1; }
 	ipv4_servers=()
 	ipv6_servers=()
 	while read -r server; do
@@ -492,25 +492,25 @@ DNS_ADDR () {
 			ipv6_servers+=("$server")
 		fi
 	done < <(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}')
-	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && error "No DNS servers found in /etc/resolv.conf" && return 1
+	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && { error "No DNS servers found in /etc/resolv.conf"; return 1; }
 	case "$1" in
 		-4)
-			[ ${#ipv4_servers[@]} -eq 0 ] && error "No IPv4 DNS servers found" && return 1
+			[ ${#ipv4_servers[@]} -eq 0 ] && { error "No IPv4 DNS servers found"; return 1; }
 			echo "${ipv4_servers[*]}"
 			;;
 		-6)
-			[ ${#ipv6_servers[@]} -eq 0 ] && error "No IPv6 DNS servers found" && return 1
+			[ ${#ipv6_servers[@]} -eq 0 ] && { error "No IPv6 DNS servers found"; return 1; }
 			echo "${ipv6_servers[*]}"
 			;;
 		*)
-			[ ${#ipv4_servers[@]} -eq 0 ] && [ ${#ipv6_servers[@]} -eq 0 ] && error "No DNS servers found" && return 1
+			[ ${#ipv4_servers[@]} -eq 0 ] && [ ${#ipv6_servers[@]} -eq 0 ] && { error "No DNS servers found"; return 1; }
 			echo "${ipv4_servers[*]}   ${ipv6_servers[*]}"
 			;;
 	esac
 }
 
 FIND() {
-	[ $# -eq 0 ] && error "No search terms provided\n" && return 1
+	[ $# -eq 0 ] && { error "No search terms provided\n"; return 1; }
 	for target in "$@"; do
 		echo -e "${CLR3}SEARCH [$target]${CLR0}"
 		case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
@@ -576,7 +576,7 @@ FONT() {
 }
 
 GET() {
-	[ $# -eq 0 ] && error "No URL specified for download\n" && return 1
+	[ $# -eq 0 ] && { error "No URL specified for download\n"; return 1; }
 	url="$1"
 	target_dir="."
 	output_file="${url##*/}"
