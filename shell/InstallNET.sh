@@ -169,6 +169,20 @@ while [[ $# -ge 1 ]]; do
 			setIpStack="$1"
 			shift
 			;;
+		--ip-set)
+			shift
+			ipAddr="$1"
+			ipMask="$2"
+			ipGate="$3"
+			shift 4
+			;;
+		--ip6-set)
+			shift
+			ip6Addr="$1"
+			ip6Mask="$2"
+			ip6Gate="$3"
+			shift 4
+			;;
 		--ip-addr)
 			shift
 			ipAddr="$1"
