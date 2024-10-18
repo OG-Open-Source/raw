@@ -3302,6 +3302,7 @@ fi
 [[ -n "$Relese" ]] || Relese='Debian'
 linux_relese=$(echo "$Relese" | sed 's/\ //g' | sed -r 's/(.*)/\L\1/')
 
+# Default distribution version
 [[ -z "$tmpDIST" ]] && {
 	[ "$Relese" == 'Debian' ] && tmpDIST='12'
 	[ "$Relese" == 'Kali' ] && tmpDIST='rolling'
@@ -3309,10 +3310,10 @@ linux_relese=$(echo "$Relese" | sed 's/\ //g' | sed -r 's/(.*)/\L\1/')
 	[ "$Relese" == 'CentOS' ] && tmpDIST='9'
 	[ "$Relese" == 'RockyLinux' ] && tmpDIST='9'
 	[ "$Relese" == 'AlmaLinux' ] && tmpDIST='9'
-	[ "$Relese" == 'Fedora' ] && tmpDIST='39'
+	[ "$Relese" == 'Fedora' ] && tmpDIST='40'
 }
 [[ -z "$finalDIST" ]] && {
-	[ "$targetRelese" == 'Ubuntu' ] && finalDIST='22.04'
+	[ "$targetRelese" == 'Ubuntu' ] && finalDIST='24.04'
 	[ "$targetRelese" == 'Windows' ] && finalDIST='11'
 }
 
