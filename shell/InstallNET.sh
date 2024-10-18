@@ -22,7 +22,7 @@
 bash <(curl -sL raw.ogtt.tk/shell/function.sh)
 source ./function.sh
 
-Version="2024.10.17"
+Version="2024.10.18"
 License="GPL"
 SH="InstallNET.sh"
 
@@ -376,18 +376,20 @@ while [[ $# -ge 1 ]]; do
 			if [[ "$1" != 'error' ]]; then echo -ne "\nInvaild option: '$1'\n\n"; fi
 			echo -e "${CLR2}Usage:${CLR0}\n\tbash $(basename $0) [OPTIONS]\n"
 			echo -e "${CLR3}Options:${CLR0}"
-			echo -e "\t${CLR8}-debian${CLR0} [DIST]\tSpecify Debian distribution"
-			echo -e "\t${CLR8}-ubuntu${CLR0} [DIST]\tSpecify Ubuntu distribution"
-			echo -e "\t${CLR8}-kali${CLR0} [DIST]\tSpecify Kali Linux distribution"
+			echo -e "\t${CLR8}-debian${CLR0} [7/8/9/10/11/12]\tSpecify Debian distribution"
+			echo -e "\t${CLR8}-ubuntu${CLR0} [20.04/22.04/24.04]\tSpecify Ubuntu distribution"
+			echo -e "\t${CLR8}-kali${CLR0} [rolling/dev]\tSpecify Kali Linux distribution"
 			echo -e "\t${CLR8}-alpine${CLR0} [DIST]\tSpecify Alpine Linux distribution"
-			echo -e "\t${CLR8}-centos${CLR0} [DIST]\tSpecify CentOS distribution"
-			echo -e "\t${CLR8}-rocky${CLR0} [DIST]\tSpecify Rocky Linux distribution"
+			echo -e "\t${CLR8}-centos${CLR0} [7/8/9]\tSpecify CentOS distribution"
+			echo -e "\t${CLR8}-rocky${CLR0} [7/8/9]\tSpecify Rocky Linux distribution"
 			echo -e "\t${CLR8}-alma${CLR0} [DIST]\tSpecify AlmaLinux distribution"
 			echo -e "\t${CLR8}-fedora${CLR0} [DIST]\tSpecify Fedora Linux distribution"
 			echo -e "\t${CLR8}-windows${CLR0} [DIST]\tSpecify Microsoft Windows distribution"
 			echo -e "\t${CLR8}-architecture [32/i386|64/amd64|arm/arm64]${CLR0}"
-			echo -e "\t${CLR8}--ip-addr [123.456.789.012] / --ip-gate [123.456.789.012] / --ip-mask [24-32]${CLR0}"
-			echo -e "\t${CLR8}--ip6-addr [1234:5678:90ab:cdef:1234:5678:90ab:cdef] / --ip6-gate [1234:5678:90ab:cdef:1234:5678:90ab:cdef] / --ip6-mask [1-128]${CLR0}"
+			echo -e "\t${CLR8}--ip-addr [123.456.789.012] / --ip-mask [24-32] / --ip-gate [123.456.789.012]${CLR0}"
+			echo -e "\t${CLR8}--ip-set [123.456.789.012] [24-32] [123.456.789.1]${CLR0}"
+			echo -e "\t${CLR8}--ip6-addr [1234:5678:90ab:cdef:1234:5678:90ab:cdef] / --ip6-mask [1-128] / --ip6-gate [1234:5678:90ab:cdef:1234:5678:90ab:cdef]${CLR0}"
+			echo -e "\t${CLR8}--ip6-set [1234:5678:90ab:cdef:1234:5678:90ab:cdef] [1-128] [1234:5678:90ab:cdef:1234:5678:90ab:cdef]${CLR0}"
 			echo -e "\t${CLR8}--bbr${CLR0}\tEnable BBR congestion control algorithm"
 			echo -e "\t${CLR8}-mirror${CLR0} [URL]"
 			echo -e "\t${CLR8}-lang${CLR0} [LANG]"
@@ -400,8 +402,7 @@ while [[ $# -ge 1 ]]; do
 	esac
 done
 
-# Check Root
-[[ "$EUID" -ne '0' || $(id -u) != '0' ]] && error "This script must be executed as root!\n\nTry to type:\n${CLR3}sudo -s\n${CLR0}\nAfter entering the password, switch to root dir to execute this script:\n${CLR3}cd ~${CLR0}\n\n" && exit 1
+CHECK_ROOT
 
 # Ping delay to YouTube($2), Instagram($3), Wikipedia($4) and BBC($5), support both IPv4 and IPv6 access, $1 is $IPStackType
 checkCN() {
@@ -2813,7 +2814,7 @@ DebianModifiedPreseed() {
 		}
 		AptUpdating="$1 apt update -y;"
 		# pre-install some commonly used software.
-		InstallComponents="$1 apt install apt-transport-https bc ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file gawk jq lrzsz lsb-release net-tools openssl sudo tar unzip vim wget xz-utils -y; $1 bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'"
+		InstallComponents="$1 apt install apt-transport-https bc ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file gawk jq lrzsz lsb-release net-tools openssl psmisc sudo tar unzip vim wget xz-utils -y; $1 bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'"
 		# In Debian 9 and former, some certificates are expired.
 		DisableCertExpiredCheck="$1 sed -i '/^mozilla\/DST_Root_CA_X3/s/^/!/' /etc/ca-certificates.conf; $1 update-ca-certificates -f;"
 		if [[ "$IsCN" == "cn" ]]; then
