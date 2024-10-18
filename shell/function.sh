@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.036.005"
+Version="3.036.006"
 License="MIT License"
 
 SH="function.sh"
@@ -993,6 +993,8 @@ SYS_UPDATE() {
 				echo "* Waiting for dpkg lock to be released..."
 				sleep 1
 			done
+			echo "* Configuring pending packages..."
+			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || { error "Failed to configure pending packages"; return 1; }
 			echo "* Updating package lists..."
 			DEBIAN_FRONTEND=noninteractive apt update -y || { error "Failed to update package lists using apt"; return 1; }
 			echo "* Upgrading packages..."
