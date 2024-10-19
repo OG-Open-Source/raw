@@ -1,6 +1,6 @@
 #!/bin/bash
-if [ -f ~/root/function.sh ]; then
-    exit
+if [ -f ~/function.sh ]; then
+    exit 0
 else
     GET() {
         [ $# -eq 0 ] && return 1
