@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.035.010"
+Version="0.035.001"
 License="MIT License"
 
 SH="function.sh"
@@ -432,8 +432,7 @@ GET() {
 	done
 	mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }
 	output_file="$target_dir/$output_file"
-	url=$(echo "$url" | sed -E 's#([^:])/+#\1/#g')
-	url=$(echo "$url" | sed -E 's#^(https?|ftp):/+#\1://#')
+	url=$(echo "$url" | sed -E 's#([^:])/+#\1/#g; s#^(https?|ftp):/+#\1://#')
 	echo -e "${CLR3}DOWNLOAD [$url]${CLR0}"
 	if ! curl -L -k -m 5 "$url" -o "$output_file"; then
 		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_file" || { error "Failed to download file using curl and wget is not available\n"; return 1; }
@@ -911,7 +910,4 @@ TIMEZONE() {
 			;;
 	esac
 }
-
-crontab -l &>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'" >> function-update && crontab function-update && rm -f function-update)
-GET https://raw.ogtt.tk/shell/function.sh &>/dev/null || { error "Failed to download function.sh"; return 1; }
-grep -q "source ~/function.sh" ~/.bashrc || echo "source ~/function.sh" >> ~/.bashrc
+export BASH_ENV="/root/function.sh"
