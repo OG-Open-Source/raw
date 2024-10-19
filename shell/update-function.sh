@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# [ -f ~/function.sh ] && source ~/function.sh || bash <(curl -sL raw.ogtt.tk/shell/update-function.sh)
 GET() {
 	[ $# -eq 0 ] && return 1
 	url="$1"
@@ -23,16 +23,9 @@ else
 		echo -e "\e[33mYou can wait for the main version to be released before downloading again.\e[0m"
 		read -p "Do you still want to download and use this version? (y/N) " -n 1 -r
 		echo
-		if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-			echo -e "\e[31mDownload cancelled.\e[0m"
-			exit 1
-		fi
+		[[ ! $REPLY =~ ^[Yy]$ ]] && { echo -e "\e[31mDownload cancelled.\e[0m"; exit 1; }
 	fi
-
 	crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL raw.ogtt.tk/shell/update-function.sh | bash" || (crontab -l > function-update 2>/dev/null; echo "0 0 * * * curl -sL raw.ogtt.tk/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update)
-	GET https://raw.ogtt.tk/shell/update-function.sh &>/dev/null
 	GET https://raw.ogtt.tk/shell/function.sh &>/dev/null && source function.sh
 	grep -q "source ~/function.sh" ~/.bashrc || echo "source ~/function.sh" >> ~/.bashrc
 fi
-
-[ -f ~/function.sh ] && source ~/function.sh || bash <(curl -sL raw.ogtt.tk/shell/update-function.sh)
