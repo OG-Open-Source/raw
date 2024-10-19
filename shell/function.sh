@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.036.008"
+Version="3.036.009"
 License="MIT License"
 
 SH="function.sh"
@@ -914,4 +914,4 @@ TIMEZONE() {
 
 crontab -l &>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'" >> function-update && crontab function-update && rm -f function-update)
 GET https://raw.ogtt.tk/shell/function.sh &>/dev/null || { error "Failed to download function.sh"; return 1; }
-grep -q "source /root/function.sh" ~/.bashrc || echo "source ~/function.sh" >> ~/.bashrc
+grep -q "source ~/function.sh" ~/.bashrc || echo "source ~/function.sh" >> ~/.bashrc
