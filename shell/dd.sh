@@ -6,16 +6,7 @@
 ## Blog: https://moeclub.org
 ## Written By MoeClub.org
 
-CLR1="\033[31m"
-CLR2="\033[32m"
-CLR3="\033[0;33m"
-CLR4="\033[34m"
-CLR5="\033[35m"
-CLR6="\033[36m"
-CLR7="\033[37m"
-CLR8="\033[96m"
-CLR9="\033[97m"
-CLR0="\033[0m"
+[ ! -f ~/function.sh ] && bash <(curl -sL raw.ogtt.tk/shell/update-function.sh)
 
 tmpVER=''
 tmpDIST=''
