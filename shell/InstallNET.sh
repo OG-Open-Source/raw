@@ -19,8 +19,7 @@
 # Modified By OGATA Open-Source
 # Github: https://github.com/OG-Open-Source
 
-bash <(curl -sL raw.ogtt.tk/shell/function.sh)
-source ./function.sh
+[ ! -f ~/function.sh ] && bash <(curl -sL raw.ogtt.tk/shell/update-function.sh)
 
 Version="2024.10.19"
 License="GPL"
