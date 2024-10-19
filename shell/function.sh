@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.036.007"
+Version="3.036.008"
 License="MIT License"
 
 SH="function.sh"
@@ -906,7 +906,7 @@ TIMEZONE() {
 		-i|*)
 			result=$(readlink /etc/localtime | sed 's|^.*/zoneinfo/||') 2>/dev/null ||
 			result=$(command -v timedatectl &>/dev/null && timedatectl status | awk '/Time zone:/ {print $3}') ||
-			result=$(cat /etc/timezone 2>/dev/null; | uniq) ||
+			result=$(cat /etc/timezone 2>/dev/null | uniq) ||
 			[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
 			;;
 	esac
