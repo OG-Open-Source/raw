@@ -1,5 +1,5 @@
 #!/bin/bash
-# [ ! -f ~/function.sh ] && bash <(curl -sL raw.ogtt.tk/shell/update-function.sh)
+# [ -f ~/function.sh ] && source ~/function.sh || bash <(curl -sL raw.ogtt.tk/shell/update-function.sh)
 GET() {
 	[ $# -eq 0 ] && return 1
 	url="$1"
