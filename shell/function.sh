@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.036.006"
+Version="3.036.007"
 License="MIT License"
 
 SH="function.sh"
@@ -28,20 +28,12 @@ ADD() {
 	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
-			-f)
-				mode="file"
-				shift
-				continue
-				;;
-			-d)
-				mode="directory"
-				shift
-				continue
-				;;
+			-f) mode="file"; shift; continue ;;
+			-d) mode="directory"; shift; continue ;;
 			*.deb)
 				deb_file=$(basename "$1")
 				echo -e "${CLR3}INSTALL DEB PACKAGE [$deb_file]\n${CLR0}"
-				GET "$1" || { error "Failed to download $1\n"; shift; continue; }
+				GET "$1"
 				if [ -f "$deb_file" ]; then
 					dpkg -i "$deb_file" || { error "Failed to install $deb_file using dpkg\n"; rm -f "$deb_file"; shift; continue; }
 					apt --fix-broken install -y || { error "Failed to fix dependencies\n"; rm -f "$deb_file"; shift; continue; }
@@ -56,157 +48,67 @@ ADD() {
 				shift
 				;;
 			*)
+				echo -e "${CLR3}INSERT ${mode^^} [$1]${CLR0}"
 				case "$mode" in
-					"file")
-						echo -e "${CLR3}CREATE FILE [$1]${CLR0}"
-						if [ -f "$1" ] || [ -d "$1" ]; then
-							error "File $1 already exists\n"
+					"file"|"directory")
+						if [ -"${mode:0:1}" "$1" ]; then
+							error "${mode^} $1 already exists\n"
 							shift
 							continue
 						else
-							touch "$1" || { error "Failed to create file $1\n"; shift; continue; }
-							echo "* File $1 created successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						fi
-						shift
-						;;
-					"directory")
-						echo -e "${CLR3}CREATE DIRECTORY [$1]${CLR0}"
-						if [ -d "$1" ] || [ -f "$1" ]; then
-							error "Directory $1 already exists\n"
-							shift
-							continue
-						else
-							mkdir -p "$1" || { error "Failed to create directory $1\n"; shift; continue; }
-							echo "* Directory $1 created successfully"
+							case "$mode" in
+								"file") touch "$1" ;;
+								"directory") mkdir -p "$1" ;;
+							esac || { error "Failed to create $mode $1\n"; shift; continue; }
+							echo "* ${mode^} $1 created successfully"
 							echo -e "${CLR2}FINISHED${CLR0}\n"
 						fi
 						shift
 						;;
 					"package")
-						echo -e "${CLR3}INSTALL [$1]${CLR0}"
-						case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
-							*apk)
-								if ! apk info -e "$1" &>/dev/null; then
+						pkg_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
+						pkg_manager=${pkg_manager##*/}
+						case $pkg_manager in
+							apk|apt|opkg|pacman|yum|zypper|dnf)
+								is_installed() {
+									case $pkg_manager in
+										apk) apk info -e "$1" &>/dev/null ;;
+										apt) dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed" ;;
+										opkg) opkg list-installed | grep -q "^$1 " ;;
+										pacman) pacman -Qi "$1" &>/dev/null ;;
+										yum|dnf) $pkg_manager list installed "$1" &>/dev/null ;;
+										zypper) zypper se -i -x "$1" &>/dev/null ;;
+									esac
+								}
+								install_package() {
+									case $pkg_manager in
+										apk) apk update && apk add "$1" ;;
+										apt) apt update && apt install -y "$1" ;;
+										opkg) opkg update && opkg install "$1" ;;
+										pacman) pacman -Sy && pacman -S --noconfirm "$1" ;;
+										yum|dnf) $pkg_manager install -y "$1" ;;
+										zypper) zypper refresh && zypper install -y "$1" ;;
+									esac
+								}
+								if ! is_installed "$1"; then
 									echo "* Package $1 is not installed. Attempting installation..."
-									apk update || { error "Failed to update package lists\n"; shift; continue; }
-									apk add "$1" || { error "Failed to install $1 using apk\n"; shift; continue; }
-									if apk info -e "$1" &>/dev/null; then
-										echo "* Package $1 installed successfully"
+									if install_package "$1"; then
+										if is_installed "$1"; then
+											echo "* Package $1 installed successfully"
+											echo -e "${CLR2}FINISHED${CLR0}\n"
+										else
+											error "Failed to install $1 using $pkg_manager\n"
+										fi
 									else
-										error "Failed to install $1 using apk\n"
-										shift
-										continue
+										error "Failed to install $1 using $pkg_manager\n"
 									fi
 								else
 									echo "* Package $1 is already installed"
+									echo -e "${CLR2}FINISHED${CLR0}\n"
 								fi
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-								;;
-							*apt)
-								if ! dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
-									echo "* Package $1 is not installed. Attempting installation..."
-									apt update || { error "Failed to update package lists\n"; shift; continue; }
-									apt install -y "$1" || { error "Failed to install $1 using apt\n"; shift; continue; }
-									if dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
-										echo "* Package $1 installed successfully"
-									else
-										error "Failed to install $1 using apt\n"
-										shift
-										continue
-									fi
-								else
-									echo "* Package $1 is already installed"
-								fi
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-								;;
-							*opkg)
-								if ! opkg list-installed | grep -q "^$1 "; then
-									echo "* Package $1 is not installed. Attempting installation..."
-									opkg update || { error "Failed to update package lists\n"; shift; continue; }
-									opkg install "$1" || { error "Failed to install $1 using opkg\n"; shift; continue; }
-									if opkg list-installed | grep -q "^$1 "; then
-										echo "* Package $1 installed successfully"
-									else
-										error "Failed to install $1 using opkg\n"
-										shift
-										continue
-									fi
-								else
-									echo "* Package $1 is already installed"
-								fi
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-								;;
-							*pacman)
-								if ! pacman -Qi "$1" &>/dev/null; then
-									echo "* Package $1 is not installed. Attempting installation..."
-									pacman -Sy || { error "Failed to synchronize package databases\n"; shift; continue; }
-									pacman -S --noconfirm "$1" || { error "Failed to install $1 using pacman\n"; shift; continue; }
-									if pacman -Qi "$1" &>/dev/null; then
-										echo "* Package $1 installed successfully"
-									else
-										error "Failed to install $1 using pacman\n"
-										shift
-										continue
-									fi
-								else
-									echo "* Package $1 is already installed"
-								fi
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-								;;
-							*yum)
-								if ! yum list installed "$1" &>/dev/null; then
-									echo "* Package $1 is not installed. Attempting installation..."
-									yum install -y "$1" || { error "Failed to install $1 using yum\n"; shift; continue; }
-									if yum list installed "$1" &>/dev/null; then
-										echo "* Package $1 installed successfully"
-									else
-										error "Failed to install $1 using yum\n"
-										shift
-										continue
-									fi
-								else
-									echo "* Package $1 is already installed"
-								fi
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-								;;
-							*zypper)
-								if ! zypper se -i -x "$1" &>/dev/null; then
-									echo "* Package $1 is not installed. Attempting installation..."
-									zypper refresh || { error "Failed to refresh repositories\n"; shift; continue; }
-									zypper install -y "$1" || { error "Failed to install $1 using zypper\n"; shift; continue; }
-									if zypper se -i -x "$1" &>/dev/null; then
-										echo "* Package $1 installed successfully"
-									else
-										error "Failed to install $1 using zypper\n"
-										shift
-										continue
-									fi
-								else
-									echo "* Package $1 is already installed"
-								fi
-								echo -e "${CLR2}FINISHED${CLR0}\n"
-								;;
-							*dnf)
-								if ! dnf list installed "$1" &>/dev/null; then
-									echo "* Package $1 is not installed. Attempting installation..."
-									dnf install -y "$1" || { error "Failed to install $1 using dnf\n"; shift; continue; }
-									if dnf list installed "$1" &>/dev/null; then
-										echo "* Package $1 installed successfully"
-									else
-										error "Failed to install $1 using dnf\n"
-										shift
-										continue
-									fi
-								else
-									echo "* Package $1 is already installed"
-								fi
-								echo -e "${CLR2}FINISHED${CLR0}\n"
 								;;
 							*)
 								error "Unsupported package manager\n"
-								shift
-								continue
 								;;
 						esac
 						shift
@@ -261,26 +163,22 @@ CHECK_VIRT() {
 	fi
 	case "$virt_type" in
 		kvm)
-			if [ -f /sys/class/dmi/id/product_name ] && grep -qi "proxmox" /sys/class/dmi/id/product_name; then
-				echo "Proxmox VE (KVM)"
-			else
-				echo "KVM"
-			fi
+			grep -qi "proxmox" /sys/class/dmi/id/product_name 2>/dev/null && echo "Proxmox VE (KVM)" || echo "KVM"
+			;;
+		microsoft)
+			echo "Microsoft Hyper-V"
 			;;
 		none)
-			if [ -f /proc/1/environ ] && grep -q "container=lxc" /proc/1/environ; then
+			if grep -q "container=lxc" /proc/1/environ 2>/dev/null; then
 				echo "LXC container"
-			elif [ -f /proc/cpuinfo ] && grep -qi "hypervisor" /proc/cpuinfo; then
+			elif grep -qi "hypervisor" /proc/cpuinfo 2>/dev/null; then
 				echo "Virtual machine (Unknown type)"
 			else
 				echo "Not detected (possibly bare metal)"
 			fi
 			;;
-		"")
-			echo "Not detected (possibly bare metal)"
-			;;
 		*)
-			echo "$virt_type"
+			echo "${virt_type:-Not detected (possibly bare metal)}"
 			;;
 	esac
 }
@@ -289,35 +187,36 @@ CLEAN() {
 	clear
 }
 CPU_FREQ() {
-	if [ ! -f /proc/cpuinfo ]; then
-		error "Unable to access /proc/cpuinfo"
-		return 1
-	fi
-	cpu_freq=$(awk -F ': ' '/^cpu MHz/ {sum += $2; count++} END {if (count > 0) print sum / count; else print "N/A"}' /proc/cpuinfo)
-	if [ "$cpu_freq" = "N/A" ]; then
-		error "Failed to calculate CPU frequency"
-		return 1
-	fi
-	cpu_freq_ghz=$(awk -v freq="$cpu_freq" 'BEGIN {printf "%.2f", freq / 1000}')
-	if [ -z "$cpu_freq_ghz" ]; then
-		error "Failed to convert CPU frequency to GHz"
-		return 1
-	fi
-	echo "${cpu_freq_ghz} GHz"
+	[ ! -f /proc/cpuinfo ] && { error "Unable to access /proc/cpuinfo"; return 1; }
+	cpu_freq=$(awk '
+		/^cpu MHz/ {
+			sum += $4
+			count++
+		}
+		END {
+			if (count > 0)
+				printf "%.2f", sum / count / 1000
+			else
+				print "N/A"
+		}
+	' /proc/cpuinfo)
+	[ "$cpu_freq" = "N/A" ] && { error "N/A"; return 1; }
+	echo "${cpu_freq} GHz"
 }
 CPU_MODEL() {
 	if command -v lscpu &>/dev/null; then
-		lscpu | awk -F': +' '/Model name:/ {print $2; exit}'
+		lscpu | awk -F': +' '/Model name/ {print $2; exit}'
 	elif [ -f /proc/cpuinfo ]; then
-		awk -F': ' '/model name/ {print $2; exit}' /proc/cpuinfo
-	elif command -v sysctl &>/dev/null; then
-		sysctl -n machdep.cpu.brand_string 2>/dev/null || echo -e "${CLR1}Unknown${CLR0}"
+		sed -n 's/^model name[[:space:]]*: //p' /proc/cpuinfo | head -n1
+	elif command -v sysctl &>/dev/null && sysctl -n machdep.cpu.brand_string &>/dev/null; then
+		sysctl -n machdep.cpu.brand_string
 	else
-		error "Unable to determine CPU model"
+		echo -e "${CLR1}Unknown${CLR0}"
 		return 1
 	fi
 }
 CONVERT_SIZE() {
+	[ -z "$1" ] && return
 	size=$1
 	unit=${2:-B}
 	base=${3:-1024}
@@ -340,132 +239,64 @@ DEL() {
 	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
-			-f)
-				mode="file"
-				shift
-				continue
-				;;
-			-d)
-				mode="directory"
-				shift
-				continue
-				;;
+			-f) mode="file"; shift; continue ;;
+			-d) mode="directory"; shift; continue ;;
 			*)
+				echo -e "${CLR3}REMOVE ${mode^^} [$1]${CLR0}"
 				case "$mode" in
-					"file")
-						echo -e "${CLR3}REMOVE FILE [$1]${CLR0}"
-						if [ -f "$1" ]; then
-							echo "* File $1 exists. Attempting removal..."
-							rm -f "$1" || { error "Failed to remove file $1\n"; shift; continue; }
-							echo "* File $1 removed successfully"
+					"file"|"directory")
+						if [ -"${mode:0:1}" "$1" ]; then
+							echo "* ${mode^} $1 exists. Attempting removal..."
+							rm -rf"${mode:0:1}" "$1" || { error "Failed to remove $mode $1\n"; shift; continue; }
+							echo "* ${mode^} $1 removed successfully"
 							echo -e "${CLR2}FINISHED${CLR0}\n"
 						else
-							error "File $1 does not exist\n"
-						fi
-						;;
-					"directory")
-						echo -e "${CLR3}REMOVE DIRECTORY [$1]${CLR0}"
-						if [ -d "$1" ]; then
-							echo "* Directory $1 exists. Attempting removal..."
-							rm -rf "$1" || { error "Failed to remove directory $1\n"; shift; continue; }
-							echo "* Directory $1 removed successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						else
-							error "Directory $1 does not exist\n"
+							error "${mode^} $1 does not exist\n"
 						fi
 						;;
 					"package")
-						echo -e "${CLR3}DELETE [$1]${CLR0}"
-						case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
-							*apk)
-								if apk info -e "$1" &>/dev/null; then
+						pkg_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
+						pkg_manager=${pkg_manager##*/}
+						case $pkg_manager in
+							apk|apt|opkg|pacman|yum|zypper|dnf)
+								is_installed() {
+									case $pkg_manager in
+										apk) apk info -e "$1" &>/dev/null ;;
+										apt) dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed" ;;
+										opkg) opkg list-installed | grep -q "^$1 " ;;
+										pacman) pacman -Qi "$1" &>/dev/null ;;
+										yum|dnf) $pkg_manager list installed "$1" &>/dev/null ;;
+										zypper) zypper se -i -x "$1" &>/dev/null ;;
+									esac
+								}
+								remove_package() {
+									case $pkg_manager in
+										apk) apk del "$1" ;;
+										apt) apt purge -y "$1" && apt autoremove -y ;;
+										opkg) opkg remove "$1" ;;
+										pacman) pacman -Rns --noconfirm "$1" ;;
+										yum|dnf) $pkg_manager remove -y "$1" ;;
+										zypper) zypper remove -y "$1" ;;
+									esac
+								}
+								if is_installed "$1"; then
 									echo "* Package $1 is installed. Attempting removal..."
-									apk del "$1" || { error "Failed to remove $1 using apk\n"; shift; continue; }
-									echo "* Package $1 removed successfully"
-									echo -e "${CLR2}FINISHED${CLR0}\n"
+									if remove_package "$1"; then
+										if ! is_installed "$1"; then
+											echo "* Package $1 removed successfully"
+											echo -e "${CLR2}FINISHED${CLR0}\n"
+										else
+											error "Failed to remove $1 using $pkg_manager\n"
+										fi
+									else
+										error "Failed to remove $1 using $pkg_manager\n"
+									fi
 								else
 									error "Package $1 is not installed\n"
-									shift
-									continue
-								fi
-								;;
-							*apt)
-								if dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "ok installed"; then
-									echo "* Package $1 is installed. Attempting removal..."
-									apt purge -y "$1" || { error "Failed to purge $1 using apt\n"; shift; continue; }
-									apt autoremove -y || { error "Failed to autoremove $1 using apt\n"; shift; continue; }
-									echo "* Package $1 removed successfully"
-									echo -e "${CLR2}FINISHED${CLR0}\n"
-								else
-									error "Package $1 is not installed\n"
-									shift
-									continue
-								fi
-								;;
-							*opkg)
-								if opkg list-installed | grep -q "^$1 "; then
-									echo "* Package $1 is installed. Attempting removal..."
-									opkg remove "$1" || { error "Failed to remove $1 using opkg\n"; shift; continue; }
-									echo "* Package $1 removed successfully"
-									echo -e "${CLR2}FINISHED${CLR0}\n"
-								else
-									error "Package $1 is not installed\n"
-									shift
-									continue
-								fi
-								;;
-							*pacman)
-								if pacman -Qi "$1" &>/dev/null; then
-									echo "* Package $1 is installed. Attempting removal..."
-									pacman -Rns --noconfirm "$1" || { error "Failed to remove $1 using pacman\n"; shift; continue; }
-									echo "* Package $1 removed successfully"
-									echo -e "${CLR2}FINISHED${CLR0}\n"
-								else
-									error "Package $1 is not installed\n"
-									shift
-									continue
-								fi
-								;;
-							*yum)
-								if yum list installed "$1" &>/dev/null; then
-									echo "* Package $1 is installed. Attempting removal..."
-									yum remove -y "$1" || { error "Failed to remove $1 using yum\n"; shift; continue; }
-									echo "* Package $1 removed successfully"
-									echo -e "${CLR2}FINISHED${CLR0}\n"
-								else
-									error "Package $1 is not installed\n"
-									shift
-									continue
-								fi
-								;;
-							*zypper)
-								if zypper se -i -x "$1" &>/dev/null; then
-									echo "* Package $1 is installed. Attempting removal..."
-									zypper remove -y "$1" || { error "Failed to remove $1 using zypper\n"; shift; continue; }
-									echo "* Package $1 removed successfully"
-									echo -e "${CLR2}FINISHED${CLR0}\n"
-								else
-									error "Package $1 is not installed\n"
-									shift
-									continue
-								fi
-								;;
-							*dnf)
-								if dnf list installed "$1" &>/dev/null; then
-									echo "* Package $1 is installed. Attempting removal..."
-									dnf remove -y "$1" || { error "Failed to remove $1 using dnf\n"; shift; continue; }
-									echo "* Package $1 removed successfully"
-									echo -e "${CLR2}FINISHED${CLR0}\n"
-								else
-									error "Package $1 is not installed\n"
-									shift
-									continue
 								fi
 								;;
 							*)
 								error "Unsupported package manager\n"
-								shift
-								continue
 								;;
 						esac
 						;;
@@ -503,7 +334,7 @@ DNS_ADDR () {
 			echo "${ipv6_servers[*]}"
 			;;
 		*)
-			[ ${#ipv4_servers[@]} -eq 0 ] && [ ${#ipv6_servers[@]} -eq 0 ] && { error "No DNS servers found"; return 1; }
+			[ ${#ipv4_servers[@]} -eq 0 -a ${#ipv6_servers[@]} -eq 0 ] && { error "No DNS servers found"; return 1; }
 			echo "${ipv4_servers[*]}   ${ipv6_servers[*]}"
 			;;
 	esac
@@ -511,35 +342,20 @@ DNS_ADDR () {
 
 FIND() {
 	[ $# -eq 0 ] && { error "No search terms provided\n"; return 1; }
+	package_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
+	case ${package_manager##*/} in
+		apk) search_command="apk search" ;;
+		apt) search_command="apt-cache search" ;;
+		opkg) search_command="opkg search" ;;
+		pacman) search_command="pacman -Ss" ;;
+		yum) search_command="yum search" ;;
+		zypper) search_command="zypper search" ;;
+		dnf) search_command="dnf search" ;;
+		*) error "Unsupported package manager\n"; return 1 ;;
+	esac
 	for target in "$@"; do
 		echo -e "${CLR3}SEARCH [$target]${CLR0}"
-		case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
-			*apk)
-				apk search "$target" || { error "No results found for $target\n"; return 1; }
-				;;
-			*apt)
-				apt-cache search "$target" || { error "No results found for $target\n"; return 1; }
-				;;
-			*opkg)
-				opkg search "$target" || { error "No results found for $target\n"; return 1; }
-				;;
-			*pacman)
-				pacman -Ss "$target" || { error "No results found for $target\n"; return 1; }
-				;;
-			*yum)
-				yum search "$target" || { error "No results found for $target\n"; return 1; }
-				;;
-			*zypper)
-				zypper search "$target" || { error "No results found for $target\n"; return 1; }
-				;;
-			*dnf)
-				dnf search "$target" || { error "No results found for $target\n"; return 1; }
-				;;
-			*)
-				error "Unsupported package manager\n"
-				return 1
-				;;
-		esac
+		$search_command "$target" || { error "No results found for $target\n"; return 1; }
 		echo -e "${CLR2}FINISHED${CLR0}\n"
 	done
 }
@@ -578,8 +394,23 @@ FONT() {
 GET() {
 	[ $# -eq 0 ] && { error "No URL specified for download\n"; return 1; }
 	url="$1"
+	if ! [[ "$url" =~ ^(http|https|ftp):// ]]; then
+		if [[ "$url" =~ ^[a-zA-Z0-9.-]+(/[a-zA-Z0-9.-/]+)?$ ]]; then
+			domain="${url%%/*}"
+			if ping -c 1 -W 2 "$domain" &>/dev/null; then
+				url="https://$url"
+			else
+				error "Unable to reach the specified domain: $domain\n"
+				return 1
+			fi
+		else
+			error "Invalid URL or domain format: $url\n"
+			return 1
+		fi
+	fi
 	target_dir="."
 	output_file="${url##*/}"
+	[ -z "$output_file" ] && output_file="index.html"
 	rename_flag=false
 	shift
 	while [ $# -gt 0 ]; do
@@ -599,13 +430,13 @@ GET() {
 				;;
 		esac
 	done
-	if [ ! -d "$target_dir" ]; then
-		mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }
-	fi
+	mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }
 	output_file="$target_dir/$output_file"
+	url=$(echo "$url" | sed -E 's#([^:])/+#\1/#g')
+	url=$(echo "$url" | sed -E 's#^(https?|ftp):/+#\1://#')
 	echo -e "${CLR3}DOWNLOAD [$url]${CLR0}"
-	if ! curl -L -k "$url" -o "$output_file"; then
-		wget --no-check-certificate "$url" -O "$output_file" || { error "Failed to download file using curl and wget is not available\n"; return 1; }
+	if ! curl -L -k -m 5 "$url" -o "$output_file"; then
+		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_file" || { error "Failed to download file using curl and wget is not available\n"; return 1; }
 	fi
 	if [ -f "$output_file" ]; then
 		echo "* File downloaded successfully to $output_file"
@@ -620,63 +451,104 @@ INPUT() {
 	read -e -p "$1" "$2"
 }
 INTERFACE() {
-	interfaces=$(cat /proc/net/dev | grep ':' | cut -d':' -f1 | sed 's/^\s*//;s/\s*$//' | grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | sort -n)
-	operation="$1"
-	direction="$2"
-	metric="$3"
-	for interface in $interfaces; do
-		stats=$(cat /proc/net/dev | grep "$interface" | awk '{print $2, $3, $5, $10, $11, $13}')
-		if [ -n "$stats" ]; then
-			rx_bytes=$(echo $stats | awk '{print $1}')
-			rx_packets=$(echo $stats | awk '{print $2}')
-			rx_drop=$(echo $stats | awk '{print $3}')
-			tx_bytes=$(echo $stats | awk '{print $4}')
-			tx_packets=$(echo $stats | awk '{print $5}')
-			tx_drop=$(echo $stats | awk '{print $6}')
-			if [ -z "$operation" ]; then
-				echo "$interface: RX: $(CONVERT_SIZE "$rx_bytes"), TX: $(CONVERT_SIZE "$tx_bytes")"
-			else
-				case "${operation^^}" in
-					"RX.BYTES") echo "$rx_bytes" ;;
-					"RX.DROP") echo "$rx_drop" ;;
-					"RX.PACKETS") echo "$rx_packets" ;;
-					"TX.BYTES") echo "$tx_bytes" ;;
-					"TX.DROP") echo "$tx_drop" ;;
-					"TX.PACKETS") echo "$tx_packets" ;;
-				esac
-			fi
-		else
-			error "No stats found for interface: $interface"
-			return 1
-		fi
+	interface=""
+	Interfaces=()
+	allInterfaces=$(cat /proc/net/dev | grep ':' | cut -d':' -f1 | sed 's/\s//g' | grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | sort -n)
+	for interfaceItem in $allInterfaces; do
+		Interfaces[${#Interfaces[@]}]=$interfaceItem
 	done
+	interfacesNum="${#Interfaces[*]}"
+	default4Route=$(ip -4 route show default | grep -A 3 "^default")
+	default6Route=$(ip -6 route show default | grep -A 3 "^default")
+	getArrItemIdx() {
+		item="$1"
+		shift
+		arr=("$@")
+		for index in "${!arr[@]}"; do
+			[[ "$item" == "${arr[index]}" ]] && return "$index"
+		done
+		return 255
+	}
+	for item in "${Interfaces[@]}"; do
+		[ -z "$item" ] && continue
+		if [[ "$default4Route" == *"$item"* ]] && [ -z "$interface4" ]; then
+			interface4="$item"
+			interface4DeviceOrder=$(getArrItemIdx "$item" "${Interfaces[@]}")
+		fi
+		if [[ "$default6Route" == *"$item"* ]] && [ -z "$interface6" ]; then
+			interface6="$item"
+			interface6DeviceOrder=$(getArrItemIdx "$item" "${Interfaces[@]}")
+		fi
+		[ -n "$interface4" ] && [ -n "$interface6" ] && break
+	done
+	interface="$interface4 $interface6"
+	[[ "$interface4" == "$interface6" ]] && interface=$(echo "$interface" | cut -d' ' -f 1)
+	[[ -z "$interface4" || -z "$interface6" ]] && {
+		interface=$(echo "$interface" | sed 's/[[:space:]]//g')
+		[[ -z "$interface4" ]] && interface4="$interface"
+		[[ -z "$interface6" ]] && interface6="$interface"
+	}
+	if [ "$1" = "-i" ]; then
+		for interface in $interface; do
+			if stats=$(awk -v iface="$interface" '$1 ~ iface":" {print $2, $10}' /proc/net/dev); then
+				read rx_bytes tx_bytes <<< "$stats"
+				echo "$interface: RX: $(CONVERT_SIZE $rx_bytes), TX: $(CONVERT_SIZE $tx_bytes)"
+			else
+				error "No stats found for interface: $interface"
+				return 1
+			fi
+		done
+	else
+		for interface in $interface; do
+			if stats=$(awk -v iface="$interface" '$1 ~ iface":" {print $2, $3, $5, $10, $11, $13}' /proc/net/dev); then
+				read rx_bytes rx_packets rx_drop tx_bytes tx_packets tx_drop <<< "$stats"
+				echo "$interface"
+			else
+				error "No stats found for interface: $interface"
+				return 1
+			fi
+		done
+	fi
 }
-IPv4_ADDR() {
-	timeout 1s dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null || \
-	timeout 1s curl -s ipv4.ip.sb 2>/dev/null || \
-	timeout 1s wget -qO- -4 ifconfig.me 2>/dev/null || \
-	error "Unable to determine IPv4 address" && return 1
-}
-IPv6_ADDR() {
-	timeout 1s curl -s ipv6.ip.sb 2>/dev/null || \
-	timeout 1s wget -qO- -6 ifconfig.me 2>/dev/null || \
-	error "Unable to determine IPv6 address" && return 1
+IP_ADDR() {
+	version="$1"
+	case "$version" in
+		-4)
+			ipv4_addr=$(timeout 1s dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null) ||
+			ipv4_addr=$(curl -m 1 -sL ipv4.ip.sb 2>/dev/null) ||
+			ipv4_addr=$(wget --timeout=1 -qO- -4 ifconfig.me 2>/dev/null) ||
+			[ -n "$ipv4_addr" ] && echo "$ipv4_addr" || { error "N/A"; return 1; }
+			;;
+		-6)
+			ipv6_addr=$(curl -m 1 -sL ipv6.ip.sb 2>/dev/null) ||
+			ipv6_addr=$(wget --timeout=1 -qO- -6 ifconfig.me 2>/dev/null) ||
+			[ -n "$ipv6_addr" ] && echo "$ipv6_addr" || { error "N/A"; return 1; }
+			;;
+		*)
+			ipv4_addr=$(IP_ADDR -4)
+			ipv6_addr=$(IP_ADDR -6)
+			[ -z "$ipv4_addr$ipv6_addr" ] && { error "N/A"; return 1; }
+			[ -n "$ipv4_addr" ] && echo "IPv4: $ipv4_addr"
+			[ -n "$ipv6_addr" ] && echo "IPv6: $ipv6_addr"
+			return
+			;;
+	esac
 }
 
 LAST_UPDATE() {
 	if [ -f /var/log/apt/history.log ]; then
-		grep 'End-Date:' /var/log/apt/history.log | tail -n 1 | sed 's/End-Date: *//' | tr -s ' ' || { error "Failed to parse apt history log"; return 1; }
+		last_update=$(awk '/End-Date:/ {date=$2" "$3; time=$4; exit} END {print date, time}' /var/log/apt/history.log)
 	elif [ -f /var/log/dpkg.log ]; then
-		tail -n 1 /var/log/dpkg.log | awk '{print $1, $2}' || { error "Failed to parse dpkg log"; return 1; }
+		last_update=$(tail -n 1 /var/log/dpkg.log | awk '{print $1, $2}')
 	elif command -v rpm &>/dev/null; then
-		rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}' || { error "Failed to retrieve RPM package information"; return 1; }
-	else
-		error "Unable to determine last update time"
-		return 1
+		last_update=$(rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}')
 	fi
+	[ -n "$last_update" ] && echo "$last_update" || { error "N/A"; return 1; }
 }
 LINE() {
-	printf '%*s' "$2" '' | tr ' ' "$1"
+	char="${1:--}"
+	length="${2:-80}"
+	printf '%*s\n' "$length" | tr ' ' "$char"
 }
 LOAD_AVERAGE() {
 	read one_min five_min fifteen_min <<< $(uptime | awk -F'load average:' '{print $2}' | tr -d ',')
@@ -684,7 +556,7 @@ LOAD_AVERAGE() {
 }
 
 MAC_ADDR() {
-	mac_address=$(ip link show | awk '/ether/ {print $2}' | head -n1)
+	mac_address=$(ip link show | awk '/ether/ {print $2; exit}')
 	if [[ -n "$mac_address" ]]; then
 		echo "$mac_address"
 	else
@@ -698,43 +570,25 @@ MEM_USAGE() {
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
-
 NET_PROVIDER() {
-	curl -s ipinfo.io | jq -r .org || \
-	curl -s https://ipwhois.app/json/ | jq -r .org || \
-	curl -s http://ip-api.com/json/ | jq -r .org || \
-	dig +short -x $(curl -s ipinfo.io/ip) | sed 's/\.$//' || \
-	{ error "Unable to determine network provider"; return 1; }
+	result=$(curl -sL -m 1 ipinfo.io | jq -r .org) ||
+	result=$(curl -sL -m 1 ipwhois.app/json | jq -r .org) ||
+	result=$(curl -sL -m 1 ip-api.com/json | jq -r .org) ||
+	[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
 }
 
 PKG_COUNT() {
-	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
-		*apk)
-			apk info | wc -l || { error "Failed to count APK packages";	return 1; }
-			;;
-		*apt)
-			dpkg --get-selections | wc -l || { error "Failed to count APT packages"; return 1; }
-			;;
-		*opkg)
-			opkg list-installed | wc -l || { error "Failed to count OPKG packages"; return 1; }
-			;;
-		*pacman)
-			pacman -Q | wc -l || { error "Failed to count Pacman packages"; return 1; }
-			;;
-		*yum)
-			rpm -qa | wc -l || { error "Failed to count RPM packages"; return 1; }
-			;;
-		*zypper)
-			zypper se --installed-only | wc -l || { error "Failed to count Zypper packages"; return 1; }
-			;;
-		*dnf)
-			rpm -qa | wc -l || { error "Failed to count RPM packages"; return 1; }
-			;;
-		*)
-			error "Unsupported package manager"
-			return 1
-			;;
+	pkg_manager=$(command -v apk apt opkg pacman yum zypper dnf 2>/dev/null | head -n1)
+	case ${pkg_manager##*/} in
+		apk) count_cmd="apk info" ;;
+		apt) count_cmd="dpkg --get-selections" ;;
+		opkg) count_cmd="opkg list-installed" ;;
+		pacman) count_cmd="pacman -Q" ;;
+		yum|dnf) count_cmd="rpm -qa" ;;
+		zypper) count_cmd="zypper se --installed-only" ;;
+		*) error "Unsupported package manager"; return 1 ;;
 	esac
+	$count_cmd | wc -l || { error "Failed to count packages for ${pkg_manager##*/}"; return 1; }
 }
 PROGRESS() {
 	num_cmds=${#cmds[@]}
@@ -758,13 +612,8 @@ PROGRESS() {
 	trap - SIGINT SIGQUIT SIGTSTP
 }
 PUBLIC_IP() {
-	ip=$(curl -s -m 5 https://ifconfig.me)
-	if [ -n "$ip" ]; then
-		echo "$ip"
-	else
-		error "Unable to determine public IP"
-		return 1
-	fi
+	ip=$(curl -sL -m 5 https://ifconfig.me)
+	[ -n "$ip" ] && echo "$ip" || { error "N/A"; return 1; }
 }
 
 SHELL_VER() {
@@ -772,8 +621,6 @@ SHELL_VER() {
 		echo "Bash ${BASH_VERSION}"
 	elif [ -n "${ZSH_VERSION-}" ]; then
 		echo "Zsh ${ZSH_VERSION}"
-	elif [ -n "${KSH_VERSION-}" ]; then
-		echo "Ksh ${KSH_VERSION}"
 	else
 		error "Unsupported shell"
 		return 1
@@ -797,7 +644,7 @@ SYS_CLEAN() {
 			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				sleep 0.5
+				sleep 1
 			done
 			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || { error "Failed to configure pending packages"; return 1; }
 			apt autoremove --purge -y || { error "Failed to autoremove packages"; return 1; }
@@ -840,8 +687,10 @@ SYS_CLEAN() {
 	for cmd in docker npm pip; do
 		if command -v "$cmd" &>/dev/null; then
 			case "$cmd" in
-				npm)
-					npm cache clean --force || { error "Failed to clean NPM cache"; return 1; }
+				docker)
+					docker system prune -af || { error "Failed to clean Docker system"; return 1; }
+					;;
+				npm) npm cache clean --force || { error "Failed to clean NPM cache"; return 1; }
 					;;
 				pip)
 					pip cache purge || { error "Failed to purge PIP cache"; return 1; }
@@ -857,6 +706,7 @@ SYS_CLEAN() {
 SYS_INFO() {
 	echo -e "${CLR3}System Information${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+
 	echo -e "- Hostname:\t\t${CLR2}$(hostname)${CLR0}"
 	echo -e "- Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
 	echo -e "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
@@ -864,32 +714,39 @@ SYS_INFO() {
 	echo -e "- Shell Version:\t${CLR2}$(SHELL_VER)${CLR0}"
 	echo -e "- Last System Update:\t${CLR2}$(LAST_UPDATE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+
 	echo -e "- Architecture:\t\t${CLR2}$(uname -m)${CLR0}"
 	echo -e "- CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
 	echo -e "- CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
 	echo -e "- CPU Frequency:\t${CLR2}$(CPU_FREQ)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+
 	echo -e "- Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
 	echo -e "- Swap Usage:\t\t${CLR2}$(SWAP_USAGE)${CLR0}"
 	echo -e "- Disk Usage:\t\t${CLR2}$(DISK_USAGE)${CLR0}"
 	echo -e "- File System Type:\t${CLR2}$(df -T / | awk 'NR==2 {print $2}')${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "- IPv4 Address:\t\t${CLR2}$(IPv4_ADDR)${CLR0}"
-	echo -e "- IPv6 Address:\t\t${CLR2}$(IPv6_ADDR)${CLR0}"
+
+	echo -e "- IPv4 Address:\t\t${CLR2}$(IP_ADDR -4)${CLR0}"
+	echo -e "- IPv6 Address:\t\t${CLR2}$(IP_ADDR -6)${CLR0}"
 	echo -e "- MAC Address:\t\t${CLR2}$(MAC_ADDR)${CLR0}"
-	echo -e "- Network Provider:\t${CLR2}$(curl -s ipinfo.io | jq -r .org)${CLR0}"
+	echo -e "- Network Provider:\t${CLR2}$(NET_PROVIDER)${CLR0}"
 	echo -e "- DNS Servers:\t\t${CLR2}$(DNS_ADDR)${CLR0}"
 	echo -e "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
-	echo -e "- Network Interface:\t${CLR2}$(INTERFACE)${CLR0}"
-	echo -e "- System Timezone:\t${CLR2}$(TIMEZONE)${CLR0}"
+	echo -e "- Network Interface:\t${CLR2}$(INTERFACE -i)${CLR0}"
+	echo -e "- Internal Timezone:\t${CLR2}$(TIMEZONE -i)${CLR0}"
+	echo -e "- External Timezone:\t${CLR2}$(TIMEZONE -e)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+
 	echo -e "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
 	echo -e "- Process Count:\t${CLR2}$(ps aux | wc -l)${CLR0}"
 	echo -e "- Packages Installed:\t${CLR2}$(PKG_COUNT)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+
 	echo -e "- Uptime:\t\t${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
 	echo -e "- Boot Time:\t\t${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+
 	echo -e "- Virtualization:\t${CLR2}$(CHECK_VIRT)${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
@@ -951,6 +808,7 @@ SYS_REBOOT() {
 	CHECK_ROOT
 	echo -e "${CLR3}Preparing to reboot system...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+
 	active_users=$(who | wc -l)
 	if [ "$active_users" -gt 1 ]; then
 		echo -e "${CLR1}Warning: There are currently $active_users active users on the system.\n${CLR0}"
@@ -958,19 +816,22 @@ SYS_REBOOT() {
 		who | awk '{print $1 " since " $3 " " $4}'
 		echo
 	fi
-	important_processes=$(ps aux --no-headers | grep -vE '^root|^\w+\s+[12]\s+' | wc -l)
+
+	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l)
 	if [ "$important_processes" -gt 0 ]; then
-		echo -e "${CLR1}Warning: There are $important_processes non-system processes running.\n${CLR0}"
+		echo -e "${CLR1}Warning: There are $important_processes important processes running.\n${CLR0}"
 		echo -e "${CLR8}Top 5 processes by CPU usage:${CLR0}"
 		ps aux --sort=-%cpu | head -n 6
 		echo
 	fi
+
 	read -p "Are you sure you want to reboot the system now? (y/N) " -n 1 -r
 	echo
 	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 		echo -e "${CLR2}Reboot cancelled.\n${CLR0}"
 		return 1
 	fi
+
 	echo "* Performing final checks before reboot..."
 	sync || { error "Failed to sync filesystems"; return 1; }
 	echo -e "${CLR3}Initiating system reboot...${CLR0}"
@@ -981,12 +842,21 @@ SYS_UPDATE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Updating system software...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+
+	update_packages() {
+		cmd="$1"
+		update_cmd="$2"
+		upgrade_cmd="$3"
+
+		echo "* Updating package lists..."
+		$update_cmd || { error "Failed to update package lists using $cmd"; return 1; }
+		echo "* Upgrading packages..."
+		$upgrade_cmd || { error "Failed to upgrade packages using $cmd"; return 1; }
+	}
+
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk)
-			echo "* Updating package lists..."
-			apk update || { error "Failed to update package lists using apk"; return 1; }
-			echo "* Upgrading packages..."
-			apk upgrade || { error "Failed to upgrade packages using apk"; return 1; }
+			update_packages "apk" "apk update" "apk upgrade"
 			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
@@ -995,40 +865,30 @@ SYS_UPDATE() {
 			done
 			echo "* Configuring pending packages..."
 			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || { error "Failed to configure pending packages"; return 1; }
-			echo "* Updating package lists..."
-			DEBIAN_FRONTEND=noninteractive apt update -y || { error "Failed to update package lists using apt"; return 1; }
-			echo "* Upgrading packages..."
-			DEBIAN_FRONTEND=noninteractive apt full-upgrade -y || { error "Failed to upgrade packages using apt"; return 1; }
+			update_packages "apt" "DEBIAN_FRONTEND=noninteractive apt update -y" "DEBIAN_FRONTEND=noninteractive apt full-upgrade -y"
 			;;
 		*opkg)
-			echo "* Updating package lists..."
-			opkg update || { error "Failed to update package lists using opkg"; return 1; }
-			echo "* Upgrading packages..."
-			opkg upgrade || { error "Failed to upgrade packages using opkg"; return 1; }
+			update_packages "opkg" "opkg update" "opkg upgrade"
 			;;
 		*pacman)
 			echo "* Updating package databases and upgrading packages..."
 			pacman -Syu --noconfirm || { error "Failed to update and upgrade packages using pacman"; return 1; }
 			;;
 		*yum)
-			echo "* Updating packages..."
-			yum -y update || { error "Failed to update packages using yum"; return 1; }
+			update_packages "yum" "yum check-update" "yum -y update"
 			;;
 		*zypper)
-			echo "* Refreshing repositories..."
-			zypper refresh || { error "Failed to refresh repositories using zypper"; return 1; }
-			echo "* Updating packages..."
-			zypper update -y || { rror "Failed to update packages using zypper"; return 1; }
+			update_packages "zypper" "zypper refresh" "zypper update -y"
 			;;
 		*dnf)
-			echo "* Updating packages..."
-			dnf -y update || { error "Failed to update packages using dnf"; return 1; }
+			update_packages "dnf" "dnf check-update" "dnf -y update"
 			;;
 		*)
 			error "Unsupported package manager"
 			return 1
 			;;
 	esac
+
 	echo "* Updating shell functions..."
 	bash <(curl -L raw.ogtt.tk/shell/function.sh) || { error "Failed to update shell functions"; return 1; }
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
@@ -1036,12 +896,22 @@ SYS_UPDATE() {
 }
 
 TIMEZONE() {
-	timezone=$(readlink /etc/localtime | sed 's|^.*/zoneinfo/||' 2>/dev/null) ||
-	timezone=$(command -v timedatectl &>/dev/null && timedatectl status | awk '/Time zone:/ {print $3}') ||
-	timezone=$([ -f /etc/timezone ] && cat /etc/timezone)
-	echo "${timezone:-Unknown}"
+	case "$1" in
+		-e)
+			result=$(curl -sL -m 1 ipapi.co/timezone) ||
+			result=$(curl -sL -m 1 worldtimeapi.org/api/ip | grep -oP '"timezone":"\K[^"]+') ||
+			result=$(curl -sL -m 1 ip-api.com/json | grep -oP '"timezone":"\K[^"]+') ||
+			[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
+			;;
+		-i|*)
+			result=$(readlink /etc/localtime | sed 's|^.*/zoneinfo/||') 2>/dev/null ||
+			result=$(command -v timedatectl &>/dev/null && timedatectl status | awk '/Time zone:/ {print $3}') ||
+			result=$(cat /etc/timezone 2>/dev/null; | uniq) ||
+			[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
+			;;
+	esac
 }
 
 crontab -l &>/dev/null | grep -q 'bash <(curl -sL raw.ogtt.tk/shell/function.sh)' || (echo "0 0 * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'" >> function-update && crontab function-update && rm -f function-update)
-GET https://raw.ogtt.tk/shell/function.sh /root &>/dev/null || { error "Failed to download function.sh"; return 1; }
-grep -q "source /root/function.sh" /root/.bashrc || echo "source /root/function.sh" >> /root/.bashrc
+GET https://raw.ogtt.tk/shell/function.sh &>/dev/null || { error "Failed to download function.sh"; return 1; }
+grep -q "source /root/function.sh" ~/.bashrc || echo "source ~/function.sh" >> ~/.bashrc
