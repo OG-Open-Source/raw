@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="4.035.001"
+Version="4.035.002"
 License="MIT License"
 
 SH="function.sh"
@@ -501,13 +501,13 @@ IP_ADDR() {
 	case "$version" in
 		-4)
 			ipv4_addr=$(timeout 1s dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null) ||
-			ipv4_addr=$(curl -m 1 -sL ipv4.ip.sb 2>/dev/null) ||
-			ipv4_addr=$(wget --timeout=1 -qO- -4 ifconfig.me 2>/dev/null) ||
+			ipv4_addr=$(timeout 1s curl -sL ipv4.ip.sb 2>/dev/null) ||
+			ipv4_addr=$(timeout 1s wget -qO- -4 ifconfig.me 2>/dev/null) ||
 			[ -n "$ipv4_addr" ] && echo "$ipv4_addr" || { error "N/A"; return 1; }
 			;;
 		-6)
-			ipv6_addr=$(curl -m 1 -sL ipv6.ip.sb 2>/dev/null) ||
-			ipv6_addr=$(wget --timeout=1 -qO- -6 ifconfig.me 2>/dev/null) ||
+			ipv6_addr=$(timeout 1s curl -sL ipv6.ip.sb 2>/dev/null) ||
+			ipv6_addr=$(timeout 1s wget -qO- -6 ifconfig.me 2>/dev/null) ||
 			[ -n "$ipv6_addr" ] && echo "$ipv6_addr" || { error "N/A"; return 1; }
 			;;
 		*)
@@ -557,9 +557,9 @@ MEM_USAGE() {
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 NET_PROVIDER() {
-	result=$(curl -sL -m 1 ipinfo.io | jq -r .org) ||
-	result=$(curl -sL -m 1 ipwhois.app/json | jq -r .org) ||
-	result=$(curl -sL -m 1 ip-api.com/json | jq -r .org) ||
+	result=$(timeout 1s curl -sL ipinfo.io | jq -r .org) ||
+	result=$(timeout 1s curl -sL ipwhois.app/json | jq -r .org) ||
+	result=$(timeout 1s curl -sL ip-api.com/json | jq -r .org) ||
 	[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
 }
 
@@ -598,7 +598,7 @@ PROGRESS() {
 	trap - SIGINT SIGQUIT SIGTSTP
 }
 PUBLIC_IP() {
-	ip=$(curl -sL -m 5 https://ifconfig.me)
+	ip=$(timeout 5s curl -sL https://ifconfig.me)
 	[ -n "$ip" ] && echo "$ip" || { error "N/A"; return 1; }
 }
 
@@ -884,9 +884,9 @@ SYS_UPDATE() {
 TIMEZONE() {
 	case "$1" in
 		-e)
-			result=$(curl -sL -m 1 ipapi.co/timezone) ||
-			result=$(curl -sL -m 1 worldtimeapi.org/api/ip | grep -oP '"timezone":"\K[^"]+') ||
-			result=$(curl -sL -m 1 ip-api.com/json | grep -oP '"timezone":"\K[^"]+') ||
+			result=$(timeout 1s curl -sL ipapi.co/timezone) ||
+			result=$(timeout 1s curl -sL worldtimeapi.org/api/ip | grep -oP '"timezone":"\K[^"]+') ||
+			result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"timezone":"\K[^"]+') ||
 			[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
 			;;
 		-i|*)
