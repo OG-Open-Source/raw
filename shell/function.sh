@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="0.035.002"
+Version="0.035.003"
 License="MIT License"
 
 SH="function.sh"
@@ -897,4 +897,5 @@ TIMEZONE() {
 			;;
 	esac
 }
-[ ! -f ~/update-function.sh ] && GET raw.ogtt.tk/shell/update-function.sh &>/dev/null && crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL raw.ogtt.tk/shell/update-function.sh | bash" || (crontab -l > function-update 2>/dev/null; echo "0 0 * * * curl -sL raw.ogtt.tk/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update)
+[ ! -f ~/update-function.sh ] && GET raw.ogtt.tk/shell/update-function.sh &>/dev/null
+crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL raw.ogtt.tk/shell/update-function.sh | bash" || (crontab -l > function-update 2>/dev/null; echo "0 0 * * * curl -sL raw.ogtt.tk/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update)
