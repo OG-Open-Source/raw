@@ -828,7 +828,7 @@ SYS_REBOOT() {
 	echo
 	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 		echo -e "${CLR2}Reboot cancelled.\n${CLR0}"
-		return 1
+		return 0
 	fi
 
 	echo "* Performing final checks before reboot..."
