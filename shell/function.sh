@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="3.035.009"
+Version="3.035.010"
 License="MIT License"
 
 SH="function.sh"
@@ -865,7 +865,7 @@ SYS_UPDATE() {
 			done
 			echo "* Configuring pending packages..."
 			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || { error "Failed to configure pending packages"; return 1; }
-			update_packages "apt" "DEBIAN_FRONTEND=noninteractive apt update -y" "DEBIAN_FRONTEND=noninteractive apt full-upgrade -y"
+			update_packages "apt" "apt update -y" "apt full-upgrade -y"
 			;;
 		*opkg)
 			update_packages "opkg" "opkg update" "opkg upgrade"
