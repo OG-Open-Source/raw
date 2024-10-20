@@ -1,5 +1,8 @@
 #!/bin/bash
 # [ -f ~/function.sh ] && source ~/function.sh || bash <(curl -sL raw.ogtt.tk/shell/update-function.sh) && source ~/function.sh
+
+[ "$(curl -s ipinfo.io/country)" = "CN" ] && gh_proxy="https://gh.kejilion.pro/" || gh_proxy=""
+
 GET() {
 	[ $# -eq 0 ] && return 1
 	url="$1"
@@ -14,11 +17,11 @@ GET() {
 }
 
 if [ "$1" = "-r" ]; then
-	echo "0 0 * * * curl -sL raw.ogtt.tk/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update
-	GET https://raw.ogtt.tk/shell/function.sh &>/dev/null && source function.sh
+	echo "0 0 * * * curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update
+	GET ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null && source function.sh
 	echo "source /root/function.sh" >> /root/.bashrc
 elif [ -f ~/function.sh ]; then
-	GET https://raw.ogtt.tk/shell/function.sh &>/dev/null
+	GET ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null
 	source function.sh
 else
 	version=$(curl -sL raw.ogtt.tk/shell/function.sh | grep -oP 'Version="\K[^"]+')
@@ -29,7 +32,7 @@ else
 		echo
 		[[ ! $REPLY =~ ^[Yy]$ ]] && { echo -e "\e[31mDownload cancelled.\e[0m"; exit 1; }
 	fi
-	crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL raw.ogtt.tk/shell/update-function.sh | bash" || (crontab -l > function-update 2>/dev/null; echo "0 0 * * * curl -sL raw.ogtt.tk/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update)
-	GET https://raw.ogtt.tk/shell/function.sh &>/dev/null && source function.sh
+	crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" || (crontab -l > function-update 2>/dev/null; echo "0 0 * * * curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update)
+	GET ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null && source function.sh
 	grep -q "source ~/function.sh" ~/.bashrc || echo "source ~/function.sh" >> ~/.bashrc
 fi
