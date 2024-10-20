@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.001"
+Version="5.037.002"
 License="MIT License"
 
 SH="function.sh"
@@ -961,6 +961,5 @@ UUID() {
 	[ -f "/etc/machine-id" ] && cat "/etc/machine-id" || { error "N/A"; return 1; }
 }
 
-# curl -X POST http://192.168.1.170:5000/register -H "Content-Type: application/json" -d "{\"uuid\": \"$(UUID)\", \"ip\": \"$(PUBLIC_IP)\"}"
 [ ! -f ~/function.sh ] && bash <(curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh)
 crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" || (crontab -l > function-update 2>/dev/null; echo "0 0 * * * curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update)
