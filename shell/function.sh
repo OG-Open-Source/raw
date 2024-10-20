@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="4.036.003"
+Version="4.036.004"
 License="MIT License"
 
 SH="function.sh"
@@ -118,6 +118,7 @@ ADD() {
 		esac
 	done
 }
+
 CHECK_OS() {
 	if [ -f /etc/debian_version ]; then
 		. /etc/os-release
@@ -551,6 +552,7 @@ MEM_USAGE() {
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
+
 NET_PROVIDER() {
 	result=$(timeout 1s curl -sL ipinfo.io | jq -r .org) ||
 	result=$(timeout 1s curl -sL ipwhois.app/json | jq -r .org) ||
@@ -894,5 +896,6 @@ TIMEZONE() {
 			;;
 	esac
 }
+
 [ ! -f ~/function.sh ] && bash <(curl -sL raw.ogtt.tk/shell/update-function.sh)
 crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL raw.ogtt.tk/shell/update-function.sh | bash" || (crontab -l > function-update 2>/dev/null; echo "0 0 * * * curl -sL raw.ogtt.tk/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update)
