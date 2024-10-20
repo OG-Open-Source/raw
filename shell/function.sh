@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="4.036.002"
+Version="4.036.003"
 License="MIT License"
 
 SH="function.sh"
@@ -124,7 +124,7 @@ CHECK_OS() {
 		if [ "$ID" = "ubuntu" ]; then
 			grep PRETTY_NAME /etc/os-release | cut -d '=' -f2 | tr -d '"'
 		else
-			echo "$NAME $(cat /etc/debian_version)"
+			echo "$NAME $(cat /etc/debian_version) ($VERSION_CODENAME)"
 		fi
 	elif [ -f /etc/os-release ]; then
 		. /etc/os-release
