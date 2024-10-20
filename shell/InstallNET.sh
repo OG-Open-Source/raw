@@ -3606,7 +3606,7 @@ if [[ "$ddMode" == '1' ]]; then
 			ubuntuDigital1=$(echo "$ubuntuDigital" | cut -d'.' -f1)
 			ubuntuDigital2=$(echo "$ubuntuDigital" | cut -d'.' -f2)
 			if [[ "$ubuntuDigital1" -le "19" || "$ubuntuDigital1" -ge "25" || $((${ubuntuDigital1} % 2)) = 1 ]] || [[ "$ubuntuDigital2" != "04" ]]; then
-				error "The dists version not found, Please check it!\n'"
+				error "The dists version not found, Please check it!\n"
 				exit 1
 			fi
 			[[ -n $ubuntuDigital ]] && {
