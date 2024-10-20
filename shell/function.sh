@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="4.037.002"
+Version="4.037.003"
 License="MIT License"
 
 SH="function.sh"
@@ -786,6 +786,7 @@ SYS_INFO_CN() {
 
 	echo -e "- 虚拟环境：\t\t${CLR2}$(CHECK_VIRT)${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	COPYRIGHT
 }
 
 SYS_OPTIMIZE() {
