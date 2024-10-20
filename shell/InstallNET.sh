@@ -2816,7 +2816,7 @@ DebianModifiedPreseed() {
 		}
 		AptUpdating="$1 apt update -y;"
 		# pre-install some commonly used software.
-		InstallComponents="$1 apt install apt-transport-https bc ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file gawk jq lrzsz lsb-release net-tools openssl psmisc sudo tar unzip vim wget xz-utils -y; $1 bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'"
+		InstallComponents="$1 apt install apt-transport-https bc ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file gawk jq lrzsz lsb-release net-tools openssl psmisc sudo tar unzip vim wget xz-utils -y; $1 bash -c 'curl -sL raw.ogtt.tk/shell/update-function.sh | bash'"
 		# In Debian 9 and former, some certificates are expired.
 		DisableCertExpiredCheck="$1 sed -i '/^mozilla\/DST_Root_CA_X3/s/^/!/' /etc/ca-certificates.conf; $1 update-ca-certificates -f;"
 		if [[ "$IsCN" == "cn" ]]; then
@@ -4313,7 +4313,7 @@ apk add bc curl file gawk jq openssl sudo tar unzip wget xz
 
 # Download function.sh
 mkdir -p \$sysroot/root
-bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'
+bash -c 'curl -sL raw.ogtt.tk/shell/update-function.sh | bash'
 EOF
 	fi
 elif [[ "$linux_relese" == 'centos' ]] || [[ "$linux_relese" == 'rockylinux' ]] || [[ "$linux_relese" == 'almalinux' ]] || [[ "$linux_relese" == 'fedora' ]]; then
@@ -4539,7 +4539,7 @@ rm -rf /root/original-ks.cfg
 
 # Install and configure additional tools
 mkdir -p /root
-bash -c 'curl -sL raw.ogtt.tk/shell/function.sh | bash'
+bash -c 'curl -sL raw.ogtt.tk/shell/update-function.sh | bash'
 %end
 
 EOF
