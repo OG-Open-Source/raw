@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="4.035.002"
+Version="4.036.002"
 License="MIT License"
 
 SH="function.sh"
@@ -18,7 +18,7 @@ CLR0="\033[0m"
 
 error() {
 	echo -e "${CLR1}$1${CLR0}"
-	echo "$(date '+%Y-%m-%d %H:%M:%S') | $SH - $Version - $(echo -e "$1" | tr -d '\n')" >> /var/log/ogos-error.log
+	[ -s /var/log/ogos-error.log ] && echo "$(date '+%Y-%m-%d %H:%M:%S') | $SH - $Version - $(echo -e "$1" | tr -d '\n')" >> /var/log/ogos-error.log
 	return 1
 }
 
@@ -186,20 +186,15 @@ CLEAN() {
 	cd "$HOME" || return
 	clear
 }
+CPU_CACHE() {
+	[ ! -f /proc/cpuinfo ] && { error "Unable to access /proc/cpuinfo"; return 1; }
+	cpu_cache=$(awk '/^cache size/ {sum+=$4; count++} END {print (count>0) ? sum/count : "N/A"}' /proc/cpuinfo)
+	[ "$cpu_cache" = "N/A" ] && { error "N/A"; return 1; }
+	echo "${cpu_cache} KB"
+}
 CPU_FREQ() {
 	[ ! -f /proc/cpuinfo ] && { error "Unable to access /proc/cpuinfo"; return 1; }
-	cpu_freq=$(awk '
-		/^cpu MHz/ {
-			sum += $4
-			count++
-		}
-		END {
-			if (count > 0)
-				printf "%.2f", sum / count / 1000
-			else
-				print "N/A"
-		}
-	' /proc/cpuinfo)
+	cpu_freq=$(awk '/^cpu MHz/ {sum+=$4; count++} END {print (count>0) ? sprintf("%.2f", sum/count/1000) : "N/A"}' /proc/cpuinfo)
 	[ "$cpu_freq" = "N/A" ] && { error "N/A"; return 1; }
 	echo "${cpu_freq} GHz"
 }
@@ -523,13 +518,13 @@ IP_ADDR() {
 
 LAST_UPDATE() {
 	if [ -f /var/log/apt/history.log ]; then
-		last_update=$(awk '/End-Date:/ {date=$2" "$3; time=$4; exit} END {print date, time}' /var/log/apt/history.log)
+		last_update=$(awk '/End-Date:/ {print $2, $3, $4; exit}' /var/log/apt/history.log 2>/dev/null)
 	elif [ -f /var/log/dpkg.log ]; then
 		last_update=$(tail -n 1 /var/log/dpkg.log | awk '{print $1, $2}')
 	elif command -v rpm &>/dev/null; then
 		last_update=$(rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}')
 	fi
-	[ -n "$last_update" ] && echo "$last_update" || { error "N/A"; return 1; }
+	[ -z "$last_update" ] && error "N/A" && return 1 || echo "$last_update"
 }
 LINE() {
 	char="${1:--}"
@@ -705,6 +700,8 @@ SYS_INFO() {
 	echo -e "- CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
 	echo -e "- CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
 	echo -e "- CPU Frequency:\t${CLR2}$(CPU_FREQ)${CLR0}"
+	#echo -e "- CPU Usage:\t\t${CLR2}$(CPU_USAGE)${CLR0}"
+	echo -e "- CPU Cache:\t\t${CLR2}$(CPU_CACHE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 
 	echo -e "- Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
