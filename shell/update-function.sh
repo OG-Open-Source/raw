@@ -13,7 +13,11 @@ GET() {
 	curl -L -k -m 5 "$url" -o "$output_file" &>/dev/null || wget --no-check-certificate -T 5 -t 2 "$url" -O "$output_file" &>/dev/null || return 1
 }
 
-if [ -f ~/function.sh ]; then
+if [ "$1" = "-r" ]; then
+	echo "0 0 * * * curl -sL raw.ogtt.tk/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update
+	GET https://raw.ogtt.tk/shell/function.sh &>/dev/null && source function.sh
+	echo "source /root/function.sh" >> /root/.bashrc
+elif [ -f ~/function.sh ]; then
 	GET https://raw.ogtt.tk/shell/function.sh &>/dev/null
 	source function.sh
 else
