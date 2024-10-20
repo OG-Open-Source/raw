@@ -21,7 +21,7 @@
 
 [ -f ~/function.sh ] && source ~/function.sh || bash <(curl -sL raw.ogtt.tk/shell/update-function.sh) && source ~/function.sh
 
-Version="2024.10.19"
+Version="2024.10.20"
 License="GPL"
 SH="InstallNET.sh"
 
@@ -371,7 +371,7 @@ while [[ $# -ge 1 ]]; do
 			setNetbootXyz='1'
 			shift
 			;;
-		*)
+		-help | *)
 			if [[ "$1" != 'error' ]]; then echo -ne "\nInvaild option: '$1'\n\n"; fi
 			echo -e "${CLR2}Usage:${CLR0}\n\tbash $(basename $0) [OPTIONS]\n"
 			echo -e "${CLR3}Options:${CLR0}"
