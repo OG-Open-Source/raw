@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="4.036.004"
+Version="4.037.001"
 License="MIT License"
 
 SH="function.sh"
@@ -693,6 +693,7 @@ SYS_INFO() {
 	echo -e "- Hostname:\t\t${CLR2}$(hostname)${CLR0}"
 	echo -e "- Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
 	echo -e "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
+	# echo -e "- Machine ID:\t\t${CLR2}$(UUID)${CLR0}"
 	echo -e "- System Language:\t${CLR2}$LANG${CLR0}"
 	echo -e "- Shell Version:\t${CLR2}$(SHELL_VER)${CLR0}"
 	echo -e "- Last System Update:\t${CLR2}$(LAST_UPDATE)${CLR0}"
@@ -702,8 +703,8 @@ SYS_INFO() {
 	echo -e "- CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
 	echo -e "- CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
 	echo -e "- CPU Frequency:\t${CLR2}$(CPU_FREQ)${CLR0}"
-	#echo -e "- CPU Usage:\t\t${CLR2}$(CPU_USAGE)${CLR0}"
-	echo -e "- CPU Cache:\t\t${CLR2}$(CPU_CACHE)${CLR0}"
+	# echo -e "- CPU Usage:\t\t${CLR2}$(CPU_USAGE)${CLR0}"
+	# echo -e "- CPU Cache:\t\t${CLR2}$(CPU_CACHE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 
 	echo -e "- Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
@@ -717,10 +718,10 @@ SYS_INFO() {
 	echo -e "- MAC Address:\t\t${CLR2}$(MAC_ADDR)${CLR0}"
 	echo -e "- Network Provider:\t${CLR2}$(NET_PROVIDER)${CLR0}"
 	echo -e "- DNS Servers:\t\t${CLR2}$(DNS_ADDR)${CLR0}"
-	echo -e "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
+	# echo -e "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
 	echo -e "- Network Interface:\t${CLR2}$(INTERFACE -i)${CLR0}"
 	echo -e "- Internal Timezone:\t${CLR2}$(TIMEZONE -i)${CLR0}"
-	echo -e "- External Timezone:\t${CLR2}$(TIMEZONE -e)${CLR0}"
+	# echo -e "- External Timezone:\t${CLR2}$(TIMEZONE -e)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 
 	echo -e "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
@@ -895,6 +896,18 @@ TIMEZONE() {
 			[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
 			;;
 	esac
+}
+
+UUID() {
+    uuid_file="/etc/machine-id"
+    fallback_file="/var/lib/dbus/machine-id"
+    if [ -f "$uuid_file" ] && [ -f "$fallback_file" ]; then
+        uuid=$(cat "$uuid_file")
+        [ "$uuid" = "$(cat "$fallback_file")" ] && echo "$uuid" || { error "N/A"; return 1; }
+    else
+        error "N/A"
+		return 1
+    fi
 }
 
 [ ! -f ~/function.sh ] && bash <(curl -sL raw.ogtt.tk/shell/update-function.sh)
