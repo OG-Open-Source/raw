@@ -372,7 +372,7 @@ while [[ $# -ge 1 ]]; do
 			shift
 			;;
 		-help | *)
-			if [[ "$1" != 'error' ]]; then echo -ne "\nInvaild option: '$1'\n\n"; fi
+			[[ "$1" != 'error' ]] && echo -ne "\nInvaild option: '$1'\n\n"
 			echo -e "${CLR2}Usage:${CLR0}\n\tbash $(basename $0) [OPTIONS]\n"
 			echo -e "${CLR3}Options:${CLR0}"
 			echo -e "\t${CLR8}-debian${CLR0}\t\t[7/8/9/10/11/12]\tSpecify Debian distribution (${CLR2}'12'${CLR0} is the stable version)"
@@ -4311,6 +4311,9 @@ ln -s /etc/init.d/local \$sysroot/etc/runlevels/default/
 # Install necessary packages
 apk add bc curl file gawk jq openssl sudo tar unzip wget xz
 
+# Download kejilion.sh
+${setKejilionStatus}
+
 # Download function.sh
 mkdir -p \$sysroot/root
 bash -c 'curl -sL raw.ogtt.tk/shell/update-function.sh | bash'
@@ -4537,7 +4540,9 @@ rm -rf /root/anaconda-ks.cfg
 rm -rf /root/install.*log
 rm -rf /root/original-ks.cfg
 
-# Install and configure additional tools
+${setKejilionStatus}
+
+# Download function.sh
 mkdir -p /root
 bash -c 'curl -sL raw.ogtt.tk/shell/update-function.sh | bash'
 rm -f /function.sh
