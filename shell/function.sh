@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.002"
+Version="5.037.003"
 License="MIT License"
 
 SH="function.sh"
@@ -212,6 +212,20 @@ CPU_MODEL() {
 		return 1
 	fi
 }
+CPU_USAGE() {
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat)
+	total1=$((user + nice + system + idle + iowait + irq + softirq))
+	idle1=$idle
+	sleep 0.3
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat)
+	total2=$((user + nice + system + idle + iowait + irq + softirq))
+	idle2=$idle
+	total_diff=$((total2 - total1))
+	idle_diff=$((idle2 - idle1))
+	usage=$(( 100 * (total_diff - idle_diff) / total_diff ))
+	echo "$usage%"
+}
+
 CONVERT_SIZE() {
 	[ -z "$1" ] && return
 	size=$1
@@ -220,8 +234,8 @@ CONVERT_SIZE() {
 	suffixes=("B" "KiB" "MiB" "GiB" "TiB" "PiB" "EiB" "ZiB" "YiB")
 	[ "$base" -eq 1000 ] && suffixes=("B" "KB" "MB" "GB" "TB" "PB" "EB" "ZB" "YB")
 	i=0
-	while (( $(echo "$size >= $base" | bc -l) )); do
-		size=$(echo "scale=2; $size / $base" | bc -l)
+	while (( $(awk "BEGIN {print ($size >= $base)}") )); do
+		size=$(awk "BEGIN {printf \"%.2f\", $size / $base}")
 		((i++))
 	done
 	printf "%.2f %s\n" $size "${suffixes[$i]}"
@@ -555,9 +569,9 @@ MEM_USAGE() {
 }
 
 NET_PROVIDER() {
-	result=$(timeout 1s curl -sL ipinfo.io | jq -r .org) ||
-	result=$(timeout 1s curl -sL ipwhois.app/json | jq -r .org) ||
-	result=$(timeout 1s curl -sL ip-api.com/json | jq -r .org) ||
+	result=$(timeout 1s curl -sL ipinfo.io | grep -oP '"org"\s*:\s*"\K[^"]+') ||
+	result=$(timeout 1s curl -sL ipwhois.app/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
+	result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
 }
 
@@ -694,7 +708,6 @@ SYS_INFO() {
 	echo -e "- Hostname:\t\t${CLR2}$(hostname)${CLR0}"
 	echo -e "- Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
 	echo -e "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
-	# echo -e "- Machine ID:\t\t${CLR2}$(UUID)${CLR0}"
 	echo -e "- System Language:\t${CLR2}$LANG${CLR0}"
 	echo -e "- Shell Version:\t${CLR2}$(SHELL_VER)${CLR0}"
 	echo -e "- Last System Update:\t${CLR2}$(LAST_UPDATE)${CLR0}"
@@ -704,8 +717,8 @@ SYS_INFO() {
 	echo -e "- CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
 	echo -e "- CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
 	echo -e "- CPU Frequency:\t${CLR2}$(CPU_FREQ)${CLR0}"
-	# echo -e "- CPU Usage:\t\t${CLR2}$(CPU_USAGE)${CLR0}"
-	# echo -e "- CPU Cache:\t\t${CLR2}$(CPU_CACHE)${CLR0}"
+	echo -e "- CPU Usage:\t\t${CLR2}$(CPU_USAGE)${CLR0}"
+	echo -e "- CPU Cache:\t\t${CLR2}$(CPU_CACHE)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 
 	echo -e "- Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
@@ -719,10 +732,10 @@ SYS_INFO() {
 	echo -e "- MAC Address:\t\t${CLR2}$(MAC_ADDR)${CLR0}"
 	echo -e "- Network Provider:\t${CLR2}$(NET_PROVIDER)${CLR0}"
 	echo -e "- DNS Servers:\t\t${CLR2}$(DNS_ADDR)${CLR0}"
-	# echo -e "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
+	echo -e "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
 	echo -e "- Network Interface:\t${CLR2}$(INTERFACE -i)${CLR0}"
 	echo -e "- Internal Timezone:\t${CLR2}$(TIMEZONE -i)${CLR0}"
-	# echo -e "- External Timezone:\t${CLR2}$(TIMEZONE -e)${CLR0}"
+	echo -e "- External Timezone:\t${CLR2}$(TIMEZONE -e)${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 
 	echo -e "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
@@ -737,7 +750,7 @@ SYS_INFO() {
 	echo -e "- Virtualization:\t${CLR2}$(CHECK_VIRT)${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
-SYS_INFO_CN() {
+SYS_INFO_KEJILION() {
 	echo -e "${CLR3}系统信息${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 
@@ -783,7 +796,7 @@ SYS_INFO_CN() {
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 	echo -e "- 系统时区：\t\t${CLR2}$(TIMEZONE -i)${CLR0}"
 	# echo -e "- 外部时区：\t\t${CLR2}$(TIMEZONE -e)${CLR0}"
-	echo -e "- 地理位置：\t\t${CLR2}$(curl -s https://ipinfo.io | jq -r '.city + ", " + .region + ", " + .country')${CLR0}"
+	echo -e "- 地理位置：\t\t${CLR2}$(curl -s https://ipinfo.io | grep -E 'city|region|country' | cut -d'"' -f4 | tr '\n' ',' | sed 's/,/, /g' | sed 's/, $//')${CLR0}"
 	echo -e "${CLR8}$(LINE - "32")${CLR0}"
 
 	echo -e "- 运行时间：\t\t${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
@@ -794,7 +807,6 @@ SYS_INFO_CN() {
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "来自 github.com/OG-Open-Source 组织"
 }
-
 SYS_OPTIMIZE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Optimizing system configuration...${CLR0}"
@@ -957,8 +969,13 @@ TIMEZONE() {
 	esac
 }
 
-UUID() {
-	[ -f "/etc/machine-id" ] && cat "/etc/machine-id" || { error "N/A"; return 1; }
+[ ! -f ~/function.sh ] && bash <(curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh)
+if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash"; then
+	crontab -l > function-update 2>/dev/null
+	echo "0 0 * * * curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> function-update
+	crontab function-update
+	rm -f function-update
+fi
 }
 
 [ ! -f ~/function.sh ] && bash <(curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh)

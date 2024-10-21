@@ -1,7 +1,21 @@
 #!/bin/bash
 # [ -f ~/function.sh ] && source ~/function.sh || bash <(curl -sL raw.ogtt.tk/shell/update-function.sh) && source ~/function.sh
 
-[ "$(curl -s ipinfo.io/country)" = "CN" ] && gh_proxy="https://gh.kejilion.pro/" || gh_proxy=""
+Author="OGATA Open-Source"
+License="MIT License"
+
+CLR1="\033[0;31m"
+CLR2="\033[0;32m"
+CLR3="\033[0;33m"
+CLR4="\033[0;34m"
+CLR5="\033[0;35m"
+CLR6="\033[0;36m"
+CLR7="\033[0;37m"
+CLR8="\033[0;96m"
+CLR9="\033[0;97m"
+CLR0="\033[0m"
+
+[ "$(curl -s ipinfo.io/country)" = "CN" ] && gh_proxy="https://gh.kejilion.pro/" && display_language="zh" || gh_proxy="" && display_language="en"
 
 GET() {
 	[ $# -eq 0 ] && return 1
@@ -17,7 +31,7 @@ GET() {
 }
 
 if [ "$1" = "-r" ]; then
-	echo "0 0 * * * curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update
+	(crontab -l 2>/dev/null; echo "0 0 * * * curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash") | crontab -
 	GET ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null && source function.sh
 	echo "source /root/function.sh" >> /root/.bashrc
 elif [ -f ~/function.sh ]; then
@@ -26,13 +40,26 @@ elif [ -f ~/function.sh ]; then
 else
 	version=$(curl -sL raw.ogtt.tk/shell/function.sh | grep -oP 'Version="\K[^"]+')
 	if [[ $version == 0.* ]]; then
-		echo -e "\e[33mWarning: The current version ($version) is a development version. It is not recommended for use.\e[0m"
-		echo -e "\e[33mYou can wait for the main version to be released before downloading again.\e[0m"
-		read -p "Do you still want to download and use this version? (y/N) " -n 1 -r
-		echo
-		[[ ! $REPLY =~ ^[Yy]$ ]] && { echo -e "\e[31mDownload cancelled.\e[0m"; exit 1; }
+		if [ "$display_language" = "en" ]; then
+			echo -e "${CLR3}Warning: The current version ($version) is a development version. It is not recommended for use.${CLR0}"
+			echo -e "${CLR3}You can wait for the main version to be released before downloading again.${CLR0}"
+			read -p "Do you still want to download and use this version? (y/N) " -n 1 -r
+			echo
+			[[ ! $REPLY =~ ^[Yy]$ ]] && { echo -e "\e[31mDownload cancelled.${CLR0}"; exit 1; }
+		elif [ "$display_language" = "zh" ]; then
+			echo -e "${CLR3}警告：当前版本（$version）是开发版本。不建议使用。${CLR0}"
+			echo -e "${CLR3}您可以等待主版本发布后再次下载。${CLR0}"
+			read -p "您是否仍然要下载并使用此版本？(y/N) " -n 1 -r
+			echo
+			[[ ! $REPLY =~ ^[Yy]$ ]] && { echo -e "\e[31m下载已取消。${CLR0}"; exit 1; }
+		fi
 	fi
-	crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" || (crontab -l > function-update 2>/dev/null; echo "0 0 * * * curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update)
+	if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash"; then
+		crontab -l > function-update 2>/dev/null
+		echo "0 0 * * * curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> function-update
+		crontab function-update
+		rm -f function-update
+	fi
 	GET ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null && source function.sh
 	grep -q "source ~/function.sh" ~/.bashrc || echo "source ~/function.sh" >> ~/.bashrc
 fi
