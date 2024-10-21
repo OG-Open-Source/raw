@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.003"
+Version="5.037.004"
 License="MIT License"
 
 SH="function.sh"
@@ -976,5 +976,3 @@ if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${gh_proxy}https://
 	crontab function-update
 	rm -f function-update
 fi
-}
-
