@@ -978,5 +978,3 @@ if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${gh_proxy}https://
 fi
 }
 
-[ ! -f ~/function.sh ] && bash <(curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh)
-crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" || (crontab -l > function-update 2>/dev/null; echo "0 0 * * * curl -sL ${gh_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> function-update && crontab function-update && rm -f function-update)
