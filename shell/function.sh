@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.007"
+Version="5.037.008"
 License="MIT License"
 
 SH="function.sh"
@@ -705,7 +705,7 @@ SYS_INFO() {
 	echo -e "${CLR3}System Information${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 
-	echo -e "- Hostname:\t\t${CLR2}$(hostname)${CLR0}"
+	echo -e "- Hostname:\t\t${CLR2}$(uname -n)${CLR0}"
 	echo -e "- Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
 	echo -e "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
 	echo -e "- System Language:\t${CLR2}$LANG${CLR0}"
