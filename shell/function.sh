@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.006"
+Version="5.037.007"
 License="MIT License"
 
 SH="function.sh"
@@ -892,7 +892,7 @@ SYS_REBOOT() {
 	echo "* Performing final checks before reboot..."
 	sync || { error "Failed to sync filesystems"; return 1; }
 	echo -e "${CLR3}Initiating system reboot...${CLR0}"
-	reboot || { error "Failed to initiate reboot"; return 1; }
+	reboot || sudo reboot || { error "Failed to initiate reboot"; return 1; }
 	echo -e "${CLR2}Reboot command issued successfully. The system will reboot momentarily.${CLR0}"
 }
 SYS_UPDATE() {
