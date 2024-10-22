@@ -31,7 +31,7 @@ GET() {
 }
 
 if [ "$1" = "-r" ]; then
-	(crontab -l 2>/dev/null; echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash") | crontab -
+	(echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash") | crontab -
 	GET ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null && source function.sh
 	echo "source /root/function.sh" >> /root/.bashrc
 elif [ -f ~/function.sh ]; then
