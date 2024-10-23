@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.008"
+Version="5.037.009"
 License="MIT License"
 
 SH="function.sh"
@@ -562,9 +562,9 @@ MAC_ADDR() {
 	fi
 }
 MEM_USAGE() {
-	used=$(free -b | awk '/^Mem:/ {print $3}')
-	total=$(free -b | awk '/^Mem:/ {print $2}')
-	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}')
+	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}')
+	total=$(free -b | awk '/^Mem:/ {print $2}') || total=$(grep MemTotal /proc/meminfo | awk '{print $2*1024}')
+	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}') || percentage=$(awk '/^MemTotal:/ {total=$2} /^MemAvailable:/ {available=$2} END {printf("%.2f", (total-available)/total * 100.0)}' /proc/meminfo)
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 
