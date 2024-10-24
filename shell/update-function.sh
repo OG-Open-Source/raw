@@ -30,11 +30,7 @@ GET() {
 	curl -L -k -m 5 "$url" -o "$output_file" &>/dev/null || wget --no-check-certificate -T 5 -t 2 "$url" -O "$output_file" &>/dev/null || return 1
 }
 
-if [ "$1" = "-r" ]; then
-	(echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash") | crontab -
-	GET ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null && source function.sh
-	echo "source /root/function.sh" >> /root/.bashrc
-elif [ -f ~/function.sh ]; then
+if [ -f ~/function.sh ]; then
 	GET ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null
 	source function.sh
 else
