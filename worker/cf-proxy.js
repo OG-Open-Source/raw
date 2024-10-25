@@ -12,6 +12,8 @@ const GLOBAL_CONFIG = {
 	],
 	// 允許的通用字段 (指連結必須包含此字段)
 	ALLOWED_GENERAL_PATTERN: '',
+	// 快取設置
+	CACHE_DURATION: 60 * 60, // 快取時間，單位為秒（這裡設置為1小時）
 };
 
 // KV 命名空間綁定(需設定KV COUNTER_NAMESPACE 並綁定到當前的Worker，如果沒有則跳過)
@@ -55,12 +57,26 @@ async function handleRequest(request) {
 		incrementRequestCount().catch(console.error);
 	}
 
-	let response = await fetch(newRequest)
+	const cacheKey = new Request(destinationURL.toString(), {
+		method: 'GET',
+		headers: request.headers
+	});
+	const cache = caches.default;
+	let response = await cache.match(cacheKey);
 
-	let newResponse = new Response(response.body, response)
-	newResponse.headers.set('Access-Control-Allow-Origin', '*')
+	if (!response) {
+		response = await fetch(newRequest);
 
-	return newResponse
+		response = new Response(response.body, response);
+
+		response.headers.set('Cache-Control', `public, max-age=${GLOBAL_CONFIG.CACHE_DURATION}`);
+
+		event.waitUntil(cache.put(cacheKey, response.clone()));
+	}
+
+	response.headers.set('Access-Control-Allow-Origin', '*');
+
+	return response;
 }
 
 function isAllowedCountry(country) {
