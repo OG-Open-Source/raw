@@ -35,7 +35,6 @@ const REQUEST_COUNTER = typeof COUNTER_NAMESPACE !== 'undefined' ? COUNTER_NAMES
 	delete: async () => {}
 };
 
-// 全局設置保持不變，但將常用的配置轉換為 Set 以提高查詢效率
 const RUNTIME_CONFIG = {
 	ALLOWED_COUNTRIES: new Set(GLOBAL_CONFIG.ALLOWED_COUNTRIES),
 	BLOCKED_COUNTRIES: new Set(GLOBAL_CONFIG.BLOCKED_COUNTRIES),
