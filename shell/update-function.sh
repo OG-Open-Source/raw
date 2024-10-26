@@ -58,4 +58,5 @@ else
 	fi
 	GET ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null && source function.sh
 	grep -q "source ~/function.sh" ~/.bashrc || echo "source ~/function.sh" >> ~/.bashrc
+	grep -q "source ~/function.sh" ~/.zshrc || echo "source ~/function.sh" >> ~/.zshrc
 fi
