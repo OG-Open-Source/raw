@@ -104,8 +104,12 @@ async function handleRequest(request, env, ctx) {
 	const { url, headers, cf } = request;
 	const parsedUrl = new URL(url);
 
+	const clientIP = request.headers.get('cf-connecting-ip') || 
+					cf.ip || 
+					'unknown';
+
 	if (GLOBAL_CONFIG.ENABLE_REQUEST_COUNT) {
-		ctx.waitUntil(incrementRequestCount(env.DB));
+		ctx.waitUntil(incrementRequestCount(env.DB, clientIP));
 	}
 
 	if (!isAllowedCountry(cf.country)) {
@@ -188,23 +192,23 @@ function isAllowedUrl(url) {
 	return false;
 }
 
-async function incrementRequestCount(db) {
+async function incrementRequestCount(db, ip) {
 	const currentDate = new Date().toISOString().split('T')[0];
 	const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
 	try {
 		await db.prepare(
-			`INSERT INTO request_counts (date, count)
-			 VALUES (?, 1)
-			 ON CONFLICT(date) DO UPDATE
-			 SET count = count + 1
-			 WHERE date = ?`
+			`INSERT INTO ip_visits (date, ip, count) 
+			 VALUES (?, ?, 1) 
+			 ON CONFLICT(date, ip) DO UPDATE 
+			 SET count = count + 1 
+			 WHERE date = ? AND ip = ?`
 		)
-		.bind(currentDate, currentDate)
+		.bind(currentDate, ip, currentDate, ip)
 		.run();
 
 		await db.prepare(
-			`DELETE FROM request_counts WHERE date = ?`
+			`DELETE FROM ip_visits WHERE date = ?`
 		)
 		.bind(yesterday)
 		.run();
