@@ -14,13 +14,6 @@ const GLOBAL_CONFIG = {
 	ALLOWED_GENERAL_PATTERN: ''
 };
 
-// KV 命名空間綁定
-const REQUEST_COUNTER = typeof COUNTER_NAMESPACE !== 'undefined' ? COUNTER_NAMESPACE : {
-	get: async () => null,
-	put: async () => {},
-	delete: async () => {}
-};
-
 const RUNTIME_CONFIG = {
 	ALLOWED_COUNTRIES: new Set(GLOBAL_CONFIG.ALLOWED_COUNTRIES),
 	BLOCKED_COUNTRIES: new Set(GLOBAL_CONFIG.BLOCKED_COUNTRIES),
@@ -36,12 +29,13 @@ const COMMON_HEADERS = {
 	CORS: { 'Access-Control-Allow-Origin': '*' }
 };
 
-addEventListener('fetch', event => {
-	event.respondWith(handleRequest(event))
-})
+export default {
+	async fetch(request, env, ctx) {
+		return handleRequest(request, env, ctx);
+	}
+};
 
-async function handleRequest(event) {
-	const { request } = event;
+async function handleRequest(request, env, ctx) {
 	const { url, headers, cf } = request;
 	const parsedUrl = new URL(url);
 	
@@ -79,7 +73,7 @@ async function handleRequest(event) {
 
 	try {
 		if (GLOBAL_CONFIG.ENABLE_REQUEST_COUNT) {
-			incrementRequestCount().catch(console.error);
+			ctx.waitUntil(incrementRequestCount(env.DB));
 		}
 
 		const response = await fetch(destinationURL, {
@@ -129,18 +123,27 @@ function isAllowedUrl(url) {
 	return false;
 }
 
-async function incrementRequestCount() {
+async function incrementRequestCount(db) {
 	const currentDate = new Date().toISOString().split('T')[0];
-	const countKey = `count_${currentDate}`;
+	const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
 	try {
-		const count = await REQUEST_COUNTER.get(countKey) || '0';
-		const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-		
-		await Promise.all([
-			REQUEST_COUNTER.put(countKey, (parseInt(count) + 1).toString()),
-			REQUEST_COUNTER.delete(`count_${yesterday}`)
-		]);
+		await db.prepare(
+			`INSERT INTO request_counts (date, count) 
+			 VALUES (?, 1) 
+			 ON CONFLICT(date) DO UPDATE 
+			 SET count = count + 1 
+			 WHERE date = ?`
+		)
+		.bind(currentDate, currentDate)
+		.run();
+
+		await db.prepare(
+			`DELETE FROM request_counts WHERE date = ?`
+		)
+		.bind(yesterday)
+		.run();
+
 	} catch (error) {
 		console.error('Counter error:', error);
 	}
