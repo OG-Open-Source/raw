@@ -104,6 +104,10 @@ async function handleRequest(request, env, ctx) {
 	const { url, headers, cf } = request;
 	const parsedUrl = new URL(url);
 
+	if (GLOBAL_CONFIG.ENABLE_REQUEST_COUNT) {
+		ctx.waitUntil(incrementRequestCount(env.DB));
+	}
+
 	if (!isAllowedCountry(cf.country)) {
 		return new Response('Access denied: Your country is not allowed to use this proxy.', {
 			status: 403,
@@ -137,10 +141,6 @@ async function handleRequest(request, env, ctx) {
 	destinationURL.search = parsedUrl.search;
 
 	try {
-		if (GLOBAL_CONFIG.ENABLE_REQUEST_COUNT) {
-			ctx.waitUntil(incrementRequestCount(env.DB));
-		}
-
 		const response = await fetch(destinationURL, {
 			method: request.method,
 			headers: headers
