@@ -11,24 +11,10 @@ const GLOBAL_CONFIG = {
 		'https://raw.githubusercontent.com/OG-Open-Source'
 	],
 	// 允許的通用字段 (指連結必須包含此字段)
-	ALLOWED_GENERAL_PATTERN: '',
-	// 快取設置
-	CACHE_CONFIG: {
-		DURATION: 60 * 60, // 1小時
-		SHARED_DURATION: 60 * 60, // 1小時
-		CACHE_CONTROL_HEADER: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=3600',
-		// 不應該被快取的請求頭
-		EXCLUDED_HEADERS: [
-			'authorization',
-			'cookie',
-			'set-cookie',
-			'x-csrf-token',
-			'cf-connecting-ip'
-		]
-	}
+	ALLOWED_GENERAL_PATTERN: ''
 };
 
-// KV 命名空間綁定 (需設定KV COUNTER_NAMESPACE 並綁定到當前的Worker，如果沒有則跳過)
+// KV 命名空間綁定
 const REQUEST_COUNTER = typeof COUNTER_NAMESPACE !== 'undefined' ? COUNTER_NAMESPACE : {
 	get: async () => null,
 	put: async () => {},
@@ -39,6 +25,15 @@ const RUNTIME_CONFIG = {
 	ALLOWED_COUNTRIES: new Set(GLOBAL_CONFIG.ALLOWED_COUNTRIES),
 	BLOCKED_COUNTRIES: new Set(GLOBAL_CONFIG.BLOCKED_COUNTRIES),
 	ALLOWED_DOMAIN_PREFIXES: new Set(GLOBAL_CONFIG.ALLOWED_DOMAIN_PREFIXES)
+};
+
+const URL_PATTERNS = {
+	HTTPS: /^https:\//,
+	HTTP: /^http:\//
+};
+
+const COMMON_HEADERS = {
+	CORS: { 'Access-Control-Allow-Origin': '*' }
 };
 
 addEventListener('fetch', event => {
@@ -53,83 +48,54 @@ async function handleRequest(event) {
 	if (!isAllowedCountry(cf.country)) {
 		return new Response('Access denied: Your country is not allowed to use this proxy.', { 
 			status: 403,
-			headers: { 'Access-Control-Allow-Origin': '*' }
+			headers: COMMON_HEADERS.CORS
 		});
 	}
 
 	let targetUrl = parsedUrl.pathname.slice(1);
 	
-	if (targetUrl.startsWith('https:/')) {
+	if (URL_PATTERNS.HTTPS.test(targetUrl)) {
 		targetUrl = targetUrl.replace('https:/', 'https://');
-	} else if (targetUrl.startsWith('http:/')) {
+	} else if (URL_PATTERNS.HTTP.test(targetUrl)) {
 		targetUrl = targetUrl.replace('http:/', 'http://');
 	}
 
 	if (!targetUrl) {
 		return new Response('Invalid URL format.', { 
 			status: 400,
-			headers: { 'Access-Control-Allow-Origin': '*' }
+			headers: COMMON_HEADERS.CORS
 		});
 	}
 
 	if (!isAllowedUrl(targetUrl)) {
-		return new Response(`Access denied: The requested URL is not allowed. URL: ${targetUrl}`, { 
+		return new Response(`Access denied: The requested URL is not allowed.`, { 
 			status: 403,
-			headers: { 'Access-Control-Allow-Origin': '*' }
+			headers: COMMON_HEADERS.CORS
 		});
 	}
 
 	const destinationURL = new URL(targetUrl);
 	destinationURL.search = parsedUrl.search;
 
-	const cache = caches.default;
-	
 	try {
-		const cleanedHeaders = new Headers(headers);
-		GLOBAL_CONFIG.CACHE_CONFIG.EXCLUDED_HEADERS.forEach(header => {
-			cleanedHeaders.delete(header);
-		});
-
-		const cacheKey = new Request(destinationURL.toString(), {
-			method: 'GET',
-			headers: cleanedHeaders
-		});
-
-		const [cacheResponse, _] = await Promise.all([
-			cache.match(cacheKey),
-			GLOBAL_CONFIG.ENABLE_REQUEST_COUNT ? incrementRequestCount() : Promise.resolve()
-			]);
-
-		if (cacheResponse) {
-			const response = new Response(cacheResponse.body, cacheResponse);
-			response.headers.set('Access-Control-Allow-Origin', '*');
-			response.headers.set('X-Cache', 'HIT');
-			return response;
+		if (GLOBAL_CONFIG.ENABLE_REQUEST_COUNT) {
+			incrementRequestCount().catch(console.error);
 		}
 
-		const response = await fetch(new Request(destinationURL, {
+		const response = await fetch(destinationURL, {
 			method: request.method,
-			headers: cleanedHeaders
-		}));
+			headers: headers
+		});
 
 		const newResponse = new Response(response.body, response);
-		
-		newResponse.headers.set('Cache-Control', GLOBAL_CONFIG.CACHE_CONFIG.CACHE_CONTROL_HEADER);
 		newResponse.headers.set('Access-Control-Allow-Origin', '*');
-		newResponse.headers.set('X-Cache', 'MISS');
 		
-		newResponse.headers.set('Age', '0');
-		newResponse.headers.set('X-Cache-Status', 'MISS');
-		newResponse.headers.set('Vary', 'Accept-Encoding');
-
-		event.waitUntil(cache.put(cacheKey, newResponse.clone()));
-
 		return newResponse;
 	} catch (error) {
 		console.error('Error:', error);
-		return new Response('Internal Server Error: ' + error.message, { 
+		return new Response('Internal Server Error', { 
 			status: 500,
-			headers: { 'Access-Control-Allow-Origin': '*' }
+			headers: COMMON_HEADERS.CORS
 		});
 	}
 }
@@ -154,13 +120,13 @@ function isAllowedCountry(country) {
 }
 
 function isAllowedUrl(url) {
-	return Array.from(RUNTIME_CONFIG.ALLOWED_DOMAIN_PREFIXES).some(prefix => {
-		const matches = url.startsWith(prefix);
-		if (matches && GLOBAL_CONFIG.ALLOWED_GENERAL_PATTERN) {
-			return url.includes(GLOBAL_CONFIG.ALLOWED_GENERAL_PATTERN);
+	for (const prefix of RUNTIME_CONFIG.ALLOWED_DOMAIN_PREFIXES) {
+		if (url.startsWith(prefix)) {
+			return !GLOBAL_CONFIG.ALLOWED_GENERAL_PATTERN || 
+				   url.includes(GLOBAL_CONFIG.ALLOWED_GENERAL_PATTERN);
 		}
-		return matches;
-	});
+	}
+	return false;
 }
 
 async function incrementRequestCount() {
