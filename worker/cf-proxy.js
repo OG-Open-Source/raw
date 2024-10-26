@@ -42,15 +42,14 @@ const RUNTIME_CONFIG = {
 };
 
 addEventListener('fetch', event => {
-	event.respondWith(handleRequest(event))  // 修改：傳入整個 event 對象
+	event.respondWith(handleRequest(event))
 })
 
-async function handleRequest(event) {  // 修改：接收 event 參數
-	const { request } = event;  // 從 event 中解構出 request
+async function handleRequest(event) {
+	const { request } = event;
 	const { url, headers, cf } = request;
 	const parsedUrl = new URL(url);
 	
-	// 快速檢查國家限制
 	if (!isAllowedCountry(cf.country)) {
 		return new Response('Access denied: Your country is not allowed to use this proxy.', { 
 			status: 403,
@@ -58,10 +57,8 @@ async function handleRequest(event) {  // 修改：接收 event 參數
 		});
 	}
 
-	// 修改：改進 URL 解析邏輯，確保正確處理斜線
-	let targetUrl = parsedUrl.pathname.slice(1); // 移除開頭的 '/'
+	let targetUrl = parsedUrl.pathname.slice(1);
 	
-	// 確保 https:// 有兩個斜線
 	if (targetUrl.startsWith('https:/')) {
 		targetUrl = targetUrl.replace('https:/', 'https://');
 	} else if (targetUrl.startsWith('http:/')) {
@@ -75,7 +72,6 @@ async function handleRequest(event) {  // 修改：接收 event 參數
 		});
 	}
 
-	// 檢查 URL 是否允許訪問
 	if (!isAllowedUrl(targetUrl)) {
 		return new Response(`Access denied: The requested URL is not allowed. URL: ${targetUrl}`, { 
 			status: 403,
@@ -83,27 +79,22 @@ async function handleRequest(event) {  // 修改：接收 event 參數
 		});
 	}
 
-	// 創建目標 URL
 	const destinationURL = new URL(targetUrl);
 	destinationURL.search = parsedUrl.search;
 
-	// 優化快取查詢
 	const cache = caches.default;
 	
 	try {
-		// 創建清理過的請求頭
 		const cleanedHeaders = new Headers(headers);
 		GLOBAL_CONFIG.CACHE_CONFIG.EXCLUDED_HEADERS.forEach(header => {
 			cleanedHeaders.delete(header);
 		});
 
-		// 創建快取鍵 (不包含敏感頭部)
 		const cacheKey = new Request(destinationURL.toString(), {
 			method: 'GET',
 			headers: cleanedHeaders
 		});
 
-		// 並行處理請求計數和快取查詢
 		const [cacheResponse, _] = await Promise.all([
 			cache.match(cacheKey),
 			GLOBAL_CONFIG.ENABLE_REQUEST_COUNT ? incrementRequestCount() : Promise.resolve()
@@ -123,17 +114,14 @@ async function handleRequest(event) {  // 修改：接收 event 參數
 
 		const newResponse = new Response(response.body, response);
 		
-		// 設置增強的快取控制
 		newResponse.headers.set('Cache-Control', GLOBAL_CONFIG.CACHE_CONFIG.CACHE_CONTROL_HEADER);
 		newResponse.headers.set('Access-Control-Allow-Origin', '*');
 		newResponse.headers.set('X-Cache', 'MISS');
 		
-		// 添加額外的快取相關響應頭
 		newResponse.headers.set('Age', '0');
 		newResponse.headers.set('X-Cache-Status', 'MISS');
 		newResponse.headers.set('Vary', 'Accept-Encoding');
 
-		// 非阻塞式快取存儲
 		event.waitUntil(cache.put(cacheKey, newResponse.clone()));
 
 		return newResponse;
@@ -147,31 +135,25 @@ async function handleRequest(event) {  // 修改：接收 event 參數
 }
 
 function isAllowedCountry(country) {
-	// 檢查白名單是否只包含空字符串
 	const hasOnlyEmptyString = RUNTIME_CONFIG.ALLOWED_COUNTRIES.size === 1 && 
 							  RUNTIME_CONFIG.ALLOWED_COUNTRIES.has('');
 	
-	// 如果白名單只有空字符串，視為未設置白名單
 	if (hasOnlyEmptyString) {
 		return !RUNTIME_CONFIG.BLOCKED_COUNTRIES.has(country);
 	}
 	
-	// 如果白名單和黑名單都為空，允許所有國家
 	if (RUNTIME_CONFIG.ALLOWED_COUNTRIES.size === 0 && RUNTIME_CONFIG.BLOCKED_COUNTRIES.size === 0) {
 		return true;
 	}
 	
-	// 如果有設置非空白名單，優先檢查白名單
 	if (RUNTIME_CONFIG.ALLOWED_COUNTRIES.size > 0) {
 		return RUNTIME_CONFIG.ALLOWED_COUNTRIES.has(country);
 	}
 	
-	// 如果只有黑名單，檢查是否在黑名單中
 	return !RUNTIME_CONFIG.BLOCKED_COUNTRIES.has(country);
 }
 
 function isAllowedUrl(url) {
-	// 檢查 URL 是否以允許的前綴開始
 	return Array.from(RUNTIME_CONFIG.ALLOWED_DOMAIN_PREFIXES).some(prefix => {
 		const matches = url.startsWith(prefix);
 		if (matches && GLOBAL_CONFIG.ALLOWED_GENERAL_PATTERN) {
@@ -189,7 +171,6 @@ async function incrementRequestCount() {
 		const count = await REQUEST_COUNTER.get(countKey) || '0';
 		const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 		
-		// 並行處理計數更新和清理
 		await Promise.all([
 			REQUEST_COUNTER.put(countKey, (parseInt(count) + 1).toString()),
 			REQUEST_COUNTER.delete(`count_${yesterday}`)
