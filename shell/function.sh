@@ -1,13 +1,13 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.010"
+Version="5.037.011"
 License="MIT License"
 
 SH="function.sh"
 CLR1="\033[0;31m"
 CLR2="\033[0;32m"
-CLR3="\033[1;33m"
+CLR3="\033[0;33m"
 CLR4="\033[0;34m"
 CLR5="\033[0;35m"
 CLR6="\033[0;36m"
