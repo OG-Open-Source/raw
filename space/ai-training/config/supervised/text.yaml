@@ -14,13 +14,25 @@ model:
   reasoning_steps: 3
   attention_heads: 8
   dropout_rate: 0.2
+  vocab_size: 30522  # BERT 的詞彙表大小
+
+# 文本處理設定
+text:
+  tokenizer: "bert-base-chinese"
+  max_length: 512
+  padding: "max_length"
+  truncation: true
+  lowercase: true
+  remove_punctuation: false
+  special_tokens:
+    pad: "[PAD]"
+    unk: "[UNK]"
+    cls: "[CLS]"
+    sep: "[SEP]"
 
 # 學習模式設定
 learning_mode:
   type: "supervised"
-  supervised:
-    loss_type: "cross_entropy"
-    label_smoothing: 0.1
 
 # 資料處理
 data:
@@ -47,3 +59,9 @@ training:
 mixed_precision:
   enabled: true
   dtype: "float16"
+
+# 記憶體管理
+memory:
+  empty_cache_freq: 100  # 每處理多少樣本清理一次快取
+  gradient_checkpointing: false
+  max_grad_norm: 1.0

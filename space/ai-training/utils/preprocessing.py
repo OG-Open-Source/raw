@@ -1,6 +1,5 @@
 from transformers import AutoTokenizer
 from torch.utils.data import Dataset, DataLoader
-import pandas as pd
 import json
 from typing import Dict, Any, Tuple, List
 import torch
@@ -12,14 +11,19 @@ class EducationDataset(Dataset):
 		self.max_length = config['text']['max_length']
 		
 		# 載入數據
-		self.data = self.load_data(data_path)
+		with open(data_path, 'r', encoding='utf-8') as f:
+			self.data = json.load(f)
 		self.is_training = is_training
 		
-	def load_data(self, data_path: str) -> List[Dict]:
-		"""載入教育數據"""
-		with open(data_path, 'r', encoding='utf-8') as f:
-			data = json.load(f)
-		return data
+		# 創建答案到標籤的映射（這裡是示例，您可以根據需要修改）
+		self.answer_to_label = self._create_label_mapping()
+		
+	def _create_label_mapping(self) -> Dict[str, int]:
+		"""創建答案到標籤的映射"""
+		unique_answers = set()
+		for item in self.data:
+			unique_answers.add(item['answer'])
+		return {answer: idx for idx, answer in enumerate(sorted(unique_answers))}
 		
 	def __len__(self):
 		return len(self.data)
@@ -29,7 +33,7 @@ class EducationDataset(Dataset):
 		
 		# 處理輸入
 		question = item['question']
-		context = item.get('context', '')  # 可能的背景知識
+		context = item.get('context', '')
 		
 		# 組合輸入文本
 		input_text = f"問題：{question}\n背景：{context}" if context else f"問題：{question}"
@@ -44,24 +48,17 @@ class EducationDataset(Dataset):
 		)
 		
 		if self.is_training:
-			# 處理答案
-			answer = item['answer']
-			solution = item.get('solution', '')  # 解題步驟
-			
-			# 將答案轉換為模型可用格式
-			answer_encoding = self.tokenizer(
-				answer,
-				max_length=self.max_length,
-				padding='max_length',
-				truncation=True,
-				return_tensors='pt'
+			# 使用答案映射到標籤
+			label = torch.tensor(
+				self.answer_to_label[item['answer']], 
+				dtype=torch.long
 			)
 			
 			return {
 				'input_ids': inputs['input_ids'].squeeze(0),
 				'attention_mask': inputs['attention_mask'].squeeze(0),
-				'labels': answer_encoding['input_ids'].squeeze(0),
-				'solution': solution  # 用於訓練過程分析
+				'labels': label,
+				'solution': item.get('solution', '')
 			}
 		
 		return {
@@ -71,38 +68,35 @@ class EducationDataset(Dataset):
 
 def load_data(config: Dict[str, Any]) -> Tuple[DataLoader, DataLoader]:
 	"""載入並預處理教育數據"""
-	data_config = config['data']
-	system_config = config['system']
-	training_config = config['training']
-	
-	# 創建數據集
 	train_dataset = EducationDataset(
-		data_config['train_path'],
+		config['data']['train_path'],
 		config,
 		is_training=True
 	)
 	
 	val_dataset = EducationDataset(
-		data_config['val_path'],
+		config['data']['val_path'],
 		config,
 		is_training=True
 	)
 	
-	# 創建數據加載器
+	# 調整 num_workers 以避免警告
+	num_workers = min(config['system']['num_workers'], 3)
+	
 	train_loader = DataLoader(
 		train_dataset,
-		batch_size=training_config['batch_size'],
+		batch_size=config['training']['batch_size'],
 		shuffle=True,
-		num_workers=system_config['num_workers'],
-		pin_memory=system_config['pin_memory']
+		num_workers=num_workers,
+		pin_memory=config['system']['pin_memory']
 	)
 	
 	val_loader = DataLoader(
 		val_dataset,
-		batch_size=training_config['batch_size'],
+		batch_size=config['training']['batch_size'],
 		shuffle=False,
-		num_workers=system_config['num_workers'],
-		pin_memory=system_config['pin_memory']
+		num_workers=num_workers,
+		pin_memory=config['system']['pin_memory']
 	)
 	
 	return train_loader, val_loader

@@ -11,7 +11,7 @@ def evaluate_model(
 	criterion: nn.Module,
 	device: torch.device,
 	config: Dict[str, Any] = None
-) -> Tuple[float, float]:
+) -> Tuple[float, Dict[str, float]]:
 	"""評估模型效能"""
 	model.eval()
 	total_loss = 0
@@ -22,22 +22,25 @@ def evaluate_model(
 	use_amp = config and config['mixed_precision']['enabled'] if config else False
 
 	with torch.no_grad():
-		for data, target in data_loader:
-			data, target = data.to(device), target.to(device)
-
+		for batch in data_loader:
+			# 處理輸入數據
+			inputs = {k: v.to(device) for k, v in batch.items() 
+					 if isinstance(v, torch.Tensor)}
+			
 			if use_amp:
 				with autocast(device_type=device.type):
-					output = model(data)
-					loss = criterion(output, target)
+					outputs = model(**inputs)
+					loss = criterion(outputs, inputs['labels'])
 			else:
-				output = model(data)
-				loss = criterion(output, target)
+				outputs = model(**inputs)
+				loss = criterion(outputs, inputs['labels'])
 
 			total_loss += loss.item()
 
-			pred = output.argmax(dim=1)
-			correct += pred.eq(target).sum().item()
-			total += target.size(0)
+			# 計算準確率
+			pred = outputs.argmax(dim=1)
+			correct += pred.eq(inputs['labels']).sum().item()
+			total += inputs['labels'].size(0)
 
 			# 清理快取
 			if config and config['memory']['empty_cache_freq'] > 0:
@@ -45,6 +48,12 @@ def evaluate_model(
 					torch.cuda.empty_cache()
 
 	avg_loss = total_loss / len(data_loader)
-	accuracy = correct / total
+	accuracy = correct / total if total > 0 else 0
 
-	return avg_loss, accuracy
+	metrics = {
+		'accuracy': accuracy,
+		'total_samples': total,
+		'correct_predictions': correct
+	}
+
+	return avg_loss, metrics
