@@ -1,0 +1,219 @@
+# 系統資源設定
+system:
+  device: "auto"  # auto, cpu, cuda
+  num_workers: 4
+  pin_memory: true
+  memory_limit: 0.8
+
+# 模型架構參數
+model:
+  input_size: 512  # 詞嵌入維度
+  hidden_size: 256
+  output_size: 2   # 二分類範例，可根據需求調整
+  reasoning_steps: 3
+  attention_heads: 8
+  dropout_rate: 0.2
+  activation: "gelu"
+  max_sequence_length: 512
+  vocab_size: 30000  # 詞彙表大小
+  architecture_type: "transformer"  # transformer, cnn, rnn, mlp
+  shared_backbone: true  # 用於多任務學習
+  task_specific_heads: true
+
+# 文本處理
+text:
+  tokenizer: "bert-base-chinese"  # 使用的分詞器
+  max_length: 512
+  padding: "max_length"
+  truncation: true
+  lowercase: true
+  remove_punctuation: false
+  special_tokens:
+    pad: "[PAD]"
+    unk: "[UNK]"
+    cls: "[CLS]"
+    sep: "[SEP]"
+
+# 訓練參數
+training:
+  batch_size: 16
+  accumulation_steps: 4
+  learning_rate: 2.0e-5
+  weight_decay: 0.01
+  epochs: 20
+  patience: 5
+  warmup_ratio: 0.1
+
+# 優化器設定
+optimizer:
+  type: "adamw"
+  beta1: 0.9
+  beta2: 0.999
+  eps: 1.0e-8
+
+# 學習率調度
+scheduler:
+  type: "linear_warmup"
+  warmup_steps: 1000
+  min_lr: 1.0e-7
+
+# 資料處理
+data:
+  train_path: "data/raw/train.txt"
+  val_path: "data/raw/val.txt"
+  test_path: "data/raw/test.txt"
+  label_path: "data/raw/labels.txt"
+  cache_dir: "data/processed"
+  val_split: 0.1
+  preprocessing:
+    clean_text: true
+    remove_html: true
+    remove_special_chars: true
+    remove_multiple_spaces: true
+  data_type: "text"  # text, image, tabular, sequence, graph, audio, multi_modal
+  format: "json"     # 數據格式
+  schema:           # 數據結構描述
+    text: "string"
+    label: "int"
+    metadata: "dict"
+
+# 混合精度訓練
+mixed_precision:
+  enabled: true
+  dtype: "float16"
+
+# 記憶體優化
+memory:
+  gradient_checkpointing: true
+  empty_cache_freq: 1
+
+# 監控和日誌
+monitoring:
+  mlflow_tracking_uri: "sqlite:///mlflow.db"
+  log_freq: 100
+  save_freq: 1
+  tensorboard: true
+  log_predictions: true
+  confusion_matrix: true
+
+# 性能配置預設
+performance_presets:
+  low_resource:
+    batch_size: 8
+    max_length: 256
+    accumulation_steps: 8
+    gradient_checkpointing: true
+    num_workers: 2
+    memory_limit: 0.6
+
+  medium_resource:
+    batch_size: 16
+    max_length: 512
+    accumulation_steps: 4
+    gradient_checkpointing: true
+    num_workers: 4
+    memory_limit: 0.7
+
+  high_resource:
+    batch_size: 32
+    max_length: 512
+    accumulation_steps: 2
+    gradient_checkpointing: false
+    num_workers: 8
+    memory_limit: 0.8
+
+# 學習模式設定
+learning_mode:
+  type: "supervised"  # supervised, unsupervised, semi_supervised, reinforcement, self_supervised, transfer, gan, multi_task, federated
+  
+  # 監督式學習設定
+  supervised:
+    loss_type: "cross_entropy"
+    label_smoothing: 0.1
+    
+  # 非監督式學習設定
+  unsupervised:
+    clustering_type: "kmeans"
+    n_clusters: 10
+    feature_dim: 128
+    
+  # 半監督式學習設定
+  semi_supervised:
+    labeled_ratio: 0.3
+    consistency_type: "mean_teacher"
+    ema_decay: 0.999
+    
+  # 強化學習設定
+  reinforcement:
+    algorithm: "ppo"  # ppo, dqn, a2c
+    gamma: 0.99
+    gae_lambda: 0.95
+    n_steps: 2048
+    
+  # 自監督式學習設定
+  self_supervised:
+    task: "masked_lm"  # masked_lm, contrastive, rotation
+    mask_ratio: 0.15
+    temperature: 0.07
+    
+  # 遷移學習設定
+  transfer:
+    base_model: "bert-base-chinese"
+    freeze_layers: [0, 1, 2, 3]
+    fine_tune_layers: [4, 5, 6]
+    
+  # GAN設定
+  gan:
+    discriminator:
+      layers: [512, 256, 128]
+      activation: "leaky_relu"
+    generator:
+      latent_dim: 100
+      layers: [128, 256, 512]
+      activation: "tanh"
+    
+  # 多任務學習設定
+  multi_task:
+    tasks: ["classification", "regression"]
+    task_weights: [1.0, 0.5]
+    shared_layers: 3
+    
+  # 聯邦學習設定
+  federated:
+    n_clients: 10
+    client_fraction: 0.3
+    local_epochs: 5
+    aggregation: "fedavg"
+
+# 訓練策略
+training_strategy:
+  curriculum_learning: false
+  knowledge_distillation: false
+  mixup: false
+  cutmix: false
+  gradient_accumulation: true
+  
+# 資料增強
+augmentation:
+  enabled: true
+  strategies:
+    - name: "random_mask"
+      probability: 0.15
+    - name: "rotation"
+      angle_range: [-10, 10]
+    - name: "noise"
+      std: 0.01
+
+# 評估指標
+metrics:
+  classification:
+    - accuracy
+    - f1_score
+    - precision
+    - recall
+  regression:
+    - mse
+    - mae
+  clustering:
+    - silhouette_score
+    - calinski_harabasz_score
