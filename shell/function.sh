@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.011"
+Version="5.037.012"
 License="MIT License"
 
 SH="function.sh"
@@ -225,20 +225,36 @@ CPU_USAGE() {
 	usage=$(( 100 * (total_diff - idle_diff) / total_diff ))
 	echo "$usage%"
 }
-
 CONVERT_SIZE() {
 	[ -z "$1" ] && return
 	size=$1
-	unit=${2:-B}
-	base=${3:-1024}
-	suffixes=("B" "KiB" "MiB" "GiB" "TiB" "PiB" "EiB" "ZiB" "YiB")
-	[ "$base" -eq 1000 ] && suffixes=("B" "KB" "MB" "GB" "TB" "PB" "EB" "ZB" "YB")
-	i=0
-	while (( $(awk "BEGIN {print ($size >= $base)}") )); do
-		size=$(awk "BEGIN {printf \"%.2f\", $size / $base}")
-		((i++))
+	unit=${2:-iB}
+	unit_lower=$(echo "$unit" | tr '[:upper:]' '[:lower:]')
+	case "$unit_lower" in
+		b) bytes=$size ;;
+		kb|kib) bytes=$(echo "$size * $([[ $unit_lower == kb ]] && echo 1000 || echo 1024)" | bc) ;;
+		mb|mib) bytes=$(echo "$size * $([[ $unit_lower == mb ]] && echo 1000000 || echo 1048576)" | bc) ;;
+		gb|gib) bytes=$(echo "$size * $([[ $unit_lower == gb ]] && echo 1000000000 || echo 1073741824)" | bc) ;;
+		tb|tib) bytes=$(echo "$size * $([[ $unit_lower == tb ]] && echo 1000000000000 || echo 1099511627776)" | bc) ;;
+		pb|pib) bytes=$(echo "$size * $([[ $unit_lower == pb ]] && echo 1000000000000000 || echo 1125899906842624)" | bc) ;;
+		*) bytes=$size ;;
+	esac
+	if [[ $unit_lower =~ ^.*ib$ ]]; then
+		units=("B" "KiB" "MiB" "GiB" "TiB" "PiB") 
+		base=1024
+	else
+		units=("B" "KB" "MB" "GB" "TB" "PB")
+		base=1000
+	fi
+	for i in {0..5}; do
+		div=$(echo "$base^$i" | bc)
+		next_div=$(echo "$base^($i+1)" | bc)
+		if [ "$bytes" -lt "$next_div" ]; then
+			[ $i -eq 0 ] && printf "%d %s\n" "$bytes" "${units[$i]}" || \
+			printf "%.2f %s\n" "$(echo "scale=2; $bytes/$div" | bc)" "${units[$i]}"
+			break
+		fi
 	done
-	printf "%.2f %s\n" $size "${suffixes[$i]}"
 }
 COPYRIGHT() {
 	echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."
@@ -449,24 +465,31 @@ INPUT() {
 }
 INTERFACE() {
 	interface=""
-	Interfaces=()
+	declare -a Interfaces=()
 	allInterfaces=$(cat /proc/net/dev | grep ':' | cut -d':' -f1 | sed 's/\s//g' | grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | sort -n)
-	for interfaceItem in $allInterfaces; do
-		Interfaces[${#Interfaces[@]}]=$interfaceItem
-	done
+	i=1
+	while read -r interfaceItem; do
+		[ -n "$interfaceItem" ] && Interfaces[$i]="$interfaceItem"
+		((i++))
+	done <<< "$allInterfaces"
 	interfacesNum="${#Interfaces[*]}"
 	default4Route=$(ip -4 route show default | grep -A 3 "^default")
 	default6Route=$(ip -6 route show default | grep -A 3 "^default")
 	getArrItemIdx() {
-		item="$1"
+		local item="$1"
 		shift
-		arr=("$@")
-		for index in "${!arr[@]}"; do
-			[[ "$item" == "${arr[index]}" ]] && return "$index"
+		local -a arr=("$@")
+		local i
+		for ((i=1; i<=${#arr[@]}; i++)); do
+			if [ "$item" = "${arr[$i]}" ]; then
+				echo "$i"
+				return 0
+			fi
 		done
 		return 255
 	}
-	for item in "${Interfaces[@]}"; do
+	for ((i=1; i<=${#Interfaces[@]}; i++)); do
+		item="${Interfaces[$i]}"
 		[ -z "$item" ] && continue
 		if [[ "$default4Route" == *"$item"* ]] && [ -z "$interface4" ]; then
 			interface4="$item"
@@ -749,63 +772,6 @@ SYS_INFO() {
 
 	echo -e "- Virtualization:\t${CLR2}$(CHECK_VIRT)${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-}
-SYS_INFO_KEJILION() {
-	echo -e "${CLR3}系统信息${CLR0}"
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-
-	echo -e "- 主机名：\t\t${CLR2}$(hostname)${CLR0}"
-	echo -e "- 操作系统：\t\t${CLR2}$(CHECK_OS)${CLR0}"
-	echo -e "- 内核版本：\t\t${CLR2}$(uname -r)${CLR0}"
-	# echo -e "- 机器ID：\t\t${CLR2}$(UUID)${CLR0}"
-	# echo -e "- 系统语言：\t\t${CLR2}$LANG${CLR0}"
-	# echo -e "- Shell版本：\t\t${CLR2}$(SHELL_VER)${CLR0}"
-	# echo -e "- 上次系统更新：\t${CLR2}$(LAST_UPDATE)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-
-	echo -e "- 架构：\t\t${CLR2}$(uname -m)${CLR0}"
-	echo -e "- CPU型号：\t\t${CLR2}$(CPU_MODEL)${CLR0}"
-	echo -e "- CPU核心数：\t\t${CLR2}$(nproc)${CLR0}"
-	echo -e "- CPU频率：\t\t${CLR2}$(CPU_FREQ)${CLR0}"
-	# echo -e "- CPU使用率：\t\t${CLR2}$(CPU_USAGE)${CLR0}"
-	# echo -e "- CPU缓存：\t\t${CLR2}$(CPU_CACHE)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-
-	echo -e "- 平均负载：\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
-	echo -e "- 进程数：\t\t${CLR2}$(ps aux | wc -l)${CLR0}"
-	echo -e "- 已安装包数：\t\t${CLR2}$(PKG_COUNT)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-
-	echo -e "- 内存使用：\t\t${CLR2}$(MEM_USAGE)${CLR0}"
-	echo -e "- 交换分区使用：\t${CLR2}$(SWAP_USAGE)${CLR0}"
-	echo -e "- 磁盘使用：\t\t${CLR2}$(DISK_USAGE)${CLR0}"
-	# echo -e "- 文件系统类型：\t${CLR2}$(df -T / | awk 'NR==2 {print $2}')${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-
-	echo -e "- IPv4地址：\t\t${CLR2}$(IP_ADDR -4)${CLR0}"
-	echo -e "- IPv6地址：\t\t${CLR2}$(IP_ADDR -6)${CLR0}"
-	# cho -e "- MAC地址：\t\t${CLR2}$(MAC_ADDR)${CLR0}"
-	echo -e "- DNS服务器：\t\t${CLR2}$(DNS_ADDR)${CLR0}"
-	echo -e "- 网络拥堵算法：\t${CLR2}$(sysctl -n net.ipv4.tcp_congestion_control) $(sysctl -n net.core.default_qdisc)${CLR0}"
-	echo -e "- 网络提供商：\t\t${CLR2}$(NET_PROVIDER)${CLR0}"
-	# echo -e "- 公网IP：\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
-	# echo -e "- 网络接口：\t\t${CLR2}$(INTERFACE)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "- 总接收：\t\t${CLR2}$(INTERFACE &>/dev/null && CONVERT_SIZE $rx_bytes)${CLR0}"
-	echo -e "- 总发送：\t\t${CLR2}$(INTERFACE &>/dev/null && CONVERT_SIZE  $tx_bytes)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-	echo -e "- 系统时区：\t\t${CLR2}$(TIMEZONE -i)${CLR0}"
-	# echo -e "- 外部时区：\t\t${CLR2}$(TIMEZONE -e)${CLR0}"
-	echo -e "- 地理位置：\t\t${CLR2}$(curl -s https://ipinfo.io | grep -E 'city|region|country' | cut -d'"' -f4 | tr '\n' ',' | sed 's/,/, /g' | sed 's/, $//')${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
-
-	echo -e "- 运行时间：\t\t${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
-	# echo -e "- 启动时间：\t\t${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
-	# echo -e "${CLR8}$(LINE - "32")${CLR0}"
-
-	# echo -e "- 虚拟环境：\t\t${CLR2}$(CHECK_VIRT)${CLR0}"
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	echo -e "来自 github.com/OG-Open-Source 组织"
 }
 SYS_OPTIMIZE() {
 	CHECK_ROOT
