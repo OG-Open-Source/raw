@@ -1,111 +1,3 @@
-/*
-Cloudflare Worker Proxy by OG-Open-Source
-
-一、環境設置：
-	1. 在 Cloudflare Workers 中設置以下環境變量：
-		- CF_API_TOKEN：Cloudflare API Token（需要 Firewall Services 編輯權限）（祕密）
-		- CF_ZONE_ID：Cloudflare Zone ID（數值）
-		- CF_API_URL：https://api.cloudflare.com/client/v4（數值）
-
-	2. 如需使用請求計數功能，需要創建 D1 數據庫：
-		- 在 Cloudflare Workers 中創建名為 PROXY_DATABASE 的 D1 數據庫
-		- 執行以下 SQL 創建表：
-			CREATE TABLE IF NOT EXISTS ip_visits (
-				date TEXT,
-				ip TEXT,
-				count INTEGER DEFAULT 1,
-				PRIMARY KEY (date, ip)
-			);
-		- 在 wrangler.toml 中添加：
-			[[d1_databases]]
-			binding = "PROXY_DATABASE"
-			database_name = "proxy_database"
-			database_id = "<your-database-id>"
-
-	3. 如需使用配置持久化功能，需要創建 KV namespace：
-		- 在 Cloudflare Workers 中創建名為 PROXY_CONFIG 的 KV namespace
-		- 在 wrangler.toml 中添加：
-			kv_namespaces = [
-				{ binding = "PROXY_CONFIG", id = "<your-namespace-id>" }
-			]
-
-二、功能說明：
-	1. 訪問控制：
-		- Worker 層面：當 WAF.ENABLED = false 時生效
-		- Cloudflare WAF：當 WAF.ENABLED = true 時生效
-		- 兩種方式都支持國家和 IP 封鎖
-
-	2. URL 控制：
-		- 只允許訪問指定域名前綴的 URL
-		- 可選添加通用匹配模式
-
-	3. 請求計數：
-		- 記錄每個 IP 的訪問次數
-		- 每天 UTC+0 12:00 清理前一天的數據
-
-三、配置指令：
-	1. 開啟 WAF 並設定允許的國家：
-	curl -X POST 'https://your-worker-url/api/config' \
-	-H 'X-Update-Key: your-update-key' \
-	-H 'Content-Type: application/json' \
-	-d '{
-		"waf": {
-			"ENABLED": true,
-			"ALLOWED_COUNTRIES": ["TW", "HK", "JP"],
-			"BLOCKED_COUNTRIES": [],
-			"BLOCKED_IPS": []
-		}
-	}'
-
-	2. 設定封鎖的國家：
-	curl -X POST 'https://your-worker-url/api/config' \
-	-H 'X-Update-Key: your-update-key' \
-	-H 'Content-Type: application/json' \
-	-d '{
-		"waf": {
-			"ENABLED": true,
-			"ALLOWED_COUNTRIES": [],
-			"BLOCKED_COUNTRIES": ["CN", "RU"],
-			"BLOCKED_IPS": []
-		}
-	}'
-
-	3. 設定封鎖的 IP：
-	curl -X POST 'https://your-worker-url/api/config' \
-	-H 'X-Update-Key: your-update-key' \
-	-H 'Content-Type: application/json' \
-	-d '{
-		"waf": {
-			"ENABLED": true,
-			"ALLOWED_COUNTRIES": [],
-			"BLOCKED_COUNTRIES": [],
-			"BLOCKED_IPS": ["1.2.3.4", "5.6.7.8"]
-		}
-	}'
-
-	4. 關閉 WAF（使用 Worker 層面阻擋）：
-	curl -X POST 'https://your-worker-url/api/config' \
-	-H 'X-Update-Key: your-update-key' \
-	-H 'Content-Type: application/json' \
-	-d '{
-		"waf": {
-			"ENABLED": false,
-			"ALLOWED_COUNTRIES": [],
-			"BLOCKED_COUNTRIES": ["TW"],
-			"BLOCKED_IPS": []
-		}
-	}'
-
-四、注意事項：
-	1. ALLOWED_COUNTRIES 和 BLOCKED_COUNTRIES 不能同時使用
-	2. 國家代碼使用 ISO 3166-1 alpha-2 格式（如：TW, HK, JP）
-	3. IP 地址使用標準 IPv4 格式
-	4. 如需使用 API，則務必配置 API_ACCESS.ENABLE_AUTH = true 並設定 API_ACCESS.UPDATE_KEY，保持其餘配值不變
-	5. 關閉 WAF 時會刪除所有名為 "Block non-listed countries"、"Block listed countries"、"Block listed IPs" 的防火牆規則
-	6. ALLOWED_DOMAIN_PREFIXES 和 ALLOWED_GENERAL_PATTERN 只能通過修改代碼更新
-	7. 請求計數功能需要配置 D1 數據庫
-*/
-
 const GLOBAL_CONFIG = {
 	API_ACCESS: {
 		ENABLE_AUTH: true,
@@ -127,7 +19,13 @@ const GLOBAL_CONFIG = {
 		ALLOWED_GENERAL_PATTERN: ''
 	},
 
-	ENABLE_REQUEST_COUNT: false
+	PROXY: {
+		TIMEOUT: 30
+	},
+
+	REQUEST_COUNT: {
+		ENABLED: true,
+	}
 };
 
 const RUNTIME_CONFIG = {
@@ -245,161 +143,190 @@ async function manageFirewallRules(env) {
 	}
 }
 
-export default {
-	async fetch(request, env, ctx) {
-		let config = await env.PROXY_CONFIG.get('waf_config', { type: 'json' });
-		if (!config) {
-			config = GLOBAL_CONFIG.WAF;
-		}
+async function incrementRequestCount(db, ip) {
+	if (!db) return;
 
-		const { pathname } = new URL(request.url);
-		const { headers, cf } = request;
-		const isApiRequest = pathname.startsWith('/api/');
+	const now = new Date();
+	const currentDate = now.toISOString().split('T')[0];
+	const cleanupDate = new Date(now);
+	
+	if (now.getUTCHours() === 0) {
+		cleanupDate.setDate(cleanupDate.getDate() - 1);
+	}
 
-		if (GLOBAL_CONFIG.ENABLE_REQUEST_COUNT && env.PROXY_DATABASE) {
-			try {
-				const clientIP = headers.get('cf-connecting-ip') || cf.ip || 'unknown';
-				ctx.waitUntil(incrementRequestCount(env.PROXY_DATABASE, clientIP));
-			} catch (error) {
-				console.error('Error incrementing request count:', error);
+	const batch = [
+		db.prepare(`
+			INSERT INTO ip_visits (date, ip, count)
+			VALUES (?, ?, 1)
+			ON CONFLICT(date, ip) DO UPDATE
+				SET count = count + 1
+				WHERE date = ? AND ip = ?
+		`).bind(currentDate, ip, currentDate, ip),
+
+		db.prepare(`
+			DELETE FROM ip_visits WHERE date < ?
+		`).bind(cleanupDate.toISOString().split('T')[0])
+	];
+
+	try {
+		await db.batch(batch);
+	} catch (error) {
+		console.error('Counter error:', error);
+	}
+}
+
+const URL_CACHE = {
+	cache: new Map(),
+	maxSize: 1000,
+	get(url) {
+		return this.cache.get(url);
+	},
+	set(url, allowed) {
+		if (this.cache.size >= this.maxSize) {
+			const entries = Array.from(this.cache.entries());
+			const halfSize = Math.floor(this.maxSize / 2);
+			this.cache.clear();
+			for (const [key, value] of entries.slice(-halfSize)) {
+				this.cache.set(key, value);
 			}
 		}
-
-		if (isApiRequest) {
-			const authKey = request.headers.get('X-Update-Key');
-			if (authKey !== GLOBAL_CONFIG.API_ACCESS.UPDATE_KEY) {
-				return new Response('Unauthorized', { status: 401, headers: COMMON_HEADERS.CORS });
-			}
-
-			if (!env.CF_API_TOKEN || !env.CF_ZONE_ID || !env.CF_API_URL) {
-				return new Response('Missing API configuration', { status: 500, headers: COMMON_HEADERS.CORS });
-			}
-
-			switch (pathname) {
-				case '/api/config':
-					if (request.method === 'POST') {
-						try {
-							const newConfig = await request.json();
-							if (newConfig.waf) {
-								await env.PROXY_CONFIG.put('waf_config', JSON.stringify(newConfig.waf));
-								config = newConfig.waf;
-
-								if (config.ENABLED) {
-									await manageFirewallRules(env);
-								} else {
-									await manageFirewallRules(env);
-								}
-							}
-							return new Response('Configuration updated', {
-								status: 200,
-								headers: COMMON_HEADERS.CORS
-							});
-						} catch (error) {
-							return new Response(`Update failed: ${error.message}`, {
-								status: 500,
-								headers: COMMON_HEADERS.CORS
-							});
-						}
-					}
-					break;
-			}
-		}
-
-		if (!isApiRequest && !config.ENABLED) {
-			const clientIP = headers.get('cf-connecting-ip') || cf.ip || 'unknown';
-			const clientCountry = cf.country;
-
-			if (config.BLOCKED_IPS.includes(clientIP)) {
-				return new Response('Access denied: Your IP has been blocked.', {
-					status: 403,
-					headers: COMMON_HEADERS.CORS
-				});
-			}
-
-			if (config.ALLOWED_COUNTRIES.length > 0) {
-				if (!config.ALLOWED_COUNTRIES.includes(clientCountry)) {
-					return new Response('Access denied: Your country is not allowed.', {
-						status: 403,
-						headers: COMMON_HEADERS.CORS
-					});
-				}
-			} else if (config.BLOCKED_COUNTRIES.includes(clientCountry)) {
-				return new Response('Access denied: Your country is blocked.', {
-					status: 403,
-					headers: COMMON_HEADERS.CORS
-				});
-			}
-		}
-
-		const parsedUrl = new URL(request.url);
-		let targetUrl = parsedUrl.pathname.slice(1)
-			.replace('https:/', 'https://')
-			.replace('http:/', 'http://');
-
-		if (!targetUrl || !isAllowedUrl(targetUrl)) {
-			return new Response('Access denied', { status: 403, headers: COMMON_HEADERS.CORS });
-		}
-
-		try {
-			const destinationURL = new URL(targetUrl);
-			destinationURL.search = parsedUrl.search;
-
-			const response = await fetch(destinationURL, {
-				method: request.method,
-				headers: request.headers
-			});
-
-			const newResponse = new Response(response.body, response);
-			newResponse.headers.set('Access-Control-Allow-Origin', '*');
-			return newResponse;
-		} catch (error) {
-			return new Response('Internal Server Error', { status: 500, headers: COMMON_HEADERS.CORS });
-		}
+		this.cache.set(url, allowed);
 	}
 };
 
 function isAllowedUrl(url) {
+	const cachedResult = URL_CACHE.get(url);
+	if (cachedResult !== undefined) {
+		return cachedResult;
+	}
+
 	for (const prefix of RUNTIME_CONFIG.ALLOWED_DOMAIN_PREFIXES) {
 		if (url.startsWith(prefix)) {
-			return !GLOBAL_CONFIG.URL_CONTROL.ALLOWED_GENERAL_PATTERN ||
-				   url.includes(GLOBAL_CONFIG.URL_CONTROL.ALLOWED_GENERAL_PATTERN);
+			const result = !GLOBAL_CONFIG.URL_CONTROL.ALLOWED_GENERAL_PATTERN ||
+							url.includes(GLOBAL_CONFIG.URL_CONTROL.ALLOWED_GENERAL_PATTERN);
+			URL_CACHE.set(url, result);
+			return result;
 		}
 	}
+
+	URL_CACHE.set(url, false);
 	return false;
 }
 
-async function incrementRequestCount(db, ip) {
-	if (!db) {
-		console.error('Database not configured');
-		return;
-	}
+function errorResponse(message, status = 500) {
+	return new Response(message, {
+		status,
+		headers: COMMON_HEADERS.CORS
+	});
+}
 
-	const now = new Date();
-	const utcHour = now.getUTCHours();
-	const currentDate = now.toISOString().split('T')[0];
-
-	const cleanupDate = new Date(now);
-	if (utcHour < 12) {
-		cleanupDate.setDate(cleanupDate.getDate() - 1);
-	}
-	const dateToClean = cleanupDate.toISOString().split('T')[0];
+async function proxyRequest(destinationURL, request) {
+	const options = {
+		method: request.method,
+		headers: request.headers,
+		cf: {
+			timeout: GLOBAL_CONFIG.PROXY.TIMEOUT
+		}
+	};
 
 	try {
-		await db.batch([
-			db.prepare(
-				`INSERT INTO ip_visits (date, ip, count)
-				 VALUES (?, ?, 1)
-				 ON CONFLICT(date, ip) DO UPDATE
-				 SET count = count + 1
-				 WHERE date = ? AND ip = ?`
-			).bind(currentDate, ip, currentDate, ip),
-
-			db.prepare(
-				`DELETE FROM ip_visits WHERE date = ?`
-			).bind(dateToClean)
-		]);
+		const response = await fetch(destinationURL, options);
+		const newResponse = new Response(response.body, response);
+		newResponse.headers.set('Access-Control-Allow-Origin', '*');
+		return newResponse;
 	} catch (error) {
-		console.error('Counter error:', error);
-		throw error;
+		return errorResponse('Proxy request failed', 502);
 	}
 }
+
+function checkWafRules(config, headers, cf) {
+	const clientIP = headers.get('cf-connecting-ip') || cf?.ip || 'unknown';
+	const clientCountry = cf?.country;
+
+	if (config.BLOCKED_IPS.includes(clientIP)) {
+		return errorResponse('Access denied: Your IP has been blocked.', 403);
+	}
+
+	if (config.ALLOWED_COUNTRIES.length > 0) {
+		if (!config.ALLOWED_COUNTRIES.includes(clientCountry)) {
+			return errorResponse('Access denied: Your country is not allowed.', 403);
+		}
+	} else if (config.BLOCKED_COUNTRIES.includes(clientCountry)) {
+		return errorResponse('Access denied: Your country is blocked.', 403);
+	}
+
+	return null;
+}
+
+export default {
+	async fetch(request, env, ctx) {
+		try {
+			let config = await env.PROXY_CONFIG?.get('waf_config', { type: 'json' });
+			if (!config) {
+				config = GLOBAL_CONFIG.WAF;
+			}
+
+			const { pathname } = new URL(request.url);
+			const { headers, cf } = request;
+			const isApiRequest = pathname.startsWith('/api/');
+
+			if (GLOBAL_CONFIG.REQUEST_COUNT.ENABLED && env.PROXY_DATABASE) {
+				const clientIP = headers.get('cf-connecting-ip') || cf?.ip || 'unknown';
+				ctx.waitUntil(incrementRequestCount(env.PROXY_DATABASE, clientIP));
+			}
+
+			if (isApiRequest) {
+				const authKey = request.headers.get('X-Update-Key');
+				if (authKey !== GLOBAL_CONFIG.API_ACCESS.UPDATE_KEY) {
+					return errorResponse('Unauthorized', 401);
+				}
+
+				if (!env.CF_API_TOKEN || !env.CF_ZONE_ID || !env.CF_API_URL) {
+					return errorResponse('Missing API configuration', 500);
+				}
+
+				switch (pathname) {
+					case '/api/config':
+						if (request.method === 'POST') {
+							try {
+								const newConfig = await request.json();
+								if (newConfig.waf) {
+									await env.PROXY_CONFIG.put('waf_config', JSON.stringify(newConfig.waf));
+									config = newConfig.waf;
+									await manageFirewallRules(env);
+								}
+								return errorResponse('Configuration updated', 200);
+							} catch (error) {
+								return errorResponse(`Update failed: ${error.message}`, 500);
+							}
+						}
+						break;
+				}
+			}
+
+			if (!isApiRequest && !config.ENABLED) {
+				const wafCheck = checkWafRules(config, headers, cf);
+				if (wafCheck) return wafCheck;
+			}
+
+			const parsedUrl = new URL(request.url);
+			let targetUrl = parsedUrl.pathname.slice(1)
+				.replace('https:/', 'https://')
+				.replace('http:/', 'http://');
+
+			if (!targetUrl || !isAllowedUrl(targetUrl)) {
+				return errorResponse('Access denied', 403);
+			}
+
+			try {
+				const destinationURL = new URL(targetUrl);
+				destinationURL.search = parsedUrl.search;
+				return await proxyRequest(destinationURL, request);
+			} catch (error) {
+				return errorResponse('Internal Server Error', 500);
+			}
+		} catch (error) {
+			return errorResponse('Internal Server Error', 500);
+		}
+	}
+};
