@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.012"
+Version="5.037.013"
 License="MIT License"
 
 SH="function.sh"
@@ -24,16 +24,16 @@ error() {
 }
 
 ADD() {
-	CHECK_ROOT
-	[ $# -eq 0 ] && { error "No items specified for installation\n"; return 1; }
+	[ $# -eq 0 ] && { error "No items specified for insertion\n"; return 1; }
 	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			-f) mode="file"; shift; continue ;;
 			-d) mode="directory"; shift; continue ;;
 			*.deb)
+				CHECK_ROOT
 				deb_file=$(basename "$1")
-				echo -e "${CLR3}INSTALL DEB PACKAGE [$deb_file]\n${CLR0}"
+				echo -e "${CLR3}INSERT DEB PACKAGE [$deb_file]\n${CLR0}"
 				GET "$1"
 				if [ -f "$deb_file" ]; then
 					dpkg -i "$deb_file" || { error "Failed to install $deb_file using dpkg\n"; rm -f "$deb_file"; shift; continue; }
@@ -49,24 +49,40 @@ ADD() {
 				shift
 				;;
 			*)
-				echo -e "${CLR3}INSERT ${mode^^} [$1]${CLR0}"
+				echo -e "${CLR3}INSERT $(echo "$mode" | tr '[:lower:]' '[:upper:]') [$1]${CLR0}"
 				case "$mode" in
-					"file"|"directory")
-						if [ -"${mode:0:1}" "$1" ]; then
-							error "${mode^} $1 already exists\n"
+					"file")
+						if [ -e "$1" ]; then
+							if [ -d "$1" ]; then
+								error "Directory $1 already exists. Cannot create file with the same name\n"
+							else
+								error "File $1 already exists\n"
+							fi
 							shift
 							continue
 						else
-							case "$mode" in
-								"file") touch "$1" ;;
-								"directory") mkdir -p "$1" ;;
-							esac || { error "Failed to create $mode $1\n"; shift; continue; }
-							echo "* ${mode^} $1 created successfully"
+							touch "$1" || { error "Failed to create file $1\n"; shift; continue; }
+							echo "* File $1 created successfully"
 							echo -e "${CLR2}FINISHED${CLR0}\n"
 						fi
-						shift
+						;;
+					"directory")
+						if [ -e "$1" ]; then
+							if [ -f "$1" ]; then
+								error "File $1 already exists. Cannot create directory with the same name\n"
+							else
+								error "Directory $1 already exists\n"
+							fi
+							shift
+							continue
+						else
+							mkdir -p "$1" || { error "Failed to create directory $1\n"; shift; continue; }
+							echo "* Directory $1 created successfully"
+							echo -e "${CLR2}FINISHED${CLR0}\n"
+						fi
 						;;
 					"package")
+						CHECK_ROOT
 						pkg_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
 						pkg_manager=${pkg_manager##*/}
 						case $pkg_manager in
@@ -112,9 +128,9 @@ ADD() {
 								error "Unsupported package manager\n"
 								;;
 						esac
-						shift
 						;;
 				esac
+				shift
 				;;
 		esac
 	done
@@ -232,36 +248,40 @@ CONVERT_SIZE() {
 	unit_lower=$(echo "$unit" | tr '[:upper:]' '[:lower:]')
 	case "$unit_lower" in
 		b) bytes=$size ;;
-		kb|kib) bytes=$(echo "$size * $([[ $unit_lower == kb ]] && echo 1000 || echo 1024)" | bc) ;;
-		mb|mib) bytes=$(echo "$size * $([[ $unit_lower == mb ]] && echo 1000000 || echo 1048576)" | bc) ;;
-		gb|gib) bytes=$(echo "$size * $([[ $unit_lower == gb ]] && echo 1000000000 || echo 1073741824)" | bc) ;;
-		tb|tib) bytes=$(echo "$size * $([[ $unit_lower == tb ]] && echo 1000000000000 || echo 1099511627776)" | bc) ;;
-		pb|pib) bytes=$(echo "$size * $([[ $unit_lower == pb ]] && echo 1000000000000000 || echo 1125899906842624)" | bc) ;;
+		kb|kib) bytes=$(awk -v size="$size" 'BEGIN {print size * (/^kb$/ ? 1000 : 1024)}' <<< "$unit_lower") ;;
+		mb|mib) bytes=$(awk -v size="$size" 'BEGIN {print size * (/^mb$/ ? 1000000 : 1048576)}' <<< "$unit_lower") ;;
+		gb|gib) bytes=$(awk -v size="$size" 'BEGIN {print size * (/^gb$/ ? 1000000000 : 1073741824)}' <<< "$unit_lower") ;;
+		tb|tib) bytes=$(awk -v size="$size" 'BEGIN {print size * (/^tb$/ ? 1000000000000 : 1099511627776)}' <<< "$unit_lower") ;;
+		pb|pib) bytes=$(awk -v size="$size" 'BEGIN {print size * (/^pb$/ ? 1000000000000000 : 1125899906842624)}' <<< "$unit_lower") ;;
 		*) bytes=$size ;;
 	esac
 	if [[ $unit_lower =~ ^.*ib$ ]]; then
-		units=("B" "KiB" "MiB" "GiB" "TiB" "PiB") 
-		base=1024
+		awk -v bytes="$bytes" '
+		BEGIN {
+			if (bytes < 1024) printf "%d B\n", bytes
+			else if (bytes < 1048576) printf "%.2f KiB\n", bytes/1024
+			else if (bytes < 1073741824) printf "%.2f MiB\n", bytes/1048576
+			else if (bytes < 1099511627776) printf "%.2f GiB\n", bytes/1073741824
+			else if (bytes < 1125899906842624) printf "%.2f TiB\n", bytes/1099511627776
+			else printf "%.2f PiB\n", bytes/1125899906842624
+		}'
 	else
-		units=("B" "KB" "MB" "GB" "TB" "PB")
-		base=1000
+		awk -v bytes="$bytes" '
+		BEGIN {
+			if (bytes < 1000) printf "%d B\n", bytes
+			else if (bytes < 1000000) printf "%.2f KB\n", bytes/1000
+			else if (bytes < 1000000000) printf "%.2f MB\n", bytes/1000000
+			else if (bytes < 1000000000000) printf "%.2f GB\n", bytes/1000000000
+			else if (bytes < 1000000000000000) printf "%.2f TB\n", bytes/1000000000000
+			else printf "%.2f PB\n", bytes/1000000000000000
+		}'
 	fi
-	for i in {0..5}; do
-		div=$(echo "$base^$i" | bc)
-		next_div=$(echo "$base^($i+1)" | bc)
-		if [ "$bytes" -lt "$next_div" ]; then
-			[ $i -eq 0 ] && printf "%d %s\n" "$bytes" "${units[$i]}" || \
-			printf "%.2f %s\n" "$(echo "scale=2; $bytes/$div" | bc)" "${units[$i]}"
-			break
-		fi
-	done
 }
 COPYRIGHT() {
 	echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."
 }
 
 DEL() {
-	CHECK_ROOT
 	[ $# -eq 0 ] && { error "No items specified for deletion\n"; return 1; }
 	mode="package"
 	while [ $# -gt 0 ]; do
@@ -269,19 +289,30 @@ DEL() {
 			-f) mode="file"; shift; continue ;;
 			-d) mode="directory"; shift; continue ;;
 			*)
-				echo -e "${CLR3}REMOVE ${mode^^} [$1]${CLR0}"
+				echo -e "${CLR3}REMOVE $(echo "$mode" | tr '[:lower:]' '[:upper:]') [$1]${CLR0}"
 				case "$mode" in
-					"file"|"directory")
-						if [ -"${mode:0:1}" "$1" ]; then
-							echo "* ${mode^} $1 exists. Attempting removal..."
-							rm -rf"${mode:0:1}" "$1" || { error "Failed to remove $mode $1\n"; shift; continue; }
-							echo "* ${mode^} $1 removed successfully"
+					"file")
+						if [ -f "$1" ]; then
+							echo "* File $1 exists. Attempting removal..."
+							rm -f "$1" || { error "Failed to remove file $1\n"; shift; continue; }
+							echo "* File $1 removed successfully"
 							echo -e "${CLR2}FINISHED${CLR0}\n"
 						else
-							error "${mode^} $1 does not exist\n"
+							error "File $1 does not exist\n"
+						fi
+						;;
+					"directory")
+						if [ -d "$1" ]; then
+							echo "* Directory $1 exists. Attempting removal..."
+							rm -rf "$1" || { error "Failed to remove directory $1\n"; shift; continue; }
+							echo "* Directory $1 removed successfully"
+							echo -e "${CLR2}FINISHED${CLR0}\n"
+						else
+							error "Directory $1 does not exist\n"
 						fi
 						;;
 					"package")
+						CHECK_ROOT
 						pkg_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
 						pkg_manager=${pkg_manager##*/}
 						case $pkg_manager in
