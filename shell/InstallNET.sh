@@ -22,7 +22,7 @@
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
 [ -f ~/function.sh ] && source ~/function.sh || bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh) && source ~/function.sh
 
-Version="2024.10.26"
+Version="2024.11.07"
 License="GPL"
 SH="InstallNET.sh"
 
@@ -1954,7 +1954,7 @@ DebianModifiedPreseed() {
 			fail2banComponent="fail2ban"
 		}
 		AptUpdating="$1 apt update -y;"
-		InstallComponents="$1 apt install apt-transport-https bc ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file jq lrzsz lsb-release nano net-tools sudo vim wget -y;"
+		InstallComponents="$1 apt install apt-transport-https bc ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file fuser jq lrzsz lsb-release nano net-tools sudo vim wget -y;"
 		DisableCertExpiredCheck="$1 sed -i '/^mozilla\/DST_Root_CA_X3/s/^/!/' /etc/ca-certificates.conf; $1 update-ca-certificates -f;"
 		if [[ "$IsCN" == "1" ]]; then
 			ChangeBashrc="$1 rm -rf /root/.bashrc; $1 curl -ksLo /root/.bashrc '${debianConfFileDirCn}/.bashrc';"
