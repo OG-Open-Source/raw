@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.013"
+Version="5.037.014"
 License="MIT License"
 
 SH="function.sh"
@@ -248,11 +248,11 @@ CONVERT_SIZE() {
 	unit_lower=$(echo "$unit" | tr '[:upper:]' '[:lower:]')
 	case "$unit_lower" in
 		b) bytes=$size ;;
-		kb|kib) bytes=$(awk -v size="$size" 'BEGIN {print size * (/^kb$/ ? 1000 : 1024)}' <<< "$unit_lower") ;;
-		mb|mib) bytes=$(awk -v size="$size" 'BEGIN {print size * (/^mb$/ ? 1000000 : 1048576)}' <<< "$unit_lower") ;;
-		gb|gib) bytes=$(awk -v size="$size" 'BEGIN {print size * (/^gb$/ ? 1000000000 : 1073741824)}' <<< "$unit_lower") ;;
-		tb|tib) bytes=$(awk -v size="$size" 'BEGIN {print size * (/^tb$/ ? 1000000000000 : 1099511627776)}' <<< "$unit_lower") ;;
-		pb|pib) bytes=$(awk -v size="$size" 'BEGIN {print size * (/^pb$/ ? 1000000000000000 : 1125899906842624)}' <<< "$unit_lower") ;;
+		kb|kib) bytes=$(awk -v size="$size" -v unit="$unit_lower" 'BEGIN {print size * (unit == "kb" ? 1000 : 1024)}') ;;
+		mb|mib) bytes=$(awk -v size="$size" -v unit="$unit_lower" 'BEGIN {print size * (unit == "mb" ? 1000000 : 1048576)}') ;;
+		gb|gib) bytes=$(awk -v size="$size" -v unit="$unit_lower" 'BEGIN {print size * (unit == "gb" ? 1000000000 : 1073741824)}') ;;
+		tb|tib) bytes=$(awk -v size="$size" -v unit="$unit_lower" 'BEGIN {print size * (unit == "tb" ? 1000000000000 : 1099511627776)}') ;;
+		pb|pib) bytes=$(awk -v size="$size" -v unit="$unit_lower" 'BEGIN {print size * (unit == "pb" ? 1000000000000000 : 1125899906842624)}') ;;
 		*) bytes=$size ;;
 	esac
 	if [[ $unit_lower =~ ^.*ib$ ]]; then
