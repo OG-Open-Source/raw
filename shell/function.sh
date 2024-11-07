@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.014"
+Version="5.037.015"
 License="MIT License"
 
 SH="function.sh"
@@ -640,7 +640,11 @@ PKG_COUNT() {
 		zypper) count_cmd="zypper se --installed-only" ;;
 		*) error "Unsupported package manager"; return 1 ;;
 	esac
-	$count_cmd | wc -l || { error "Failed to count packages for ${pkg_manager##*/}"; return 1; }
+	if ! package_count=$($count_cmd 2>/dev/null | wc -l) || [[ -z "$package_count" || "$package_count" -eq 0 ]]; then
+		error "Failed to count packages for ${pkg_manager##*/}"
+		return 1
+	fi
+	echo "$package_count"
 }
 PROGRESS() {
 	num_cmds=${#cmds[@]}
@@ -727,10 +731,7 @@ SYS_CLEAN() {
 			dnf clean all || { error "Failed to clean DNF cache"; return 1; }
 			dnf makecache || { error "Failed to make DNF cache"; return 1; }
 			;;
-		*)
-			error "Unsupported package manager. Skipping system-specific cleanup"
-			return 1
-			;;
+		*) { error "Unsupported package manager. Skipping system-specific cleanup"; return 1; } ;;
 	esac
 	if command -v journalctl &>/dev/null; then
 		journalctl --rotate --vacuum-time=1d --vacuum-size=500M || { error "Failed to rotate and vacuum journalctl logs"; return 1; }
@@ -739,14 +740,9 @@ SYS_CLEAN() {
 	for cmd in docker npm pip; do
 		if command -v "$cmd" &>/dev/null; then
 			case "$cmd" in
-				docker)
-					docker system prune -af || { error "Failed to clean Docker system"; return 1; }
-					;;
-				npm) npm cache clean --force || { error "Failed to clean NPM cache"; return 1; }
-					;;
-				pip)
-					pip cache purge || { error "Failed to purge PIP cache"; return 1; }
-					;;
+				docker) docker system prune -af || { error "Failed to clean Docker system"; return 1; } ;;
+				npm) npm cache clean --force || { error "Failed to clean NPM cache"; return 1; } ;;
+				pip) pip cache purge || { error "Failed to purge PIP cache"; return 1; } ;;
 			esac
 		fi
 	done
@@ -826,9 +822,7 @@ SYS_OPTIMIZE() {
 	echo "* Disabling unnecessary services..."
 	services_to_disable=("bluetooth" "cups" "avahi-daemon")
 	for service in "${services_to_disable[@]}"; do
-		if systemctl is-active --quiet "$service"; then
-			systemctl disable --now "$service" || { error "Failed to disable $service"; return 1; }
-		fi
+		systemctl disable --now "$service" || { error "Failed to disable $service"; return 1; }
 	done
 	echo "* Updating system limits..."
 	limits_file="/etc/security/limits.conf"
@@ -862,7 +856,6 @@ SYS_REBOOT() {
 	CHECK_ROOT
 	echo -e "${CLR3}Preparing to reboot system...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-
 	active_users=$(who | wc -l)
 	if [ "$active_users" -gt 1 ]; then
 		echo -e "${CLR1}Warning: There are currently $active_users active users on the system.\n${CLR0}"
@@ -870,7 +863,6 @@ SYS_REBOOT() {
 		who | awk '{print $1 " since " $3 " " $4}'
 		echo
 	fi
-
 	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l)
 	if [ "$important_processes" -gt 0 ]; then
 		echo -e "${CLR1}Warning: There are $important_processes important processes running.\n${CLR0}"
@@ -878,14 +870,9 @@ SYS_REBOOT() {
 		ps aux --sort=-%cpu | head -n 6
 		echo
 	fi
-
 	read -p "Are you sure you want to reboot the system now? (y/N) " -n 1 -r
 	echo
-	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-		echo -e "${CLR2}Reboot cancelled.\n${CLR0}"
-		return 0
-	fi
-
+	[[ ! $REPLY =~ ^[Yy]$ ]] && { echo -e "${CLR2}Reboot cancelled.\n${CLR0}"; return 0; }
 	echo "* Performing final checks before reboot..."
 	sync || { error "Failed to sync filesystems"; return 1; }
 	echo -e "${CLR3}Initiating system reboot...${CLR0}"
@@ -896,22 +883,17 @@ SYS_UPDATE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Updating system software...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-
 	update_packages() {
 		cmd="$1"
 		update_cmd="$2"
 		upgrade_cmd="$3"
-
 		echo "* Updating package lists..."
 		$update_cmd || { error "Failed to update package lists using $cmd"; return 1; }
 		echo "* Upgrading packages..."
 		$upgrade_cmd || { error "Failed to upgrade packages using $cmd"; return 1; }
 	}
-
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
-		*apk)
-			update_packages "apk" "apk update" "apk upgrade"
-			;;
+		*apk) update_packages "apk" "apk update" "apk upgrade" ;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
 				echo "* Waiting for dpkg lock to be released..."
@@ -921,28 +903,16 @@ SYS_UPDATE() {
 			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || { error "Failed to configure pending packages"; return 1; }
 			update_packages "apt" "apt update -y" "apt full-upgrade -y"
 			;;
-		*opkg)
-			update_packages "opkg" "opkg update" "opkg upgrade"
-			;;
+		*opkg) update_packages "opkg" "opkg update" "opkg upgrade" ;;
 		*pacman)
 			echo "* Updating package databases and upgrading packages..."
 			pacman -Syu --noconfirm || { error "Failed to update and upgrade packages using pacman"; return 1; }
 			;;
-		*yum)
-			update_packages "yum" "yum check-update" "yum -y update"
-			;;
-		*zypper)
-			update_packages "zypper" "zypper refresh" "zypper update -y"
-			;;
-		*dnf)
-			update_packages "dnf" "dnf check-update" "dnf -y update"
-			;;
-		*)
-			error "Unsupported package manager"
-			return 1
-			;;
+		*yum) update_packages "yum" "yum check-update" "yum -y update" ;;
+		*zypper) update_packages "zypper" "zypper refresh" "zypper update -y" ;;
+		*dnf) update_packages "dnf" "dnf check-update" "dnf -y update" ;;
+		*) { error "Unsupported package manager"; return 1; } ;;
 	esac
-
 	echo "* Updating shell functions..."
 	bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh) || { error "Failed to update shell functions"; return 1; }
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
