@@ -13,7 +13,7 @@
 - `CF_API_URL`：Cloudflare API URL
 
 ### 2.2 D1 數據庫設置
-數據庫會自動創建以下表：
+數據庫需要創建以下表：
 ```sql
 CREATE TABLE IF NOT EXISTS ip_visits (
     date TEXT,

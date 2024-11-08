@@ -261,14 +261,14 @@ function checkWafRules(config, headers, cf) {
 export default {
 	async fetch(request, env, ctx) {
 		try {
+			const { pathname } = new URL(request.url);
+			const { headers, cf } = request;
+			const isApiRequest = pathname.startsWith('/api/');
+
 			let config = await env.PROXY_CONFIG?.get('waf_config', { type: 'json' });
 			if (!config) {
 				config = GLOBAL_CONFIG.WAF;
 			}
-
-			const { pathname } = new URL(request.url);
-			const { headers, cf } = request;
-			const isApiRequest = pathname.startsWith('/api/');
 
 			if (GLOBAL_CONFIG.REQUEST_COUNT.ENABLED && env.PROXY_DATABASE) {
 				const clientIP = headers.get('cf-connecting-ip') || cf?.ip || 'unknown';
