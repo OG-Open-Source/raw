@@ -14,9 +14,9 @@ Each script can be found in the `worker/` directory. Please refer to individual 
 
 ### Repository Structure
 
-> [worker/](.)  
->  > [cf-proxy.js](cf-proxy.js)  
->  > [README.md](README.md)  
+> [worker/](.)<br>
+>  > [cf-proxy.js](cf-proxy.js)<br>
+>  > [README.md](README.md)<br> 
 
 ## Contributing
 

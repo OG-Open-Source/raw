@@ -16,12 +16,12 @@ Each script can be found in the `shell/` directory. Please refer to individual s
 
 ### Repository Structure
 
-> [shell/](.)  
->  > [dd.sh](dd.sh)  
->  > [function.sh](function.sh)  
->  > [InstallNET.sh](InstallNET.sh)  
->  > [README.md](README.md)  
->  > [update-function.sh](update-function.sh)  
+> [shell/](.)<br>
+>  > [dd.sh](dd.sh)<br>
+>  > [function.sh](function.sh)<br>
+>  > [InstallNET.sh](InstallNET.sh)<br>
+>  > [README.md](README.md)<br>
+>  > [update-function.sh](update-function.sh)<br>
 
 ## Contributing
 
