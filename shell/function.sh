@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.016"
+Version="5.037.017"
 License="MIT License"
 
 SH="function.sh"
@@ -24,7 +24,7 @@ error() {
 }
 
 ADD() {
-	[ $# -eq 0 ] && { error "No items specified for insertion\n"; return 1; }
+	[ $# -eq 0 ] && { error "No items specified for insertion. Please provide at least one item to add"; return 1; }
 	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -36,13 +36,13 @@ ADD() {
 				echo -e "${CLR3}INSERT DEB PACKAGE [$deb_file]\n${CLR0}"
 				GET "$1"
 				if [ -f "$deb_file" ]; then
-					dpkg -i "$deb_file" || { error "Failed to install $deb_file using dpkg\n"; rm -f "$deb_file"; shift; continue; }
-					apt --fix-broken install -y || { error "Failed to fix dependencies\n"; rm -f "$deb_file"; shift; continue; }
+					dpkg -i "$deb_file" || { error "Failed to install $deb_file. Check package compatibility and dependencies"; rm -f "$deb_file"; shift; continue; }
+					apt --fix-broken install -y || { error "Failed to fix dependencies"; rm -f "$deb_file"; shift; continue; }
 					echo "* DEB package $deb_file installed successfully"
 					rm -f "$deb_file"
 					echo -e "${CLR2}FINISHED${CLR0}\n"
 				else
-					error "DEB package file $deb_file not found\n"
+					error "DEB package $deb_file not found or download failed"
 					shift
 					continue
 				fi
@@ -61,7 +61,7 @@ ADD() {
 							shift
 							continue
 						else
-							touch "$1" || { error "Failed to create file $1\n"; shift; continue; }
+							touch "$1" || { error "Failed to create file $1. Check permissions and disk space"; shift; continue; }
 							echo "* File $1 created successfully"
 							echo -e "${CLR2}FINISHED${CLR0}\n"
 						fi
@@ -76,7 +76,7 @@ ADD() {
 							shift
 							continue
 						else
-							mkdir -p "$1" || { error "Failed to create directory $1\n"; shift; continue; }
+							mkdir -p "$1" || { error "Failed to create directory $1. Check permissions and path validity"; shift; continue; }
 							echo "* Directory $1 created successfully"
 							echo -e "${CLR2}FINISHED${CLR0}\n"
 						fi
@@ -125,7 +125,7 @@ ADD() {
 								fi
 								;;
 							*)
-								error "Unsupported package manager\n"
+								error "Package manager not found. Please install a supported package manager\n"
 								;;
 						esac
 						;;
@@ -176,7 +176,7 @@ CHECK_ROOT() {
 CHECK_VIRT() {
 	virt_type=$(systemd-detect-virt 2>/dev/null)
 	if [ -z "$virt_type" ]; then
-		error "Failed to detect virtualization"
+		error "Unable to detect virtualization environment"
 		return 1
 	fi
 	case "$virt_type" in
@@ -201,19 +201,19 @@ CHECK_VIRT() {
 	esac
 }
 CLEAN() {
-	cd "$HOME" || return
+	cd "$HOME" || { error "Failed to change directory to HOME"; return 1; }
 	clear
 }
 CPU_CACHE() {
-	[ ! -f /proc/cpuinfo ] && { error "Unable to access /proc/cpuinfo"; return 1; }
+	[ ! -f /proc/cpuinfo ] && { error "Cannot access CPU information. /proc/cpuinfo not available"; return 1; }
 	cpu_cache=$(awk '/^cache size/ {sum+=$4; count++} END {print (count>0) ? sum/count : "N/A"}' /proc/cpuinfo)
-	[ "$cpu_cache" = "N/A" ] && { error "N/A"; return 1; }
+	[ "$cpu_cache" = "N/A" ] && { error "Unable to determine CPU cache size"; return 1; }
 	echo "${cpu_cache} KB"
 }
 CPU_FREQ() {
-	[ ! -f /proc/cpuinfo ] && { error "Unable to access /proc/cpuinfo"; return 1; }
+	[ ! -f /proc/cpuinfo ] && { error "Cannot access CPU information. /proc/cpuinfo not available"; return 1; }
 	cpu_freq=$(awk '/^cpu MHz/ {sum+=$4; count++} END {print (count>0) ? sprintf("%.2f", sum/count/1000) : "N/A"}' /proc/cpuinfo)
-	[ "$cpu_freq" = "N/A" ] && { error "N/A"; return 1; }
+	[ "$cpu_freq" = "N/A" ] && { error "Unable to determine CPU frequency"; return 1; }
 	echo "${cpu_freq} GHz"
 }
 CPU_MODEL() {
@@ -229,11 +229,17 @@ CPU_MODEL() {
 	fi
 }
 CPU_USAGE() {
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat)
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { 
+		error "Failed to read CPU statistics from /proc/stat"
+		return 1 
+	}
 	total1=$((user + nice + system + idle + iowait + irq + softirq))
 	idle1=$idle
 	sleep 0.3
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat)
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { 
+		error "Failed to read CPU statistics from /proc/stat"
+		return 1 
+	}
 	total2=$((user + nice + system + idle + iowait + irq + softirq))
 	idle2=$idle
 	total_diff=$((total2 - total1))
@@ -242,7 +248,7 @@ CPU_USAGE() {
 	echo "$usage%"
 }
 CONVERT_SIZE() {
-	[ -z "$1" ] && return
+	[ -z "$1" ] && { error "No size value provided for conversion"; return 1; }
 	size=$1
 	unit=${2:-iB}
 	unit_lower=$(echo "$unit" | tr '[:upper:]' '[:lower:]')
@@ -365,13 +371,13 @@ DEL() {
 	done
 }
 DISK_USAGE() {
-	used=$(df -B1 / | awk 'NR==2 {printf "%.0f", $3}')
-	total=$(df -B1 / | awk 'NR==2 {printf "%.0f", $2}')
+	used=$(df -B1 / | awk 'NR==2 {printf "%.0f", $3}') || { error "Failed to get disk usage statistics"; return 1; }
+	total=$(df -B1 / | awk 'NR==2 {printf "%.0f", $2}') || { error "Failed to get total disk space"; return 1; }
 	percentage=$(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 DNS_ADDR () {
-	[ ! -f /etc/resolv.conf ] && { error "/etc/resolv.conf file not found"; return 1; }
+	[ ! -f /etc/resolv.conf ] && { error "DNS configuration file /etc/resolv.conf not found"; return 1; }
 	ipv4_servers=()
 	ipv6_servers=()
 	while read -r server; do
@@ -381,7 +387,7 @@ DNS_ADDR () {
 			ipv6_servers+=("$server")
 		fi
 	done < <(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}')
-	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && { error "No DNS servers found in /etc/resolv.conf"; return 1; }
+	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && { error "No DNS servers configured in /etc/resolv.conf"; return 1; }
 	case "$1" in
 		-4)
 			[ ${#ipv4_servers[@]} -eq 0 ] && { error "No IPv4 DNS servers found"; return 1; }
@@ -399,7 +405,7 @@ DNS_ADDR () {
 }
 
 FIND() {
-	[ $# -eq 0 ] && { error "No search terms provided\n"; return 1; }
+	[ $# -eq 0 ] && { error "No search terms provided. Please specify what to search for"; return 1; }
 	package_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
 	case ${package_manager##*/} in
 		apk) search_command="apk search" ;;
@@ -409,7 +415,7 @@ FIND() {
 		yum) search_command="yum search" ;;
 		zypper) search_command="zypper search" ;;
 		dnf) search_command="dnf search" ;;
-		*) error "Unsupported package manager\n"; return 1 ;;
+		*) error "Package manager not found or unsupported"; return 1 ;;
 	esac
 	for target in "$@"; do
 		echo -e "${CLR3}SEARCH [$target]${CLR0}"
@@ -450,7 +456,7 @@ FONT() {
 }
 
 GET() {
-	[ $# -eq 0 ] && { error "No URL specified for download\n"; return 1; }
+	[ $# -eq 0 ] && { error "No URL specified. Please provide a URL to download"; return 1; }
 	url="$1"
 	[[ "$url" =~ ^(http|https|ftp):// ]] || url="https://$url"
 	output_file="${url##*/}"
@@ -486,18 +492,28 @@ GET() {
 		echo "* File downloaded successfully to $output_file"
 		echo -e "${CLR2}FINISHED${CLR0}\n"
 	else
-		error "Failed to download file\n"
+		error "Download failed. Check your internet connection and URL validity"
 		return 1
 	fi
 }
 
 INPUT() {
-	read -e -p "$1" "$2"
+	read -e -p "$1" "$2" || { error "Failed to read user input"; return 1; }
 }
 INTERFACE() {
 	interface=""
 	declare -a Interfaces=()
-	allInterfaces=$(cat /proc/net/dev | grep ':' | cut -d':' -f1 | sed 's/\s//g' | grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | sort -n)
+	allInterfaces=$(
+		cat /proc/net/dev | \
+		grep ':' | \
+		cut -d':' -f1 | \
+		sed 's/\s//g' | \
+		grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | \
+		sort -n
+	) || {
+		error "Failed to get network interfaces from /proc/net/dev"
+		return 1 
+	}
 	i=1
 	while read -r interfaceItem; do
 		[ -n "$interfaceItem" ] && Interfaces[$i]="$interfaceItem"
@@ -568,17 +584,17 @@ IP_ADDR() {
 			ipv4_addr=$(timeout 1s dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null) ||
 			ipv4_addr=$(timeout 1s curl -sL ipv4.ip.sb 2>/dev/null) ||
 			ipv4_addr=$(timeout 1s wget -qO- -4 ifconfig.me 2>/dev/null) ||
-			[ -n "$ipv4_addr" ] && echo "$ipv4_addr" || { error "N/A"; return 1; }
+			[ -n "$ipv4_addr" ] && echo "$ipv4_addr" || { error "Failed to retrieve IPv4 address. Check your internet connection"; return 1; }
 			;;
 		-6)
 			ipv6_addr=$(timeout 1s curl -sL ipv6.ip.sb 2>/dev/null) ||
 			ipv6_addr=$(timeout 1s wget -qO- -6 ifconfig.me 2>/dev/null) ||
-			[ -n "$ipv6_addr" ] && echo "$ipv6_addr" || { error "N/A"; return 1; }
+			[ -n "$ipv6_addr" ] && echo "$ipv6_addr" || { error "Failed to retrieve IPv6 address. Check your internet connection"; return 1; }
 			;;
 		*)
 			ipv4_addr=$(IP_ADDR -4)
 			ipv6_addr=$(IP_ADDR -6)
-			[ -z "$ipv4_addr$ipv6_addr" ] && { error "N/A"; return 1; }
+			[ -z "$ipv4_addr$ipv6_addr" ] && { error "Failed to retrieve IP addresses"; return 1; }
 			[ -n "$ipv4_addr" ] && echo "IPv4: $ipv4_addr"
 			[ -n "$ipv6_addr" ] && echo "IPv6: $ipv6_addr"
 			return
@@ -594,19 +610,24 @@ LAST_UPDATE() {
 	elif command -v rpm &>/dev/null; then
 		last_update=$(rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}')
 	fi
-	[ -z "$last_update" ] && error "N/A" && return 1 || echo "$last_update"
+	[ -z "$last_update" ] && error "Unable to determine last system update time. Update logs not found" && return 1 || echo "$last_update"
 }
 LINE() {
 	char="${1:--}"
 	length="${2:-80}"
-	printf '%*s\n' "$length" | tr ' ' "$char"
+	printf '%*s\n' "$length" | tr ' ' "$char" || { error "Failed to print line"; return 1; }
 }
 LOAD_AVERAGE() {
-	if [ -f /proc/loadavg ]; then
-		read -r one_min five_min fifteen_min _ _ < /proc/loadavg
+	if [ ! -f /proc/loadavg ]; then
+		load_data=$(uptime | sed 's/.*load average: //' | sed 's/,//g') || {
+			error "Failed to get load average from uptime command"
+			return 1
+		}
 	else
-		load_data=$(uptime | sed 's/.*load average: //' | sed 's/,//g')
-		read -r one_min five_min fifteen_min <<< "$load_data"
+		read -r one_min five_min fifteen_min _ _ < /proc/loadavg || {
+			error "Failed to read load average from /proc/loadavg"
+			return 1
+		}
 	fi
 	[[ $one_min =~ ^[0-9.]+$ ]] || one_min=0
 	[[ $five_min =~ ^[0-9.]+$ ]] || five_min=0
@@ -619,12 +640,15 @@ MAC_ADDR() {
 	if [[ -n "$mac_address" ]]; then
 		echo "$mac_address"
 	else
-		error "Failed to retrieve MAC address"
+		error "Unable to retrieve MAC address. Network interface not found"
 		return 1
 	fi
 }
 MEM_USAGE() {
-	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}')
+	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}') || {
+		error "Failed to get memory usage statistics"
+		return 1
+	}
 	total=$(free -b | awk '/^Mem:/ {print $2}') || total=$(grep MemTotal /proc/meminfo | awk '{print $2*1024}')
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}') || percentage=$(awk '/^MemTotal:/ {total=$2} /^MemAvailable:/ {available=$2} END {printf("%.2f", (total-available)/total * 100.0)}' /proc/meminfo)
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
@@ -634,7 +658,7 @@ NET_PROVIDER() {
 	result=$(timeout 1s curl -sL ipinfo.io | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	result=$(timeout 1s curl -sL ipwhois.app/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
-	[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
+	[ -n "$result" ] && echo "$result" || { error "Unable to detect network provider. Check your internet connection"; return 1; }
 }
 
 PKG_COUNT() {
@@ -646,7 +670,7 @@ PKG_COUNT() {
 		pacman) count_cmd="pacman -Q" ;;
 		yum|dnf) count_cmd="rpm -qa" ;;
 		zypper) count_cmd="zypper se --installed-only" ;;
-		*) error "Unsupported package manager"; return 1 ;;
+		*) error "Unable to count installed packages. Package manager not supported"; return 1 ;;
 	esac
 	if ! package_count=$($count_cmd 2>/dev/null | wc -l) || [[ -z "$package_count" || "$package_count" -eq 0 ]]; then
 		error "Failed to count packages for ${pkg_manager##*/}"
@@ -656,7 +680,7 @@ PKG_COUNT() {
 }
 PROGRESS() {
 	num_cmds=${#cmds[@]}
-	term_width=$(tput cols)
+	term_width=$(tput cols) || { error "Failed to get terminal width"; return 1; }
 	bar_width=$((term_width - 23))
 	stty -echo
 	trap '' SIGINT SIGQUIT SIGTSTP
@@ -666,8 +690,10 @@ PROGRESS() {
 		printf "\r\033[30;42mProgress: [%3d%%]\033[0m [%s%s]" "$progress" "$(printf "%${filled_width}s" | tr ' ' '#')" "$(printf "%$((bar_width - filled_width))s" | tr ' ' '.')"
 		if ! output=$(eval "${cmds[$i]}" 2>&1); then
 			echo -e "\n$output"
+			error "Command execution failed: ${cmds[$i]}"
 			stty echo
 			trap - SIGINT SIGQUIT SIGTSTP
+			return 1
 		fi
 	done
 	printf "\r\033[30;42mProgress: [100%%]\033[0m [%s]" "$(printf "%${bar_width}s" | tr ' ' '#')"
@@ -677,7 +703,7 @@ PROGRESS() {
 }
 PUBLIC_IP() {
 	ip=$(timeout 5s curl -sL https://ifconfig.me)
-	[ -n "$ip" ] && echo "$ip" || { error "N/A"; return 1; }
+	[ -n "$ip" ] && echo "$ip" || { error "Unable to detect public IP address. Check your internet connection"; return 1; }
 }
 
 SHELL_VER() {
@@ -764,7 +790,7 @@ SYS_INFO() {
 	echo -e "${CLR3}System Information${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 
-	echo -e "- Hostname:\t\t${CLR2}$(uname -n)${CLR0}"
+	echo -e "- Hostname:\t\t${CLR2}$(uname -n || { error "Failed to get hostname"; return 1; })${CLR0}"
 	echo -e "- Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
 	echo -e "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
 	echo -e "- System Language:\t${CLR2}$LANG${CLR0}"
@@ -865,14 +891,17 @@ SYS_REBOOT() {
 	CHECK_ROOT
 	echo -e "${CLR3}Preparing to reboot system...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	active_users=$(who | wc -l)
+	active_users=$(who | wc -l) || { error "Failed to get active user count"; return 1; }
 	if [ "$active_users" -gt 1 ]; then
 		echo -e "${CLR1}Warning: There are currently $active_users active users on the system.\n${CLR0}"
 		echo -e "Active users:"
 		who | awk '{print $1 " since " $3 " " $4}'
 		echo
 	fi
-	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l)
+	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l) || {
+		error "Failed to check running processes"
+		return 1
+	}
 	if [ "$important_processes" -gt 0 ]; then
 		echo -e "${CLR1}Warning: There are $important_processes important processes running.\n${CLR0}"
 		echo -e "${CLR8}Top 5 processes by CPU usage:${CLR0}"
@@ -907,6 +936,11 @@ SYS_UPDATE() {
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
 				echo "* Waiting for dpkg lock to be released..."
 				sleep 1
+				((wait_time++))
+				if [ "$wait_time" -gt 300 ]; then
+					error "Timeout waiting for dpkg lock to be released"
+					return 1
+				fi
 			done
 			echo "* Configuring pending packages..."
 			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || { error "Failed to configure pending packages"; return 1; }
@@ -934,13 +968,13 @@ TIMEZONE() {
 			result=$(timeout 1s curl -sL ipapi.co/timezone) ||
 			result=$(timeout 1s curl -sL worldtimeapi.org/api/ip | grep -oP '"timezone":"\K[^"]+') ||
 			result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"timezone":"\K[^"]+') ||
-			[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
+			[ -n "$result" ] && echo "$result" || { error "Failed to detect timezone from external services"; return 1; }
 			;;
 		-i|*)
 			result=$(readlink /etc/localtime | sed 's|^.*/zoneinfo/||') 2>/dev/null ||
 			result=$(command -v timedatectl &>/dev/null && timedatectl status | awk '/Time zone:/ {print $3}') ||
 			result=$(cat /etc/timezone 2>/dev/null | uniq) ||
-			[ -n "$result" ] && echo "$result" || { error "N/A"; return 1; }
+			[ -n "$result" ] && echo "$result" || { error "Failed to detect system timezone"; return 1; }
 			;;
 	esac
 }
