@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.017"
+Version="5.037.018"
 License="MIT License"
 
 SH="function.sh"
@@ -169,7 +169,7 @@ CHECK_OS() {
 }
 CHECK_ROOT() {
 	if [ "$EUID" -ne 0 ] || [ "$(id -u)" -ne 0 ]; then
-		error "Please run this script as root user\n"
+		error "Please run this script as root user"
 		exit 1
 	fi
 }
@@ -288,7 +288,7 @@ COPYRIGHT() {
 }
 
 DEL() {
-	[ $# -eq 0 ] && { error "No items specified for deletion\n"; return 1; }
+	[ $# -eq 0 ] && { error "No items specified for deletion. Please provide at least one item to delete"; return 1; }
 	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
