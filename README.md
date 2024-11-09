@@ -7,18 +7,18 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 > [raw/](.)  
 >  > [docs/](docs/)  
 >  >  > [cf-proxy.md](docs/cf-proxy.md)  
-> 
+>
 >  > [shell/](shell/)  
 >  >  > [dd.sh](shell/dd.sh)  
 >  >  > [function.sh](shell/function.sh)  
 >  >  > [InstallNET.sh](shell/InstallNET.sh)  
 >  >  > [README.md](shell/README.md)  
 >  >  > [update-function.sh](shell/update-function.sh)  
-> 
+>
 >  > [space/](space/)  
 >  >  > [gtxt.sh](space/gtxt.sh)  
 >  >  > [text.txt](space/text.txt)  
-> 
+>
 >  > [worker/](worker/)  
 >  >  > [cf-proxy.js](worker/cf-proxy.js)  
 >
