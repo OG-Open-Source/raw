@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.015"
+Version="5.037.016"
 License="MIT License"
 
 SH="function.sh"
@@ -602,8 +602,16 @@ LINE() {
 	printf '%*s\n' "$length" | tr ' ' "$char"
 }
 LOAD_AVERAGE() {
-	read one_min five_min fifteen_min <<< $(uptime | awk -F'load average:' '{print $2}' | tr -d ',')
-	printf "%.2f, %.2f, %.2f (%d cores)" "$one_min" "$five_min" "$fifteen_min" "$(nproc)"
+	if [ -f /proc/loadavg ]; then
+		read -r one_min five_min fifteen_min _ _ < /proc/loadavg
+	else
+		load_data=$(uptime | sed 's/.*load average: //' | sed 's/,//g')
+		read -r one_min five_min fifteen_min <<< "$load_data"
+	fi
+	[[ $one_min =~ ^[0-9.]+$ ]] || one_min=0
+	[[ $five_min =~ ^[0-9.]+$ ]] || five_min=0
+	[[ $fifteen_min =~ ^[0-9.]+$ ]] || fifteen_min=0
+	LC_ALL=C printf "%.2f, %.2f, %.2f (%d cores)" "$one_min" "$five_min" "$fifteen_min" "$(nproc)"
 }
 
 MAC_ADDR() {
@@ -673,6 +681,7 @@ PUBLIC_IP() {
 }
 
 SHELL_VER() {
+	LC_ALL=C
 	if [ -n "${BASH_VERSION-}" ]; then
 		echo "Bash ${BASH_VERSION}"
 	elif [ -n "${ZSH_VERSION-}" ]; then
