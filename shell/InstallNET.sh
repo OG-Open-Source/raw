@@ -22,7 +22,7 @@
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
 [ -f ~/function.sh ] && source ~/function.sh || bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh) && source ~/function.sh
 
-Version="2024.11.07"
+Version="2024.11.09"
 License="GPL"
 SH="InstallNET.sh"
 
@@ -1954,7 +1954,7 @@ DebianModifiedPreseed() {
 			fail2banComponent="fail2ban"
 		}
 		AptUpdating="$1 apt update -y;"
-		InstallComponents="$1 apt install apt-transport-https bc ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file fuser jq lrzsz lsb-release nano net-tools sudo vim wget -y;"
+		InstallComponents="$1 apt install apt-transport-https bc ca-certificates cron curl dnsutils dpkg ${fail2banComponent} file jq lrzsz lsb-release nano net-tools sudo vim wget -y;"
 		DisableCertExpiredCheck="$1 sed -i '/^mozilla\/DST_Root_CA_X3/s/^/!/' /etc/ca-certificates.conf; $1 update-ca-certificates -f;"
 		if [[ "$IsCN" == "1" ]]; then
 			ChangeBashrc="$1 rm -rf /root/.bashrc; $1 curl -ksLo /root/.bashrc '${debianConfFileDirCn}/.bashrc';"
@@ -2021,7 +2021,7 @@ DebianModifiedPreseed() {
 			ChangeBashrc=""
 			EnableSSH="$1 update-rc.d ssh enable; $1 /etc/init.d/ssh restart;"
 			ReviseMOTD="$1 sed -ri 's/Debian/Kali/g' /etc/update-motd.d/00-header;"
-			SupportZSH="$1 apt install zsh -y; $1 chsh -s /bin/zsh; $1 rm -rf /root/.bashrc.original;"
+			SupportZSH="$1 apt install zsh fuser -y; $1 chsh -s /bin/zsh; $1 rm -rf /root/.bashrc.original;"
 		}
 		[[ "$enableBBR" == "1" ]] && [[ "$DebianDistNum" -ge "11" || "$linux_release" == "kali" ]] && {
 			EnableBBR="$1 sed -i '\$anet.core.default_qdisc = fq' $3;
@@ -2061,7 +2061,7 @@ $1 systemctl restart systemd-sysctl;"
 		}
 		CreateSoftLinkToGrub2FromGrub1="$1 ln -s /boot/grub/ /boot/grub2;"
 		[[ "$EfiSupport" == "enabled" ]] && SetGrubTimeout="$1 sed -ri 's/GRUB_TIMEOUT=5/GRUB_TIMEOUT=3/g' /etc/default/grub; $1 sed -ri 's/set timeout=5/set timeout=3/g' /boot/grub/grub.cfg;" || SetGrubTimeout=""
-		SetOGOSfunction="$1 bash -c 'curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash'; $1 rm -f /function.sh"
+		SetOGOSfunction="$1 bash -c 'curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash'; $1 rm -f /function.sh;"
 		DebianModifiedProcession="${AptUpdating} ${InstallComponents} ${DisableCertExpiredCheck} ${ChangeBashrc} ${VimSupportCopy} ${VimIndentEolStart} ${DnsChangePermanently} ${ModifyMOTD} ${BurnIrregularIpv4Gate} ${BurnIrregularIpv6Gate} ${SupportIPv6orIPv4} ${ReplaceActualIpPrefix} ${AutoPlugInterfaces} ${EnableSSH} ${ReviseMOTD} ${SupportZSH} ${EnableFail2ban} ${EnableBBR} ${CreateSoftLinkToGrub2FromGrub1} ${SetGrubTimeout} ${SetOGOSfunction}"
 	fi
 }
@@ -2166,7 +2166,7 @@ d-i mirror/http/hostname string $MirrorHost
 d-i mirror/http/directory string $MirrorFolder
 
 ### Account setup
-d-i passwd/root-login boolean ture
+d-i passwd/root-login boolean true
 d-i passwd/make-user boolean false
 d-i passwd/root-password-crypted password ${myPASSWORD}
 d-i user-setup/allow-password-weak boolean true
@@ -2234,14 +2234,14 @@ d-i debian-installer/exit/reboot boolean true
 
 ### Write preseed
 d-i preseed/late_command string	\
-	sed -ri 's/^#?Port.*/Port ${sshPORT}/g' /target/etc/ssh/sshd_config; \
-	sed -ri 's/^#?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config; \
-	sed -ri 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config; \
-	echo '@reboot root cat /etc/run.sh 2>/dev/null |base64 -d >/tmp/run.sh; rm -rf /etc/run.sh; sed -i /^@reboot/d /etc/crontab; bash /tmp/run.sh' >>/target/etc/crontab; \
-	echo '' >>/target/etc/crontab; \
-	echo '${setCMD}' >/target/etc/run.sh; \
-	${DebianModifiedProcession}; \
-	${DebianEnableKejilion}
+sed -ri 's/^#?Port.*/Port ${sshPORT}/g' /target/etc/ssh/sshd_config; \
+sed -ri 's/^#?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config; \
+sed -ri 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config; \
+echo '@reboot root cat /etc/run.sh 2>/dev/null |base64 -d >/tmp/run.sh; rm -rf /etc/run.sh; sed -i /^@reboot/d /etc/crontab; bash /tmp/run.sh' >>/target/etc/crontab; \
+echo '' >>/target/etc/crontab; \
+echo '${setCMD}' >/target/etc/run.sh; \
+${DebianModifiedProcession} \
+${DebianEnableKejilion}
 EOF
 	fi
 }
