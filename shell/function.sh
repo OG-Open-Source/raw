@@ -229,16 +229,16 @@ CPU_MODEL() {
 	fi
 }
 CPU_USAGE() {
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { 
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || {
 		error "Failed to read CPU statistics from /proc/stat"
-		return 1 
+		return 1
 	}
 	total1=$((user + nice + system + idle + iowait + irq + softirq))
 	idle1=$idle
 	sleep 0.3
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { 
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || {
 		error "Failed to read CPU statistics from /proc/stat"
-		return 1 
+		return 1
 	}
 	total2=$((user + nice + system + idle + iowait + irq + softirq))
 	idle2=$idle
@@ -512,7 +512,7 @@ INTERFACE() {
 		sort -n
 	) || {
 		error "Failed to get network interfaces from /proc/net/dev"
-		return 1 
+		return 1
 	}
 	i=1
 	while read -r interfaceItem; do
