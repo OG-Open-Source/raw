@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.037.018"
+Version="5.038.001"
 License="MIT License"
 
 SH="function.sh"
@@ -704,6 +704,50 @@ PROGRESS() {
 PUBLIC_IP() {
 	ip=$(timeout 5s curl -sL https://ifconfig.me)
 	[ -n "$ip" ] && echo "$ip" || { error "Unable to detect public IP address. Check your internet connection"; return 1; }
+}
+
+RUN() {
+	commands=()
+	ADD bash-completion &>/dev/null
+	_run_completions() {
+		cur="${COMP_WORDS[COMP_CWORD]}"
+		prev="${COMP_WORDS[COMP_CWORD-1]}"
+		opts="${commands[*]}"
+		COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+		[[ ${#COMPREPLY[@]} -eq 0 ]] && COMPREPLY=( $(compgen -c -- "$cur") )
+	}
+	complete -F _run_completions RUN
+	[ $# -eq 0 ] && { error "No command specified"; return 1; }
+	if [[ "$1" == *"/"* ]]; then
+		if [[ "$1" =~ ^[^/]+/[^/]+/.+ ]]; then
+			repo_owner=$(echo "$1" | cut -d'/' -f1)
+			repo_name=$(echo "$1" | cut -d'/' -f2)
+			script_path=$(echo "$1" | cut -d'/' -f3-)
+			script_name=$(basename "$script_path")
+			github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/main/${script_path}"
+			echo -e "${CLR3}Downloading and executing script [$script_name] from ${repo_owner}/${repo_name}${CLR0}"
+			curl -sLO "$github_url" || { error "Failed to download script $script_name"; return 1; }
+			chmod +x "$script_name" || { error "Failed to set execute permission for $script_name"; return 1; }
+			shift
+			if [[ "$1" == "--" ]]; then
+				shift
+				./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
+			else
+				./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
+			fi
+			echo -e "${CLR2}FINISHED${CLR0}\n"
+		else
+			[ -x "$1" ] || chmod +x "$1"
+			if [[ "$2" == "--" ]]; then
+				shift 2
+				"$script_name" "$@"
+			else
+				"$1" "${@:2}"
+			fi
+		fi
+	else
+		eval "$*"
+	fi
 }
 
 SHELL_VER() {
