@@ -20,8 +20,8 @@ Each script can be found in the `shell/` directory. Please refer to individual s
 >  > [dd.sh](dd.sh)<br>
 >  > [function.sh](function.sh)<br>
 >  > [InstallNET.sh](InstallNET.sh)<br>
->  > [README.md](README.md)<br>
 >  > [update-function.sh](update-function.sh)<br>
+>  > [README.md](README.md)<br>
 
 ## Contributing
 

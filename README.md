@@ -16,11 +16,12 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 >  >  > [dd.sh](shell/dd.sh)<br>
 >  >  > [function.sh](shell/function.sh)<br>
 >  >  > [InstallNET.sh](shell/InstallNET.sh)<br>
->  >  > [README.md](shell/README.md)<br>
 >  >  > [update-function.sh](shell/update-function.sh)<br>
+>  >  > [README.md](shell/README.md)<br>
 >
 >  > [space/](space/)<br>
 >  >  > [apmd.cmd](space/apmd.cmd)<br>
+>  >  > [apmd1.cmd](space/apmd1.cmd)<br>
 >  >  > [gtxt.sh](space/gtxt.sh)<br>
 >  >  > [text.txt](space/text.txt)<br>
 >
@@ -28,7 +29,6 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 >  >  > [cf-proxy.js](worker/cf-proxy.js)<br>
 >  >  > [README.md](worker/README.md)<br>
 >
->  > [CNAME](CNAME)<br>
 >  > [README.md](README.md)<br>
 
 ## Usage
