@@ -44,7 +44,7 @@ bash dd.sh [選項] [參數]
 ## 3. 使用範例
 ### 3.1 安裝 Debian
 ```bash
-# ��裝 Debian 11 (Bullseye)
+# 安裝 Debian 11 (Bullseye)
 bash dd.sh -d bullseye -v 64 -p mypassword
 
 # 使用自定義網絡配置
@@ -85,26 +85,7 @@ bash dd.sh -dd http://example.com/custom.img
 7. 如使用自定義鏡像，請確保鏡像格式正確
 
 ## 5. 錯誤處理
-### 5.1 常見錯誤
-1. 找不到發行版
-```bash
-Error! The dists version not found, Please check it!
-```
-解決方案：檢查發行版名稱是否正確，或嘗試使用其他鏡像源
 
-2. 下載失敗
-```bash
-Error! Download 'initrd.img' failed!
-```
-解決方案：檢查網絡連接或更換鏡像源
-
-3. 硬體不支援
-```bash
-Error! Not compatible with your system!
-```
-解決方案：檢查系統架構是否支援所選發行版
-
-### 5.2 故障排除
 1. 檢查系統日誌
 ```bash
 tail -f /var/log/syslog
@@ -112,7 +93,11 @@ tail -f /var/log/syslog
 
 2. 檢查網絡連接
 ```bash
-ping -c 4 google.com
+# IPv4 連接測試
+ping -4 dl-cdn.alpinelinux.org
+
+# IPv6 連接測試
+ping -6 dl-cdn.alpinelinux.org
 ```
 
 3. 檢查硬碟空間
