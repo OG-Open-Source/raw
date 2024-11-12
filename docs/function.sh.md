@@ -251,6 +251,21 @@ TIMEZONE -i                    # 顯示內部時區
 TIMEZONE -e                    # 顯示外部時區
 ```
 
+### RUN - 執行命令或腳本
+```bash
+# 執行本地命令
+RUN command                     # 執行單個命令
+RUN "command1 && command2"      # 執行多個命令
+
+# 執行 GitHub 腳本
+RUN owner/repo/path/script.sh   # 執行 GitHub 上的腳本
+RUN owner/repo/script.sh -- arg # 傳遞參數給腳本
+
+# 執行本地腳本
+RUN /path/to/script.sh         # 執行本地腳本
+RUN ./script.sh arg1 arg2   # 傳遞參數給腳本
+```
+
 ## 2. 使用注意事項
 1. 所有函數都會返回狀態碼:
    - 0: 成功
@@ -291,3 +306,4 @@ CLR0="\033[0m"       # 重置
 
 # 代理設置
 cf_proxy="https://proxy.ogtt.tk/"  # 中國大陸使用
+```
