@@ -28,10 +28,13 @@ echo >> "$output_file"
 end_time=$(date +%s.%N)
 execution_time=$(echo "$end_time - $start_time" | bc)
 
+# 格式化執行時間的顯示
+formatted_time=$(printf "%.4f" $execution_time)
+
 # 確認檔案是否成功生成
 if [ -f "$output_file" ]; then
 	echo "已成功生成 $word_count 字的隨機文字到檔案 $output_file 中。"
-	echo "執行時間: ${execution_time} 秒"
+	echo "執行時間: ${formatted_time} 秒"
 else
 	echo "檔案生成失敗。"
 	exit 1
