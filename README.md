@@ -21,7 +21,6 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 >
 >  > [space/](space/)<br>
 >  >  > [apmd.cmd](space/apmd.cmd)<br>
->  >  > [apmd1.cmd](space/apmd1.cmd)<br>
 >  >  > [gtxt.sh](space/gtxt.sh)<br>
 >  >  > [text.txt](space/text.txt)<br>
 >
