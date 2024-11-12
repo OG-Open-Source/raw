@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.038.001"
+Version="5.038.002"
 License="MIT License"
 
 SH="function.sh"
@@ -708,7 +708,7 @@ PUBLIC_IP() {
 
 RUN() {
 	commands=()
-	ADD bash-completion &>/dev/null
+	# ADD bash-completion &>/dev/null
 	_run_completions() {
 		cur="${COMP_WORDS[COMP_CWORD]}"
 		prev="${COMP_WORDS[COMP_CWORD-1]}"
