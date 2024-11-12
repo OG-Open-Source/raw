@@ -24,28 +24,31 @@ bash InstallNET.sh [選項] [參數]
 -kali [rolling/dev]             安裝 Kali Linux('rolling'為穩定版)
 -centos [7/8/9]                 安裝 CentOS 系統('9'為穩定版)
 -rocky [8/9]                    安裝 Rocky Linux('9'為穩定版)
--alma [8.10/9.4]               安裝 AlmaLinux('9.4'為穩定版)
--fedora [39/40]                安裝 Fedora Linux('40'為穩定版)
--alpine [3.16~3.20/edge]       安裝 Alpine Linux('edge'為穩定版)
--windows [DIST]                安裝 Windows 系統
+-alma [8.10/9.4]                安裝 AlmaLinux('9.4'為穩定版)
+-fedora [39/40]                 安裝 Fedora Linux('40'為穩定版)
+-alpine [3.16~3.20/edge]        安裝 Alpine Linux('edge'為穩定版)
+-windows [DIST]                 安裝 Windows 系統
 
 # 系統架構
 -architecture [32/i386|64/amd64|arm/arm64]  指定系統架構
 
 # 網絡配置
---ip-addr [IP]                 設置 IPv4 地址
---ip-mask [24-32]             設置子網掩碼
---ip-gate [IP]                設置網關
---ip-dns [DNS]                設置 DNS 伺服器
---ip6-addr [IPv6]             設置 IPv6 地址
---ip6-mask [1-128]           設置 IPv6 子網掩碼
---ip6-gate [IPv6]            設置 IPv6 網關
+--ip-addr [IP]                   設置 IPv4 地址
+--ip-mask [24-32]                設置子網掩碼
+--ip-gate [IP]                   設置網關
+--ip-dns [DNS]                   設置 DNS 伺服器
+--ip-set [IP] [24-32] [IP]       簡化 IPv4 配置
+--ip6-addr [IPv6]                設置 IPv6 地址
+--ip6-mask [1-128]               設置 IPv6 子網掩碼
+--ip6-gate [IPv6]                設置 IPv6 網關
+--ip6-dns [IPv6]                 設置 IPv6 DNS 伺服器
+--ip6-set [IPv6] [1-128] [IPv6]  簡化 IPv6 配置
 --networkstack [IPv4Stack/IPv6Stack/BiStack]  指定網絡協議棧
 
 # 系統優化
 --bbr                         啟用 BBR 擁塞控制
 --fail2ban                    安裝並配置 fail2ban
---kejilion                    安裝並配置 Kejilion.sh
+--kejilion                    安裝並配置 kejilion.sh (來源 kejilion.pro/kejilion.sh)
 
 # 其他選項
 -mirror [URL]                 指定鏡像源
@@ -65,6 +68,9 @@ bash InstallNET.sh -debian 12 -pwd mypassword
 
 # 使用自定義網絡配置
 bash InstallNET.sh -debian 12 --ip-addr 192.168.1.100 --ip-mask 24 --ip-gate 192.168.1.1 --ip-dns "1.1.1.1 8.8.8.8"
+
+# 同時安裝多個選項並使用 reboot 重啟
+bash InstallNET.sh -debian 12 -pwd mypassword --bbr --fail2ban --kejilion --ip-set 192.168.1.101 24 192.168.1.1 --ip6-set 2001:db8::101 64 2001:db8::1 --reboot
 ```
 
 ### 3.2 安裝 Ubuntu 系統
@@ -101,26 +107,6 @@ bash InstallNET.sh -windows 11 -lang en
 7. Windows 安裝僅支持 x86_64 架構
 
 ## 5. 錯誤處理
-### 5.1 常見錯誤
-1. 記憶體不足
-```bash
-Error! Minimum system memory requirement is 384 MB!
-```
-解決方案：增加系統記憶體或使用低記憶體模式
-
-2. 網絡配置錯誤
-```bash
-Error! Invalid network config
-```
-解決方案：檢查 IP 地址、子網掩碼和網關配置
-
-3. 架構不支援
-```bash
-Error! Not Architecture.
-```
-解決方案：選擇適合當前硬體的系統架構
-
-### 5.2 故障排除
 1. 檢查安裝日誌
 ```bash
 tail -f /var/log/syslog
@@ -176,4 +162,10 @@ lsblk        # 硬碟資訊
 
 # 設置時區
 --timezone Asia/Taipei
-``` 
+```
+
+### 6.5 其他選項
+```bash
+# 設置無人職守自動安裝
+--reboot
+```
