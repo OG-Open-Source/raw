@@ -1,125 +1,171 @@
-# DD Script by OG-Open-Source
+# dd.sh by OG-Open-Source
 
-## 1. 功能概述
-- 支援重裝 Debian、Ubuntu、CentOS 等主流 Linux 發行版
-- 支援 DD 模式安裝自定義鏡像
-- 支援網絡配置(IPv4/IPv6)
-- 支援自定義 SSH 端口
-- 支援自定義 root 密碼
-- 支援自定義硬碟分區
-- 支援自定義 Grub 引導
+一個用於通過網路重新安裝 Linux 系統（Debian/Ubuntu/CentOS）的自動化腳本工具。
 
-## 2. 使用方法
-### 2.1 基本語法
+> ⚠️ **警告**：此腳本已過時且存在安全風險，不建議在生產環境使用。建議使用官方安裝工具或現代化部署方案。
+
+---
+
+## 目錄
+- [簡介](#簡介)
+- [特性](#特性)
+- [安裝](#安裝)
+- [使用方法](#使用方法)
+- [示例](#示例)
+- [配置](#配置)
+- [常見問題](#常見問題)
+- [貢獻指南](#貢獻指南)
+- [許可證](#許可證)
+
+---
+
+## 簡介
+
+dd.sh 是一個用於遠程重裝 Linux 系統的 bash 腳本。它可以通過網路下載並安裝 Debian、Ubuntu 或 CentOS 系統，支援自定義網路配置、密碼等參數。
+
+此工具主要用於需要批量重裝或遠程重裝 Linux 系統的場景。然而，由於安全性和維護性問題，我們強烈建議使用官方安裝工具或現代化的部署方案替代。
+
+## 特性
+
+- 支援多種主流 Linux 發行版
+  - Debian
+  - Ubuntu
+  - CentOS
+- 完整的網路配置支援
+  - IP 地址設定
+  - 子網路遮罩配置
+  - 網關設定
+  - DNS 伺服器配置
+- 系統安裝選項
+  - DD 模式支援
+  - 32/64 位元架構支援
+  - GRUB 引導載入程式支援
+- 安全性設定
+  - SSH 埠口自定義
+  - root 密碼配置
+
+## 安裝
+
 ```bash
-bash dd.sh [選項] [參數]
+# 下載腳本
+curl -sSLO 'https://raw.ogtt.tk/shell/dd.sh'
+
+# 添加執行權限
+chmod +x dd.sh
 ```
 
-### 2.2 主要選項
+## 使用方法
+
+### 命令格式
 ```bash
-# 發行版選擇
--d, --debian DIST     指定 Debian 發行版
--u, --ubuntu DIST     指定 Ubuntu 發行版  
--c, --centos DIST     指定 CentOS 發行版
-
-# 系統版本
--v, --ver VER        指定系統版本(32/i386 或 64/amd64)
-
-# DD 模式
--dd, --image URL     使用自定義鏡像 URL 進行安裝
-
-# 網絡配置
---ip-addr IP         設置 IP 地址
---ip-gate GATEWAY    設置網關
---ip-mask MASK       設置子網掩碼
---ip-dns DNS         設置 DNS 伺服器
-
-# 其他選項
--p PASSWORD          設置 root 密碼
--port PORT           設置 SSH 端口
---mirror             使用鏡像源
---noipv6             禁用 IPv6
+bash dd.sh [選項]
 ```
 
-## 3. 使用範例
-### 3.1 安裝 Debian
-```bash
-# 安裝 Debian 11 (Bullseye)
-bash dd.sh -d bullseye -v 64 -p mypassword
+### 主要參數說明
 
-# 使用自定義網絡配置
-bash dd.sh -d bullseye -v 64 --ip-addr 192.168.1.100 --ip-gate 192.168.1.1 --ip-mask 255.255.255.0 --ip-dns 8.8.8.8
+| 參數 | 說明 | 示例 |
+|------|------|------|
+| `-d, --debian DIST` | 指定 Debian 發行版 | `--debian 11` |
+| `-u, --ubuntu DIST` | 指定 Ubuntu 發行版 | `--ubuntu 20.04` |
+| `-c, --centos DIST` | 指定 CentOS 發行版 | `--centos 7` |
+| `-v, --ver VER` | 指定系統版本 | `--ver 64` |
+| `--ip-addr IP` | 設置 IP 地址 | `--ip-addr 192.168.1.100` |
+| `--ip-gate GATEWAY` | 設置網關 | `--ip-gate 192.168.1.1` |
+| `--ip-mask MASK` | 設置子網路遮罩 | `--ip-mask 255.255.255.0` |
+| `-p PASSWORD` | 設置 root 密碼 | `-p MyPassword123` |
+| `-port PORT` | 設置 SSH 埠口 | `-port 22` |
+
+## 示例
+
+### 安裝 Debian 系統
+```bash
+# 安裝 Debian 11 (64位)
+bash dd.sh --debian 11 --ver 64 \
+    --ip-addr 192.168.1.100 \
+    --ip-gate 192.168.1.1 \
+    --ip-mask 255.255.255.0
 ```
 
-### 3.2 安裝 Ubuntu
+### 安裝 Ubuntu 系統
 ```bash
-# 安裝 Ubuntu 22.04 (Jammy)
-bash dd.sh -u jammy -v 64 -p mypassword
-
-# 使用自定義 SSH 端口
-bash dd.sh -u jammy -v 64 -port 2222
+# 安裝 Ubuntu 20.04 (64位)
+bash dd.sh --ubuntu 20.04 --ver 64 -p MyPassword123
 ```
 
-### 3.3 安裝 CentOS
-```bash
-# 安裝 CentOS 7
-bash dd.sh -c 7 -v 64 -p mypassword
+## 配置
 
-# 使用鏡像源
-bash dd.sh -c 7 -v 64 --mirror http://mirror.centos.org/centos
+### 系統配置選項
+```plaintext
+系統選擇：
+- Debian/Ubuntu/CentOS 發行版本
+- 32/64 位元架構
+
+網路配置：
+- IP 地址
+- 子網路遮罩
+- 網關
+- DNS 伺服器
+
+安全配置：
+- root 密碼
+- SSH 埠口
 ```
 
-### 3.4 DD 模式安裝
-```bash
-# 使用自定義鏡像
-bash dd.sh -dd http://example.com/custom.img
-```
+## 常見問題
 
-## 4. 注意事項
-1. 執行腳本需要 root 權限
-2. DD 模式會清除所有硬碟數據，請謹慎使用
-3. 建議在安裝前備份重要數據
-4. 部分功能可能需要特定的硬體支援
-5. 網絡配置請確保正確性，避免無法連接
-6. 密碼建議使用複雜組合，提高安全性
-7. 如使用自定義鏡像，請確保鏡像格式正確
+### 1. 為什麼不建議使用此腳本？
 
-## 5. 錯誤處理
+- **安全風險**
+  - 包含硬編碼密碼
+  - 使用不安全的配置選項
+  - 可能存在未經驗證的遠程程式碼執行風險
 
-1. 檢查系統日誌
-```bash
-tail -f /var/log/syslog
-```
+- **維護問題**
+  - 腳本長期未更新
+  - 對新版本系統支援不完整
+  - 缺乏安全性更新
 
-2. 檢查網絡連接
-```bash
-# IPv4 連接測試
-ping -4 dl-cdn.alpinelinux.org
+### 2. 推薦的替代方案
 
-# IPv6 連接測試
-ping -6 dl-cdn.alpinelinux.org
-```
+- **官方安裝工具**
+  - debian-installer
+  - ubuntu-installer
+  - anaconda
 
-3. 檢查硬碟空間
-```bash
-df -h
-```
+- **現代化部署工具**
+  - Ansible
+  - Terraform
+  - CloudInit
 
-## 6. 進階配置
-### 6.1 自定義分區
-可以通過修改腳本中的分區設置來自定義硬碟分區方案：
-```bash
-d-i partman-auto/choose_recipe select atomic
-```
+### 3. 常見錯誤排除
 
-### 6.2 自定義內核參數
-可以通過修改 GRUB 配置來添加自定義內核參數：
-```bash
-d-i debian-installer/add-kernel-opts string net.ifnames=0 biosdevname=0
-```
+- **網路連接問題**
+  - 檢查網路連接狀態
+  - 確認 DNS 解析正常
+  - 驗證代理設定
 
-### 6.3 自定義安裝包
-可以通過修改預設安裝包列表來自定義安裝：
-```bash
-d-i pkgsel/include string openssh-server
-``` 
+- **權限問題**
+  - 確認是否使用 root 權限
+  - 檢查檔案權限設定
+
+- **系統相容性**
+  - 確認目標系統支援
+  - 檢查硬體需求
+  - 驗證 BIOS/UEFI 設定
+
+## 貢獻指南
+
+由於此腳本已不建議使用，我們建議：
+
+1. 使用現代化的部署方案
+2. 參與社區維護的開源部署工具
+3. 在 Issue 追蹤器提交問題
+4. 分享更好的替代方案
+
+## 許可證
+
+本專案採用 GPL 許可證。
+
+---
+
+**備註**：此文檔僅供參考，不建議在生產環境中使用此腳本。請考慮使用更安全、更現代化的系統部署方案。

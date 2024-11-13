@@ -6,6 +6,7 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 
 > [raw/](.)<br>
 >  > [docs/](docs/)<br>
+>  >  > [apmd.cmd.md](docs/apmd.cmd.md)<br>
 >  >  > [cf-proxy.js.md](docs/cf-proxy.js.md)<br>
 >  >  > [dd.sh.md](docs/dd.sh.md)<br>
 >  >  > [function.sh.md](docs/function.sh.md)<br>

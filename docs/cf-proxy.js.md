@@ -1,153 +1,168 @@
-# Cloudflare Worker Proxy by OG-Open-Source
+# cf-proxy.js by OG-Open-Source
 
-## 1. 功能概述
-- WAF（Web Application Firewall）防火牆
-- URL 訪問控制
-- 請求計數
-- API 配置管理
+一個基於 Cloudflare Workers 的代理服務，提供 WAF 防護、URL 訪問控制和請求計數功能。
 
-## 2. 環境設置
-### 2.1 Cloudflare Workers 環境變量
-- `CF_API_TOKEN`：Cloudflare API Token（需要 Firewall Services 編輯權限）
-- `CF_ZONE_ID`：Cloudflare Zone ID
-- `CF_API_URL`：Cloudflare API URL
+---
 
-### 2.2 D1 數據庫設置
-數據庫需要創建以下表：
-```sql
-CREATE TABLE IF NOT EXISTS ip_visits (
-    date TEXT,
-    ip TEXT,
-    count INTEGER DEFAULT 1,
-    PRIMARY KEY (date, ip)
-);
+## 目錄
+- [簡介](#簡介)
+- [特性](#特性)
+- [安裝](#安裝)
+- [使用方法](#使用方法)
+- [示例](#示例)
+- [配置](#配置)
+- [常見問題](#常見問題)
+- [貢獻指南](#貢獻指南)
+- [許可證](#許可證)
+
+---
+
+## 簡介
+cf-proxy.js 是一個運行在 Cloudflare Workers 平台上的代理服務，專為需要安全、高效的代理服務的開發者設計。它提供了 WAF 防護、URL 訪問控制和請求計數等功能，可以有效保護您的應用免受惡意訪問。
+
+## 特性
+- 內建 WAF（Web Application Firewall）功能
+- 基於國家和 IP 的訪問控制
+- 靈活的 URL 訪問控制
+- 請求計數和統計
+- 支持 API 配置管理
+- 高性能緩存機制
+- 完整的 CORS 支持
+
+## 安裝
+
+### 環境要求
+- Cloudflare 帳戶
+- Cloudflare Workers
+- Cloudflare D1 數據庫（可選，用於請求計數）
+- Cloudflare KV 命名空間
+
+### 安裝步骤
+1. 創建 Cloudflare Worker
+```bash
+# 安裝 Wrangler CLI
+npm install -g wrangler
+
+# 登錄到 Cloudflare
+wrangler login
+
+# 創建新的 Worker 專案
+wrangler init cf-proxy
 ```
 
-### 2.3 KV 命名空間
-- 名稱：`PROXY_CONFIG`
-- 用途：存儲 WAF 配置
+2. 配置環境變量
+```bash
+# 設置必要的環境變量
+wrangler secret put CF_API_TOKEN
+wrangler secret put CF_ZONE_ID
+wrangler secret put CF_API_URL
+```
 
-## 3. 配置說明
-### 3.1 全局配置（GLOBAL_CONFIG）
+3. 創建 KV 命名空間
+```bash
+wrangler kv:namespace create PROXY_CONFIG
+```
+
+4. 設置 D1 數據庫（可選）
+```bash
+wrangler d1 create proxy-db
+```
+
+## 使用方法
+
+### 基本使用
+1. 部署 Worker
+```bash
+wrangler deploy
+```
+
+2. 訪問代理服務
+```
+https://your-worker.workers.dev/https://example.com/path
+```
+
+### API 使用
+更新 WAF 配置：
+```bash
+curl -X POST 'https://your-worker.workers.dev/api/config' \
+-H 'X-Update-Key: your-update-key' \
+-H 'Content-Type: application/json' \
+-d '{
+    "waf": {
+        "ENABLED": true,
+        "ALLOWED_COUNTRIES": ["TW", "JP"]
+    }
+}'
+```
+
+## 示例
+
+### WAF 配置示例
 ```javascript
 {
-    // API 訪問控制配置
-    API_ACCESS: {
-        ENABLE_AUTH: true,        // 是否啟用 API 認證
-        UPDATE_KEY: 'your-update-key'  // API 更新密鑰，用於驗證配置更新請求
-    },
-
-    // WAF 防火牆配置
-    WAF: {
-        ENABLED: false,           // 是否啟用 WAF 功能
-        ALLOWED_COUNTRIES: [],    // 允許訪問的國家列表（ISO 3166-1 alpha-2 格式，如：TW, JP）
-        BLOCKED_COUNTRIES: [],    // 禁止訪問的國家列表（與 ALLOWED_COUNTRIES 互斥）
-        BLOCKED_IPS: []          // 禁止訪問的 IP 列表（IPv4 格式）
-    },
-
-    // URL 訪問控制配置
-    URL_CONTROL: {
-        ALLOWED_DOMAIN_PREFIXES: [  // 允許訪問的域名前綴列表
-            'https://raw.githubusercontent.com/OG-Open-Source',
-            'https://raw.githubusercontent.com'
-        ],
-        ALLOWED_GENERAL_PATTERN: '' // 允許的通用 URL 模式（可選，用於進一步過濾）
-    },
-
-    // 代理請求配置
-    PROXY: {
-        TIMEOUT: 30              // 代理請求超時時間（單位：秒）
-    },
-
-    // 請求計數配置
-    REQUEST_COUNT: {
-        ENABLED: true,           // 是否啟用請求計數功能（需要 D1 數據庫支持）
+    "waf": {
+        "ENABLED": true,
+        "ALLOWED_COUNTRIES": ["TW", "JP"],
+        "BLOCKED_IPS": ["1.2.3.4"]
     }
 }
 ```
 
-### 3.2 配置項說明
-1. **API_ACCESS**
-   - `ENABLE_AUTH`：控制是否需要驗證才能訪問 API
-   - `UPDATE_KEY`：API 密鑰，用於驗證配置更新請求的合法性
+### 配置更新響應
+```json
+{
+    "message": "Configuration updated",
+    "status": 200
+}
+```
 
-2. **WAF**
-   - `ENABLED`：WAF 功能開關
-   - `ALLOWED_COUNTRIES`：白名單模式，只允許列表中的國家訪問
-   - `BLOCKED_COUNTRIES`：黑名單模式，阻止列表中的國家訪問
-   - `BLOCKED_IPS`：IP 黑名單，阻止列表中的 IP 訪問
+## 配置
 
-3. **URL_CONTROL**
-   - `ALLOWED_DOMAIN_PREFIXES`：允許代理的域名前綴列表
-   - `ALLOWED_GENERAL_PATTERN`：可選的 URL 模式匹配規則
-
-4. **PROXY**
-   - `TIMEOUT`：設置代理請求的超時時間，避免請求掛起
-
-5. **REQUEST_COUNT**
-   - `ENABLED`：控制是否記錄請求計數，需要配置 D1 數據庫
-
-## 4. API 使用說明
-### 4.1 更新 WAF 配置
-```bash
-# 開啟 WAF 並設定允許的國家
-curl -X POST 'https://your-domain.com/api/config' \
--H 'X-Update-Key: your-update-key' \
--H 'Content-Type: application/json' \
--d '{
-    "waf": {
-        "ENABLED": true,
-        "ALLOWED_COUNTRIES": ["TW", "HK", "JP"],
-        "BLOCKED_COUNTRIES": [],
-        "BLOCKED_IPS": []
-    }
-}'
-
-# 設定封鎖的國家
-curl -X POST 'https://your-domain.com/api/config' \
--H 'X-Update-Key: your-update-key' \
--H 'Content-Type: application/json' \
--d '{
-    "waf": {
-        "ENABLED": true,
-        "ALLOWED_COUNTRIES": [],
-        "BLOCKED_COUNTRIES": ["CN", "RU"],
-        "BLOCKED_IPS": []
-    }
-}'
-
-# 設定封鎖的 IP
-curl -X POST 'https://your-domain.com/api/config' \
--H 'X-Update-Key: your-update-key' \
--H 'Content-Type: application/json' \
--d '{
-    "waf": {
-        "ENABLED": true,
-        "ALLOWED_COUNTRIES": [],
-        "BLOCKED_COUNTRIES": [],
-        "BLOCKED_IPS": ["1.2.3.4", "5.6.7.8"]
-    }
-}'
-
-# 關閉 WAF
-curl -X POST 'https://your-domain.com/api/config' \
--H 'X-Update-Key: your-update-key' \
--H 'Content-Type: application/json' \
--d '{
-    "waf": {
+### 全局配置
+```javascript
+{
+    "API_ACCESS": {
+        "ENABLE_AUTH": true,
+        "UPDATE_KEY": "your-update-key"
+    },
+    "WAF": {
         "ENABLED": false,
         "ALLOWED_COUNTRIES": [],
         "BLOCKED_COUNTRIES": [],
         "BLOCKED_IPS": []
+    },
+    "URL_CONTROL": {
+        "ALLOWED_DOMAIN_PREFIXES": [
+            "https://raw.githubusercontent.com"
+        ]
+    },
+    "PROXY": {
+        "TIMEOUT": 30
+    },
+    "REQUEST_COUNT": {
+        "ENABLED": true
     }
-}'
+}
 ```
 
-## 5. 注意事項
-1. ALLOWED_COUNTRIES 和 BLOCKED_COUNTRIES 不能同時使用
-2. 國家代碼使用 ISO 3166-1 alpha-2 格式（如：TW, HK, JP）
-3. IP 地址使用標準 IPv4 格式
-4. 請求計數功能需要配置 D1 數據庫
-5. WAF 配置存儲在 KV 中，需要配置 PROXY_CONFIG KV 命名空間
-6. URL 訪問控制使用緩存機制，最大緩存 1000 條記錄
-7. 代理請求超時時間可在 GLOBAL_CONFIG.PROXY.TIMEOUT 中設置（默認 30 秒）
+## 常見問題
+
+### Q：如何處理 CORS 錯誤？
+A：服務默認已啟用 CORS，響應頭包含 `Access-Control-Allow-Origin: *`。
+
+### Q：為什麼請求計數功能不工作？
+A：請確保已正確配置 D1 數據庫並創建了必要的表結構。
+
+### Q：如何更新 WAF 規則？
+A：使用 API 端點 `/api/config` 發送 POST 請求，記得包含正確的 `X-Update-Key`。
+
+## 貢獻指南
+1. Fork 本專案
+2. 創建特性分支
+3. 提交更改
+4. 發起 Pull Request
+
+歡迎提交 Issue 和 Pull Request！
+
+## 許可證
+本專案採用 MIT 許可證。
