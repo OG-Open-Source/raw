@@ -263,7 +263,7 @@ RUN owner/repo/script.sh -- arg # 傳遞參數給腳本
 
 # 執行本地腳本
 RUN /path/to/script.sh         # 執行本地腳本
-RUN ./script.sh arg1 arg2   # 傳遞參數給腳本
+RUN ./script.sh arg1 arg2      # 傳遞參數給腳本
 ```
 
 ## 2. 使用注意事項
