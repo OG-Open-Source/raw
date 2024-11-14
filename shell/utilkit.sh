@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.038.003"
+Version="5.038.004"
 License="MIT License"
 
 SH="utilkit.sh"
@@ -718,11 +718,25 @@ function RUN() {
 			repo_name=$(echo "$1" | cut -d'/' -f2)
 			script_path=$(echo "$1" | cut -d'/' -f3-)
 			script_name=$(basename "$script_path")
-			github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/main/${script_path}"
-			echo -e "${CLR3}Downloading and executing script [$script_name] from ${repo_owner}/${repo_name}${CLR0}"
-			curl -sLO "$github_url" || { error "Failed to download script $script_name"; return 1; }
-			chmod +x "$script_name" || { error "Failed to set execute permission for $script_name"; return 1; }
+			branch="main"
 			shift
+			while [[ $# -gt 0 ]]; do
+				case "$1" in
+					-b) [[ -z "$2" || "$2" == -* ]] && { error "Branch name required after -b"; return 1; }; branch="$2"; shift 2 ;;
+					*) break ;;
+				esac
+			done
+			github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
+			response=$(curl -sL "$github_url")
+			if [[ "$response" == "404: Not Found" ]] && [[ "$branch" == "main" ]]; then
+				branch="master"
+				github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
+				response=$(curl -sL "$github_url")
+				[[ "$response" == "404: Not Found" ]] && { error "Script not found in either main or master branch"; return 1; }
+			fi
+			echo -e "${CLR3}Downloading and executing script [$script_name] from ${repo_owner}/${repo_name} (branch: $branch)${CLR0}"
+			curl -sSLO "$github_url" || { error "Failed to download script $script_name"; return 1; }
+			chmod +x "$script_name" || { error "Failed to set execute permission for $script_name"; return 1; }
 			if [[ "$1" == "--" ]]; then
 				shift
 				./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
