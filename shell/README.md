@@ -19,7 +19,7 @@ Each script can be found in the `shell/` directory. Please refer to individual s
 > [shell/](.)<br>
 >  > [dd.sh](dd.sh)<br>
 >  > [function.sh](function.sh)<br>
->  > [InstallNET.sh](InstallNET.sh)<br>
+>  > [netreinstall.sh](netreinstall.sh)<br>
 >  > [update-function.sh](update-function.sh)<br>
 >  > [README.md](README.md)<br>
 
