@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.038.002"
+Version="5.038.003"
 License="MIT License"
 
 SH="function.sh"
@@ -23,7 +23,7 @@ error() {
 	return 1
 }
 
-ADD() {
+function ADD() {
 	[ $# -eq 0 ] && { error "No items specified for insertion. Please provide at least one item to add"; return 1; }
 	mode="package"
 	while [ $# -gt 0 ]; do
@@ -136,7 +136,7 @@ ADD() {
 	done
 }
 
-CHECK_OS() {
+function CHECK_OS() {
 	if [ -f /etc/debian_version ]; then
 		. /etc/os-release
 		if [ "$ID" = "ubuntu" ]; then
@@ -167,13 +167,13 @@ CHECK_OS() {
 		return 1
 	fi
 }
-CHECK_ROOT() {
+function CHECK_ROOT() {
 	if [ "$EUID" -ne 0 ] || [ "$(id -u)" -ne 0 ]; then
 		error "Please run this script as root user"
 		exit 1
 	fi
 }
-CHECK_VIRT() {
+function CHECK_VIRT() {
 	virt_type=$(systemd-detect-virt 2>/dev/null)
 	if [ -z "$virt_type" ]; then
 		error "Unable to detect virtualization environment"
@@ -200,23 +200,23 @@ CHECK_VIRT() {
 			;;
 	esac
 }
-CLEAN() {
+function CLEAN() {
 	cd "$HOME" || { error "Failed to change directory to HOME"; return 1; }
 	clear
 }
-CPU_CACHE() {
+function CPU_CACHE() {
 	[ ! -f /proc/cpuinfo ] && { error "Cannot access CPU information. /proc/cpuinfo not available"; return 1; }
 	cpu_cache=$(awk '/^cache size/ {sum+=$4; count++} END {print (count>0) ? sum/count : "N/A"}' /proc/cpuinfo)
 	[ "$cpu_cache" = "N/A" ] && { error "Unable to determine CPU cache size"; return 1; }
 	echo "${cpu_cache} KB"
 }
-CPU_FREQ() {
+function CPU_FREQ() {
 	[ ! -f /proc/cpuinfo ] && { error "Cannot access CPU information. /proc/cpuinfo not available"; return 1; }
 	cpu_freq=$(awk '/^cpu MHz/ {sum+=$4; count++} END {print (count>0) ? sprintf("%.2f", sum/count/1000) : "N/A"}' /proc/cpuinfo)
 	[ "$cpu_freq" = "N/A" ] && { error "Unable to determine CPU frequency"; return 1; }
 	echo "${cpu_freq} GHz"
 }
-CPU_MODEL() {
+function CPU_MODEL() {
 	if command -v lscpu &>/dev/null; then
 		lscpu | awk -F': +' '/Model name/ {print $2; exit}'
 	elif [ -f /proc/cpuinfo ]; then
@@ -228,7 +228,7 @@ CPU_MODEL() {
 		return 1
 	fi
 }
-CPU_USAGE() {
+function CPU_USAGE() {
 	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || {
 		error "Failed to read CPU statistics from /proc/stat"
 		return 1
@@ -247,7 +247,7 @@ CPU_USAGE() {
 	usage=$(( 100 * (total_diff - idle_diff) / total_diff ))
 	echo "$usage%"
 }
-CONVERT_SIZE() {
+function CONVERT_SIZE() {
 	[ -z "$1" ] && { error "No size value provided for conversion"; return 1; }
 	size=$1
 	unit=${2:-iB}
@@ -283,11 +283,11 @@ CONVERT_SIZE() {
 		}'
 	fi
 }
-COPYRIGHT() {
+function COPYRIGHT() {
 	echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."
 }
 
-DEL() {
+function DEL() {
 	[ $# -eq 0 ] && { error "No items specified for deletion. Please provide at least one item to delete"; return 1; }
 	mode="package"
 	while [ $# -gt 0 ]; do
@@ -370,13 +370,13 @@ DEL() {
 		esac
 	done
 }
-DISK_USAGE() {
+function DISK_USAGE() {
 	used=$(df -B1 / | awk 'NR==2 {printf "%.0f", $3}') || { error "Failed to get disk usage statistics"; return 1; }
 	total=$(df -B1 / | awk 'NR==2 {printf "%.0f", $2}') || { error "Failed to get total disk space"; return 1; }
 	percentage=$(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
-DNS_ADDR () {
+function DNS_ADDR () {
 	[ ! -f /etc/resolv.conf ] && { error "DNS configuration file /etc/resolv.conf not found"; return 1; }
 	ipv4_servers=()
 	ipv6_servers=()
@@ -404,7 +404,7 @@ DNS_ADDR () {
 	esac
 }
 
-FIND() {
+function FIND() {
 	[ $# -eq 0 ] && { error "No search terms provided. Please specify what to search for"; return 1; }
 	package_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
 	case ${package_manager##*/} in
@@ -423,7 +423,7 @@ FIND() {
 		echo -e "${CLR2}FINISHED${CLR0}\n"
 	done
 }
-FONT() {
+function FONT() {
 	font=""
 	declare -A style=(
 		[B]="\033[1m" [U]="\033[4m"
@@ -455,7 +455,7 @@ FONT() {
 	echo -e "${font}${1}${CLR0}"
 }
 
-GET() {
+function GET() {
 	[ $# -eq 0 ] && { error "No URL specified. Please provide a URL to download"; return 1; }
 	url="$1"
 	[[ "$url" =~ ^(http|https|ftp):// ]] || url="https://$url"
@@ -497,10 +497,10 @@ GET() {
 	fi
 }
 
-INPUT() {
+function INPUT() {
 	read -e -p "$1" "$2" || { error "Failed to read user input"; return 1; }
 }
-INTERFACE() {
+function INTERFACE() {
 	interface=""
 	declare -a Interfaces=()
 	allInterfaces=$(
@@ -555,29 +555,26 @@ INTERFACE() {
 		[[ -z "$interface4" ]] && interface4="$interface"
 		[[ -z "$interface6" ]] && interface6="$interface"
 	}
-	if [ "$1" = "-i" ]; then
-		for interface in $interface; do
-			if stats=$(awk -v iface="$interface" '$1 ~ iface":" {print $2, $10}' /proc/net/dev); then
-				read rx_bytes tx_bytes <<< "$stats"
-				echo "$interface: RX: $(CONVERT_SIZE $rx_bytes), TX: $(CONVERT_SIZE $tx_bytes)"
-			else
-				error "No stats found for interface: $interface"
-				return 1
-			fi
-		done
-	else
-		for interface in $interface; do
-			if stats=$(awk -v iface="$interface" '$1 ~ iface":" {print $2, $3, $5, $10, $11, $13}' /proc/net/dev); then
-				read rx_bytes rx_packets rx_drop tx_bytes tx_packets tx_drop <<< "$stats"
-				echo "$interface"
-			else
-				error "No stats found for interface: $interface"
-				return 1
-			fi
-		done
-	fi
+	for interface in $interface; do
+		if stats=$(awk -v iface="$interface" '$1 ~ iface":" {print $2, $3, $5, $10, $11, $13}' /proc/net/dev); then
+			read RX_BYTES RX_PACKETS RX_DROP TX_BYTES TX_PACKETS TX_DROP <<< "$stats"
+			case "$1" in
+				RX_BYTES) echo "$RX_BYTES" ;;
+				RX_PACKETS) echo "$RX_PACKETS" ;;
+				RX_DROP) echo "$RX_DROP" ;;
+				TX_BYTES) echo "$TX_BYTES" ;;
+				TX_PACKETS) echo "$TX_PACKETS" ;;
+				TX_DROP) echo "$TX_DROP" ;;
+				-i) echo "$interface: RX: $(CONVERT_SIZE $RX_BYTES), TX: $(CONVERT_SIZE $TX_BYTES)" ;;
+				*) echo "$interface" ;;
+			esac
+		else
+			error "No stats found for interface: $interface"
+			return 1
+		fi
+	done
 }
-IP_ADDR() {
+function IP_ADDR() {
 	version="$1"
 	case "$version" in
 		-4)
@@ -602,7 +599,7 @@ IP_ADDR() {
 	esac
 }
 
-LAST_UPDATE() {
+function LAST_UPDATE() {
 	if [ -f /var/log/apt/history.log ]; then
 		last_update=$(awk '/End-Date:/ {print $2, $3, $4; exit}' /var/log/apt/history.log 2>/dev/null)
 	elif [ -f /var/log/dpkg.log ]; then
@@ -612,12 +609,12 @@ LAST_UPDATE() {
 	fi
 	[ -z "$last_update" ] && error "Unable to determine last system update time. Update logs not found" && return 1 || echo "$last_update"
 }
-LINE() {
+function LINE() {
 	char="${1:--}"
 	length="${2:-80}"
 	printf '%*s\n' "$length" | tr ' ' "$char" || { error "Failed to print line"; return 1; }
 }
-LOAD_AVERAGE() {
+function LOAD_AVERAGE() {
 	if [ ! -f /proc/loadavg ]; then
 		load_data=$(uptime | sed 's/.*load average: //' | sed 's/,//g') || {
 			error "Failed to get load average from uptime command"
@@ -635,7 +632,7 @@ LOAD_AVERAGE() {
 	LC_ALL=C printf "%.2f, %.2f, %.2f (%d cores)" "$one_min" "$five_min" "$fifteen_min" "$(nproc)"
 }
 
-MAC_ADDR() {
+function MAC_ADDR() {
 	mac_address=$(ip link show | awk '/ether/ {print $2; exit}')
 	if [[ -n "$mac_address" ]]; then
 		echo "$mac_address"
@@ -644,7 +641,7 @@ MAC_ADDR() {
 		return 1
 	fi
 }
-MEM_USAGE() {
+function MEM_USAGE() {
 	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}') || {
 		error "Failed to get memory usage statistics"
 		return 1
@@ -654,14 +651,14 @@ MEM_USAGE() {
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 
-NET_PROVIDER() {
+function NET_PROVIDER() {
 	result=$(timeout 1s curl -sL ipinfo.io | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	result=$(timeout 1s curl -sL ipwhois.app/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	[ -n "$result" ] && echo "$result" || { error "Unable to detect network provider. Check your internet connection"; return 1; }
 }
 
-PKG_COUNT() {
+function PKG_COUNT() {
 	pkg_manager=$(command -v apk apt opkg pacman yum zypper dnf 2>/dev/null | head -n1)
 	case ${pkg_manager##*/} in
 		apk) count_cmd="apk info" ;;
@@ -678,7 +675,7 @@ PKG_COUNT() {
 	fi
 	echo "$package_count"
 }
-PROGRESS() {
+function PROGRESS() {
 	num_cmds=${#cmds[@]}
 	term_width=$(tput cols) || { error "Failed to get terminal width"; return 1; }
 	bar_width=$((term_width - 23))
@@ -701,12 +698,12 @@ PROGRESS() {
 	stty echo
 	trap - SIGINT SIGQUIT SIGTSTP
 }
-PUBLIC_IP() {
+function PUBLIC_IP() {
 	ip=$(timeout 5s curl -sL https://ifconfig.me)
 	[ -n "$ip" ] && echo "$ip" || { error "Unable to detect public IP address. Check your internet connection"; return 1; }
 }
 
-RUN() {
+function RUN() {
 	commands=()
 	# ADD bash-completion &>/dev/null
 	_run_completions() {
@@ -750,7 +747,7 @@ RUN() {
 	fi
 }
 
-SHELL_VER() {
+function SHELL_VER() {
 	LC_ALL=C
 	if [ -n "${BASH_VERSION-}" ]; then
 		echo "Bash ${BASH_VERSION}"
@@ -761,13 +758,13 @@ SHELL_VER() {
 		return 1
 	fi
 }
-SWAP_USAGE() {
+function SWAP_USAGE() {
 	used=$(free -b | awk '/^Swap:/ {printf "%.0f", $3}')
 	total=$(free -b | awk '/^Swap:/ {printf "%.0f", $2}')
 	percentage=$(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
-SYS_CLEAN() {
+function SYS_CLEAN() {
 	CHECK_ROOT
 	echo -e "${CLR3}Performing system cleanup...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
@@ -830,7 +827,7 @@ SYS_CLEAN() {
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
-SYS_INFO() {
+function SYS_INFO() {
 	echo -e "${CLR3}System Information${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 
@@ -879,7 +876,7 @@ SYS_INFO() {
 	echo -e "- Virtualization:\t${CLR2}$(CHECK_VIRT)${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 }
-SYS_OPTIMIZE() {
+function SYS_OPTIMIZE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Optimizing system configuration...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
@@ -931,7 +928,7 @@ SYS_OPTIMIZE() {
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
-SYS_REBOOT() {
+function SYS_REBOOT() {
 	CHECK_ROOT
 	echo -e "${CLR3}Preparing to reboot system...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
@@ -961,7 +958,7 @@ SYS_REBOOT() {
 	reboot || sudo reboot || { error "Failed to initiate reboot"; return 1; }
 	echo -e "${CLR2}Reboot command issued successfully. The system will reboot momentarily.${CLR0}"
 }
-SYS_UPDATE() {
+function SYS_UPDATE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Updating system software...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
@@ -1006,7 +1003,7 @@ SYS_UPDATE() {
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
 
-TIMEZONE() {
+function TIMEZONE() {
 	case "$1" in
 		-e)
 			result=$(timeout 1s curl -sL ipapi.co/timezone) ||
