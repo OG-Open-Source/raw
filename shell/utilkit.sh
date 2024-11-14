@@ -4,7 +4,7 @@ Author="OGATA Open-Source"
 Version="5.038.003"
 License="MIT License"
 
-SH="function.sh"
+SH="utilkit.sh"
 CLR1="\033[0;31m"
 CLR2="\033[0;32m"
 CLR3="\033[0;33m"
@@ -475,17 +475,14 @@ function GET() {
 				output_file="$2"
 				shift 2
 				;;
-			*)
-				target_dir="$1"
-				shift
-				;;
+			*) target_dir="$1"; shift ;;
 		esac
 	done
 	mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }
 	output_file="$target_dir/$output_file"
 	url=$(echo "$url" | sed -E 's#([^:])/+#\1/#g; s#^(https?|ftp):/+#\1://#')
 	echo -e "${CLR3}DOWNLOAD [$url]${CLR0}"
-	if ! curl -L -k -m 5 "$url" -o "$output_file"; then
+	if ! curl --location --insecure --max-time 5 "$url" -o "$output_file"; then
 		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_file" || { error "Failed to download file using curl and wget is not available\n"; return 1; }
 	fi
 	if [ -f "$output_file" ]; then
@@ -1020,10 +1017,10 @@ function TIMEZONE() {
 	esac
 }
 
-[ ! -f ~/function.sh ] && bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh)
+[ ! -f ~/utilkit.sh ] && bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh)
 if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash"; then
-	crontab -l > update-function 2>/dev/null
-	echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> update-function
-	crontab update-function
-	rm -f update-function
+	crontab -l > utilkit 2>/dev/null
+	echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> utilkit
+	crontab utilkit
+	rm -f utilkit
 fi

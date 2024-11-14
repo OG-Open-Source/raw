@@ -1,9 +1,10 @@
 #!/bin/bash
-# [ -f ~/function.sh ] && source ~/function.sh || bash <(curl -sL raw.ogtt.tk/shell/update-function.sh) && source ~/function.sh
+# [ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/update-function.sh) && source ~/utilkit.sh
 
 Author="OGATA Open-Source"
 License="MIT License"
 
+SH="update-function.sh"
 CLR1="\033[0;31m"
 CLR2="\033[0;32m"
 CLR3="\033[0;33m"
@@ -16,6 +17,11 @@ CLR9="\033[0;97m"
 CLR0="\033[0m"
 
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" && display_language="zh" || cf_proxy="" && display_language="en"
+error() {
+	echo -e "${CLR1}$1${CLR0}"
+	[ -s /var/log/ogos-error.log ] && echo "$(date '+%Y-%m-%d %H:%M:%S') | $SH - $Version - $(echo -e "$1" | tr -d '\n')" >> /var/log/ogos-error.log
+	return 1
+}
 
 GET() {
 	[ $# -eq 0 ] && return 1
@@ -30,11 +36,11 @@ GET() {
 	curl -L -k -m 5 "$url" -o "$output_file" &>/dev/null || wget --no-check-certificate -T 5 -t 2 "$url" -O "$output_file" &>/dev/null || return 1
 }
 
-if [ -f ~/function.sh ]; then
-	GET ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null
-	source function.sh
+if [ -f ~/utilkit.sh ]; then
+	GET ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh &>/dev/null
+	source utilkit.sh
 else
-	version=$(curl -sL raw.ogtt.tk/shell/function.sh | grep -oP 'Version="\K[^"]+')
+	version=$(curl -sL raw.ogtt.tk/shell/utilkit.sh | grep -oP 'Version="\K[^"]+')
 	if [[ $version == 0.* ]]; then
 		if [ "$display_language" = "en" ]; then
 			echo -e "${CLR3}Warning: The current version ($version) is a development version. It is not recommended for use.${CLR0}"
@@ -51,11 +57,11 @@ else
 		fi
 	fi
 	if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash"; then
-		crontab -l > update-function 2>/dev/null
-		echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> update-function
-		crontab update-function
-		rm -f update-function
+		crontab -l > utilkit 2>/dev/null
+		echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-function.sh | bash" >> utilkit
+		crontab utilkit
+		rm -f utilkit
 	fi
-	GET ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh &>/dev/null && source function.sh
-	grep -q "source ~/function.sh" ~/.bashrc || echo "source ~/function.sh" >> ~/.bashrc
+	GET ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh &>/dev/null && source utilkit.sh
+	grep -q "source ~/utilkit.sh" ~/.bashrc || echo "source ~/utilkit.sh" >> ~/.bashrc
 fi
