@@ -14,9 +14,9 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 >
 >  > [shell/](shell/)<br>
 >  >  > [dd.sh](shell/dd.sh)<br>
->  >  > [function.sh](shell/function.sh)<br>
 >  >  > [netreinstall.sh](shell/netreinstall.sh)<br>
 >  >  > [update-function.sh](shell/update-function.sh)<br>
+>  >  > [utilkit.sh](shell/utilkit.sh)<br>
 >  >  > [README.md](shell/README.md)<br>
 >
 >  > [space/](space/)<br>
