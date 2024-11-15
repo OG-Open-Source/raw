@@ -6,7 +6,7 @@
 ## Blog: https://moeclub.org
 ## Written By MoeClub.org
 
-[ ! -f ~/function.sh ] && bash <(curl -sL raw.ogtt.tk/shell/update-function.sh)
+[ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/update-utilkit.sh) && source ~/utilkit.sh
 
 tmpVER=''
 tmpDIST=''
@@ -626,7 +626,7 @@ echo '${setCMD}' >/target/etc/run.sh; \
 in-target apt update -y; \
 in-target apt install -y curl file gawk jq openssl sudo tar unzip wget xz-utils; \
 in-target mkdir -p /root; \
-in-target curl -sS -o /root/function.sh https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh; \
+in-target curl -sS -o /root/utilkit.sh https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh; \
 in-target curl -sS -o /usr/local/bin/k https://kejilion.pro/kejilion.sh; \
 in-target chmod +x /usr/local/bin/k
 EOF
@@ -708,7 +708,7 @@ yum update -y
 yum install -y curl file gawk jq openssl sudo tar unzip wget xz
 
 mkdir -p /root
-curl -sS -o /root/function.sh https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/function.sh
+curl -sS -o /root/utilkit.sh https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh
 curl -sS -o /usr/local/bin/k https://kejilion.pro/kejilion.sh
 chmod +x /usr/local/bin/k
 %end
