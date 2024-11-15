@@ -24,8 +24,7 @@ error() {
 }
 
 if [ -f ~/utilkit.sh ]; then
-	GET ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh &>/dev/null
-	source utilkit.sh
+	curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh -o utilkit.sh &>/dev/null
 else
 	version=$(curl -sL raw.ogtt.tk/shell/utilkit.sh | grep -oP 'Version="\K[^"]+')
 	if [[ $version == 0.* ]]; then
