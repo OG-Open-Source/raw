@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.038.007"
+Version="5.038.008"
 License="MIT License"
 
 SH="utilkit.sh"
@@ -449,7 +449,7 @@ function GET() {
 	output_path="$target_dir/$output_file"
 	url=$(echo "$url" | sed -E 's#([^:])/+#\1/#g; s#^(https?|ftp):/+#\1://#')
 	echo -e "${CLR3}DOWNLOAD [$url]${CLR0}"
-	if ! curl --location --insecure --max-time  "$url" -o "$output_path"; then
+	if ! curl --location --insecure --max-time 5 --retry 2 "$url" -o "$output_path"; then
 		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_path" || { error "Failed to download file using curl and wget is not available\n"; return 1; }
 	fi
 	if [ -f "$output_path" ]; then
