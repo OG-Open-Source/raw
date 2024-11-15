@@ -34,7 +34,7 @@ apmd.cmd 是一個專門設計用於生成目錄結構的 Windows 批次檔案�
 
 ```batch
 # 下載檔案
-curl -sSLO 'https://raw.ogtt.tk/space/apmd.cmd'
+curl -sSLO "https://raw.ogtt.tk/space/apmd.cmd"
 
 # 移動到系統路徑（可選）
 move apmd.cmd %SystemRoot%
@@ -67,12 +67,11 @@ apmd.cmd "My Documents"
 
 ### 輸出示例：
 ```markdown
-> [docs/](.)
->
->  > [images/](images/)<br>
->  >  > [diagram.png](images/diagram.png)<br>
->  >  > [style.css](images/style.css)<br>
->  >  > [README.md](images/README.md)<br>
+> [docs/](.)<br>
+>  > [image/](image/)<br>
+>  >  > [diagram.png](image/diagram.png)<br>
+>  >  > [style.css](image/style.css)<br>
+>  >  > [README.md](image/README.md)<br>
 >
 >  > [scripts/](scripts/)<br>
 >  >  > [main.js](scripts/main.js)<br>

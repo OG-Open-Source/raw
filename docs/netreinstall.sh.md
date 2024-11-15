@@ -43,10 +43,7 @@ netreinstall.sh 是一個強大的網絡重裝系統腳本，支援多種 Linux 
 ## 安裝
 
 ```bash
-# 下載腳本
-curl -sSLO 'https://raw.ogtt.tk/shell/netreinstall.sh' && chmod +x netreinstall.sh
-
-# 賦予執行權限
+curl -sSLO "https://raw.ogtt.tk/shell/netreinstall.sh"
 chmod +x netreinstall.sh
 ```
 

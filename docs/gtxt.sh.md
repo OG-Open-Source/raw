@@ -40,10 +40,7 @@ gtxt.sh 是一個基於 Bash 的文字生成工具，專門用於快速生成隨
 ### 安裝步驟
 
 ```bash
-# 下載腳本
-curl -sSLO 'https://raw.ogtt.tk/space/gtxt.sh'
-
-# 設定執行權限
+curl -sSLO "https://raw.ogtt.tk/space/gtxt.sh"
 chmod +x gtxt.sh
 ```
 
