@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.038.006"
+Version="5.038.007"
 License="MIT License"
 
 SH="utilkit.sh"
@@ -36,15 +36,13 @@ function ADD() {
 				echo -e "${CLR3}INSERT DEB PACKAGE [$deb_file]\n${CLR0}"
 				GET "$1"
 				if [ -f "$deb_file" ]; then
-					dpkg -i "$deb_file" || { error "Failed to install $deb_file. Check package compatibility and dependencies"; rm -f "$deb_file"; shift; continue; }
-					apt --fix-broken install -y || { error "Failed to fix dependencies"; rm -f "$deb_file"; shift; continue; }
+					dpkg -i "$deb_file" || { error "Failed to install $deb_file. Check package compatibility and dependencies"; rm -f "$deb_file"; return 1; }
+					apt --fix-broken install -y || { error "Failed to fix dependencies"; rm -f "$deb_file"; return 1; }
 					echo "* DEB package $deb_file installed successfully"
 					rm -f "$deb_file"
 					echo -e "${CLR2}FINISHED${CLR0}\n"
 				else
-					error "DEB package $deb_file not found or download failed"
-					shift
-					continue
+					{ error "DEB package $deb_file not found or download failed"; return 1; }
 				fi
 				shift
 				;;
@@ -52,34 +50,18 @@ function ADD() {
 				echo -e "${CLR3}INSERT $(echo "$mode" | tr '[:lower:]' '[:upper:]') [$1]${CLR0}"
 				case "$mode" in
 					"file")
-						if [ -e "$1" ]; then
-							if [ -d "$1" ]; then
-								error "Directory $1 already exists. Cannot create file with the same name\n"
-							else
-								error "File $1 already exists\n"
-							fi
-							shift
-							continue
-						else
-							touch "$1" || { error "Failed to create file $1. Check permissions and disk space"; shift; continue; }
-							echo "* File $1 created successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						fi
+						[ -d "$1" ] && { error "Directory $1 already exists. Cannot create file with the same name\n"; return 1; }
+						[ -f "$1" ] && { error "File $1 already exists\n"; return 1; }
+						touch "$1" || { error "Failed to create file $1. Check permissions and disk space\n"; return 1; }
+						echo "* File $1 created successfully"
+						echo -e "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"directory")
-						if [ -e "$1" ]; then
-							if [ -f "$1" ]; then
-								error "File $1 already exists. Cannot create directory with the same name\n"
-							else
-								error "Directory $1 already exists\n"
-							fi
-							shift
-							continue
-						else
-							mkdir -p "$1" || { error "Failed to create directory $1. Check permissions and path validity"; shift; continue; }
-							echo "* Directory $1 created successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						fi
+						[ -f "$1" ] && { error "File $1 already exists. Cannot create directory with the same name\n"; return 1; }
+						[ -d "$1" ] && { error "Directory $1 already exists\n"; return 1; }
+						mkdir -p "$1" || { error "Failed to create directory $1. Check permissions and path validity\n"; return 1; }
+						echo "* Directory $1 created successfully"
+						echo -e "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"package")
 						CHECK_ROOT
@@ -114,19 +96,17 @@ function ADD() {
 											echo "* Package $1 installed successfully"
 											echo -e "${CLR2}FINISHED${CLR0}\n"
 										else
-											error "Failed to install $1 using $pkg_manager\n"
+											{ error "Failed to install $1 using $pkg_manager\n"; return 1; }
 										fi
 									else
-										error "Failed to install $1 using $pkg_manager\n"
+										{ error "Failed to install $1 using $pkg_manager\n"; return 1; }
 									fi
 								else
 									echo "* Package $1 is already installed"
 									echo -e "${CLR2}FINISHED${CLR0}\n"
 								fi
 								;;
-							*)
-								error "Package manager not found. Please install a supported package manager\n"
-								;;
+							*) { error "Package manager not found. Please install a supported package manager\n"; return 1; } ;;
 						esac
 						;;
 				esac
@@ -163,8 +143,7 @@ function CHECK_OS() {
 	elif [ -f /etc/DISTRO_SPECS ]; then
 		grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
 	else
-		error "Unknown distribution"
-		return 1
+		{ error "Unknown distribution"; return 1; }
 	fi
 }
 function CHECK_ROOT() {
@@ -174,31 +153,34 @@ function CHECK_ROOT() {
 	fi
 }
 function CHECK_VIRT() {
-	virt_type=$(systemd-detect-virt 2>/dev/null)
-	if [ -z "$virt_type" ]; then
-		error "Unable to detect virtualization environment"
-		return 1
+	if command -v systemd-detect-virt >/dev/null 2>&1; then
+		virt_type=$(systemd-detect-virt 2>/dev/null)
+		[ -z "$virt_type" ] && { error "Unable to detect virtualization environment"; return 1; }
+		case "$virt_type" in
+			kvm)
+				grep -qi "proxmox" /sys/class/dmi/id/product_name 2>/dev/null && echo "Proxmox VE (KVM)" || echo "KVM"
+				;;
+			microsoft)
+				echo "Microsoft Hyper-V"
+				;;
+			none)
+				if grep -q "container=lxc" /proc/1/environ 2>/dev/null; then
+					echo "LXC container"
+				elif grep -qi "hypervisor" /proc/cpuinfo 2>/dev/null; then
+					echo "Virtual machine (Unknown type)"
+				else
+					echo "Not detected (possibly bare metal)"
+				fi
+				;;
+			*)
+				echo "${virt_type:-Not detected (possibly bare metal)}"
+				;;
+		esac
+	elif [ -f /proc/cpuinfo ]; then
+		virt_type=$(grep -i "hypervisor" /proc/cpuinfo >/dev/null && echo "VM" || echo "none")
+	else
+		virt_type="Unknown"
 	fi
-	case "$virt_type" in
-		kvm)
-			grep -qi "proxmox" /sys/class/dmi/id/product_name 2>/dev/null && echo "Proxmox VE (KVM)" || echo "KVM"
-			;;
-		microsoft)
-			echo "Microsoft Hyper-V"
-			;;
-		none)
-			if grep -q "container=lxc" /proc/1/environ 2>/dev/null; then
-				echo "LXC container"
-			elif grep -qi "hypervisor" /proc/cpuinfo 2>/dev/null; then
-				echo "Virtual machine (Unknown type)"
-			else
-				echo "Not detected (possibly bare metal)"
-			fi
-			;;
-		*)
-			echo "${virt_type:-Not detected (possibly bare metal)}"
-			;;
-	esac
 }
 function CLEAN() {
 	cd "$HOME" || { error "Failed to change directory to HOME"; return 1; }
@@ -224,22 +206,15 @@ function CPU_MODEL() {
 	elif command -v sysctl &>/dev/null && sysctl -n machdep.cpu.brand_string &>/dev/null; then
 		sysctl -n machdep.cpu.brand_string
 	else
-		echo -e "${CLR1}Unknown${CLR0}"
-		return 1
+		{ echo -e "${CLR1}Unknown${CLR0}"; return 1; }
 	fi
 }
 function CPU_USAGE() {
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || {
-		error "Failed to read CPU statistics from /proc/stat"
-		return 1
-	}
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "Failed to read CPU statistics from /proc/stat"; return 1; }
 	total1=$((user + nice + system + idle + iowait + irq + softirq))
 	idle1=$idle
 	sleep 0.3
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || {
-		error "Failed to read CPU statistics from /proc/stat"
-		return 1
-	}
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "Failed to read CPU statistics from /proc/stat"; return 1; }
 	total2=$((user + nice + system + idle + iowait + irq + softirq))
 	idle2=$idle
 	total_diff=$((total2 - total1))
@@ -252,6 +227,13 @@ function CONVERT_SIZE() {
 	size=$1
 	unit=${2:-iB}
 	unit_lower=$(echo "$unit" | tr '[:upper:]' '[:lower:]')
+	if ! [[ "$size" =~ ^[+-]?[0-9]*\.?[0-9]+$ ]]; then
+		{ error "Invalid size value. Must be a numeric value"; return 1; }
+	elif [[ "$size" =~ ^[-].*$ ]]; then
+		{ error "Size value cannot be negative"; return 1; }
+	elif [[ "$size" =~ ^[+].*$ ]]; then
+		size=${size#+}
+	fi
 	case "$unit_lower" in
 		b) bytes=$size ;;
 		kb|kib) bytes=$(awk -v size="$size" -v unit="$unit_lower" 'BEGIN {print size * (unit == "kb" ? 1000 : 1024)}') ;;
@@ -261,6 +243,7 @@ function CONVERT_SIZE() {
 		pb|pib) bytes=$(awk -v size="$size" -v unit="$unit_lower" 'BEGIN {print size * (unit == "pb" ? 1000000000000000 : 1125899906842624)}') ;;
 		*) bytes=$size ;;
 	esac
+	[[ ! "$bytes" =~ ^[0-9]+\.?[0-9]*$ ]] && { error "Failed to convert size value"; return 1; }
 	if [[ $unit_lower =~ ^.*ib$ ]]; then
 		awk -v bytes="$bytes" '
 		BEGIN {
@@ -298,24 +281,18 @@ function DEL() {
 				echo -e "${CLR3}REMOVE $(echo "$mode" | tr '[:lower:]' '[:upper:]') [$1]${CLR0}"
 				case "$mode" in
 					"file")
-						if [ -f "$1" ]; then
-							echo "* File $1 exists. Attempting removal..."
-							rm -f "$1" || { error "Failed to remove file $1\n"; shift; continue; }
-							echo "* File $1 removed successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						else
-							error "File $1 does not exist\n"
-						fi
+						[ ! -f "$1" ] && { error "File $1 does not exist"; return 1; }
+						echo "* File $1 exists. Attempting removal..."
+						rm -f "$1" || { error "Failed to remove file $1"; return 1; }
+						echo "* File $1 removed successfully"
+						echo -e "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"directory")
-						if [ -d "$1" ]; then
-							echo "* Directory $1 exists. Attempting removal..."
-							rm -rf "$1" || { error "Failed to remove directory $1\n"; shift; continue; }
-							echo "* Directory $1 removed successfully"
-							echo -e "${CLR2}FINISHED${CLR0}\n"
-						else
-							error "Directory $1 does not exist\n"
-						fi
+						[ ! -d "$1" ] && { error "Directory $1 does not exist"; return 1; }
+						echo "* Directory $1 exists. Attempting removal..."
+						rm -rf "$1" || { error "Failed to remove directory $1"; return 1; }
+						echo "* Directory $1 removed successfully"
+						echo -e "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"package")
 						CHECK_ROOT
@@ -343,25 +320,20 @@ function DEL() {
 										zypper) zypper remove -y "$1" ;;
 									esac
 								}
-								if is_installed "$1"; then
-									echo "* Package $1 is installed. Attempting removal..."
-									if remove_package "$1"; then
-										if ! is_installed "$1"; then
-											echo "* Package $1 removed successfully"
-											echo -e "${CLR2}FINISHED${CLR0}\n"
-										else
-											error "Failed to remove $1 using $pkg_manager\n"
-										fi
-									else
-										error "Failed to remove $1 using $pkg_manager\n"
-									fi
-								else
-									error "Package $1 is not installed\n"
+								if ! is_installed "$1"; then
+									{ error "Package $1 is not installed\n"; return 1; }
 								fi
+								echo "* Package $1 is installed. Attempting removal..."
+								if ! remove_package "$1"; then
+									{ error "Failed to remove $1 using $pkg_manager\n"; return 1; }
+								fi
+								if is_installed "$1"; then
+									{ error "Failed to remove $1 using $pkg_manager\n"; return 1; }
+								fi
+								echo "* Package $1 removed successfully"
+								echo -e "${CLR2}FINISHED${CLR0}\n"
 								;;
-							*)
-								error "Unsupported package manager\n"
-								;;
+							*) { error "Unsupported package manager"; return 1; } ;;
 						esac
 						;;
 				esac
@@ -415,7 +387,7 @@ function FIND() {
 		yum) search_command="yum search" ;;
 		zypper) search_command="zypper search" ;;
 		dnf) search_command="dnf search" ;;
-		*) error "Package manager not found or unsupported"; return 1 ;;
+		*) { error "Package manager not found or unsupported"; return 1; } ;;
 	esac
 	for target in "$@"; do
 		echo -e "${CLR3}SEARCH [$target]${CLR0}"
@@ -446,9 +418,7 @@ function FONT() {
 				shift
 				[[ "$1" =~ ^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$ ]] && font+="\033[48;2;${BASH_REMATCH[1]};${BASH_REMATCH[2]};${BASH_REMATCH[3]}m"
 				;;
-			*)
-				font+="${style[$1]:-}"
-				;;
+			*) font+="${style[$1]:-}" ;;
 		esac
 		shift
 	done
@@ -461,36 +431,32 @@ function GET() {
 	[[ "$url" =~ ^(http|https|ftp):// ]] || url="https://$url"
 	output_file="${url##*/}"
 	[ -z "$output_file" ] && output_file="index.html"
-	target_dir="${2:-.}"
-	rename_flag=false
+	target_dir="."
+	rename_file=""
 	shift
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			-r)
-				rename_flag=true
-				if [ -z "$2" ] || [[ "$2" == -* ]]; then
-					error "No filename specified after -r option\n"
-					return 1
-				fi
-				output_file="$2"
+				[ -z "$2" ] || [[ "$2" == -* ]] && { error "No filename specified after -r option\n"; return 1; }
+				rename_file="$2"
 				shift 2
 				;;
 			*) target_dir="$1"; shift ;;
 		esac
 	done
-	mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }
-	output_file="$target_dir/$output_file"
+	[ "$target_dir" != "." ] && { mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }; }
+	[ -n "$rename_file" ] && output_file="$rename_file"
+	output_path="$target_dir/$output_file"
 	url=$(echo "$url" | sed -E 's#([^:])/+#\1/#g; s#^(https?|ftp):/+#\1://#')
 	echo -e "${CLR3}DOWNLOAD [$url]${CLR0}"
-	if ! curl --location --insecure --max-time 5 "$url" -o "$output_file"; then
-		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_file" || { error "Failed to download file using curl and wget is not available\n"; return 1; }
+	if ! curl --location --insecure --max-time  "$url" -o "$output_path"; then
+		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_path" || { error "Failed to download file using curl and wget is not available\n"; return 1; }
 	fi
-	if [ -f "$output_file" ]; then
-		echo "* File downloaded successfully to $output_file"
+	if [ -f "$output_path" ]; then
+		echo "* File downloaded successfully to $output_path"
 		echo -e "${CLR2}FINISHED${CLR0}\n"
 	else
-		error "Download failed. Check your internet connection and URL validity"
-		return 1
+		{ error "Download failed. Check your internet connection and URL validity"; return 1; }
 	fi
 }
 
@@ -499,27 +465,24 @@ function INPUT() {
 }
 function INTERFACE() {
 	interface=""
-	declare -a Interfaces=()
-	allInterfaces=$(
+	declare -a interfaces=()
+	all_interfaces=$(
 		cat /proc/net/dev | \
 		grep ':' | \
 		cut -d':' -f1 | \
 		sed 's/\s//g' | \
 		grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | \
 		sort -n
-	) || {
-		error "Failed to get network interfaces from /proc/net/dev"
-		return 1
-	}
+	) || { error "Failed to get network interfaces from /proc/net/dev"; return 1; }
 	i=1
-	while read -r interfaceItem; do
-		[ -n "$interfaceItem" ] && Interfaces[$i]="$interfaceItem"
+	while read -r interface_item; do
+		[ -n "$interface_item" ] && interfaces[$i]="$interface_item"
 		((i++))
-	done <<< "$allInterfaces"
-	interfacesNum="${#Interfaces[*]}"
-	default4Route=$(ip -4 route show default | grep -A 3 "^default")
-	default6Route=$(ip -6 route show default | grep -A 3 "^default")
-	getArrItemIdx() {
+	done <<< "$all_interfaces"
+	interfaces_num="${#interfaces[*]}"
+	default4_route=$(ip -4 route show default | grep -A 3 "^default")
+	default6_route=$(ip -6 route show default | grep -A 3 "^default")
+	get_arr_item_idx() {
 		local item="$1"
 		shift
 		local -a arr=("$@")
@@ -532,16 +495,16 @@ function INTERFACE() {
 		done
 		return 255
 	}
-	for ((i=1; i<=${#Interfaces[@]}; i++)); do
-		item="${Interfaces[$i]}"
+	for ((i=1; i<=${#interfaces[@]}; i++)); do
+		item="${interfaces[$i]}"
 		[ -z "$item" ] && continue
-		if [[ "$default4Route" == *"$item"* ]] && [ -z "$interface4" ]; then
+		if [[ "$default4_route" == *"$item"* ]] && [ -z "$interface4" ]; then
 			interface4="$item"
-			interface4DeviceOrder=$(getArrItemIdx "$item" "${Interfaces[@]}")
+			interface4_device_order=$(get_arr_item_idx "$item" "${interfaces[@]}")
 		fi
-		if [[ "$default6Route" == *"$item"* ]] && [ -z "$interface6" ]; then
+		if [[ "$default6_route" == *"$item"* ]] && [ -z "$interface6" ]; then
 			interface6="$item"
-			interface6DeviceOrder=$(getArrItemIdx "$item" "${Interfaces[@]}")
+			interface6_device_order=$(get_arr_item_idx "$item" "${interfaces[@]}")
 		fi
 		[ -n "$interface4" ] && [ -n "$interface6" ] && break
 	done
@@ -554,20 +517,20 @@ function INTERFACE() {
 	}
 	for interface in $interface; do
 		if stats=$(awk -v iface="$interface" '$1 ~ iface":" {print $2, $3, $5, $10, $11, $13}' /proc/net/dev); then
-			read RX_BYTES RX_PACKETS RX_DROP TX_BYTES TX_PACKETS TX_DROP <<< "$stats"
+			read rx_bytes rx_packets rx_drop tx_bytes tx_packets tx_drop <<< "$stats"
 			case "$1" in
-				RX_BYTES) echo "$RX_BYTES" ;;
-				RX_PACKETS) echo "$RX_PACKETS" ;;
-				RX_DROP) echo "$RX_DROP" ;;
-				TX_BYTES) echo "$TX_BYTES" ;;
-				TX_PACKETS) echo "$TX_PACKETS" ;;
-				TX_DROP) echo "$TX_DROP" ;;
-				-i) echo "$interface: RX: $(CONVERT_SIZE $RX_BYTES), TX: $(CONVERT_SIZE $TX_BYTES)" ;;
-				*) echo "$interface" ;;
+				RX_BYTES) echo "$rx_bytes" ;;
+				RX_PACKETS) echo "$rx_packets" ;;
+				RX_DROP) echo "$rx_drop" ;;
+				TX_BYTES) echo "$tx_bytes" ;;
+				TX_PACKETS) echo "$tx_packets" ;;
+				TX_DROP) echo "$tx_drop" ;;
+				-i) echo "$interface: RX: $(CONVERT_SIZE $rx_bytes), TX: $(CONVERT_SIZE $tx_bytes)" ;;
+				"") echo "$interface" ;;
+				*) { error "Invalid parameter: $1. Valid parameters are: RX_BYTES, RX_PACKETS, RX_DROP, TX_BYTES, TX_PACKETS, TX_DROP, -i"; return 1; } ;;
 			esac
 		else
-			error "No stats found for interface: $interface"
-			return 1
+			{ error "No stats found for interface: $interface"; return 1; }
 		fi
 	done
 }
@@ -604,7 +567,7 @@ function LAST_UPDATE() {
 	elif command -v rpm &>/dev/null; then
 		last_update=$(rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}')
 	fi
-	[ -z "$last_update" ] && error "Unable to determine last system update time. Update logs not found" && return 1 || echo "$last_update"
+	[ -z "$last_update" ] && { error "Unable to determine last system update time. Update logs not found"; return 1; } || echo "$last_update"
 }
 function LINE() {
 	char="${1:--}"
@@ -613,15 +576,9 @@ function LINE() {
 }
 function LOAD_AVERAGE() {
 	if [ ! -f /proc/loadavg ]; then
-		load_data=$(uptime | sed 's/.*load average: //' | sed 's/,//g') || {
-			error "Failed to get load average from uptime command"
-			return 1
-		}
+		load_data=$(uptime | sed 's/.*load average: //' | sed 's/,//g') || { error "Failed to get load average from uptime command"; return 1; }
 	else
-		read -r one_min five_min fifteen_min _ _ < /proc/loadavg || {
-			error "Failed to read load average from /proc/loadavg"
-			return 1
-		}
+		read -r one_min five_min fifteen_min _ _ < /proc/loadavg || { error "Failed to read load average from /proc/loadavg"; return 1; }
 	fi
 	[[ $one_min =~ ^[0-9.]+$ ]] || one_min=0
 	[[ $five_min =~ ^[0-9.]+$ ]] || five_min=0
@@ -634,15 +591,11 @@ function MAC_ADDR() {
 	if [[ -n "$mac_address" ]]; then
 		echo "$mac_address"
 	else
-		error "Unable to retrieve MAC address. Network interface not found"
-		return 1
+		{ error "Unable to retrieve MAC address. Network interface not found"; return 1; }
 	fi
 }
 function MEM_USAGE() {
-	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}') || {
-		error "Failed to get memory usage statistics"
-		return 1
-	}
+	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}') || { error "Failed to get memory usage statistics"; return 1; }
 	total=$(free -b | awk '/^Mem:/ {print $2}') || total=$(grep MemTotal /proc/meminfo | awk '{print $2*1024}')
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}') || percentage=$(awk '/^MemTotal:/ {total=$2} /^MemAvailable:/ {available=$2} END {printf("%.2f", (total-available)/total * 100.0)}' /proc/meminfo)
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
@@ -664,11 +617,10 @@ function PKG_COUNT() {
 		pacman) count_cmd="pacman -Q" ;;
 		yum|dnf) count_cmd="rpm -qa" ;;
 		zypper) count_cmd="zypper se --installed-only" ;;
-		*) error "Unable to count installed packages. Package manager not supported"; return 1 ;;
+		*) { error "Unable to count installed packages. Package manager not supported"; return 1; } ;;
 	esac
 	if ! package_count=$($count_cmd 2>/dev/null | wc -l) || [[ -z "$package_count" || "$package_count" -eq 0 ]]; then
-		error "Failed to count packages for ${pkg_manager##*/}"
-		return 1
+		{ error "Failed to count packages for ${pkg_manager##*/}"; return 1; }
 	fi
 	echo "$package_count"
 }
@@ -684,10 +636,9 @@ function PROGRESS() {
 		printf "\r\033[30;42mProgress: [%3d%%]\033[0m [%s%s]" "$progress" "$(printf "%${filled_width}s" | tr ' ' '#')" "$(printf "%$((bar_width - filled_width))s" | tr ' ' '.')"
 		if ! output=$(eval "${cmds[$i]}" 2>&1); then
 			echo -e "\n$output"
-			error "Command execution failed: ${cmds[$i]}"
 			stty echo
 			trap - SIGINT SIGQUIT SIGTSTP
-			return 1
+			{ error "Command execution failed: ${cmds[$i]}"; return 1; }
 		fi
 	done
 	printf "\r\033[30;42mProgress: [100%%]\033[0m [%s]" "$(printf "%${bar_width}s" | tr ' ' '#')"
@@ -777,8 +728,7 @@ function SHELL_VER() {
 	elif [ -n "${ZSH_VERSION-}" ]; then
 		echo "Zsh ${ZSH_VERSION}"
 	else
-		error "Unsupported shell"
-		return 1
+		{ error "Unsupported shell"; return 1; }
 	fi
 }
 function SWAP_USAGE() {
@@ -962,10 +912,7 @@ function SYS_REBOOT() {
 		who | awk '{print $1 " since " $3 " " $4}'
 		echo
 	fi
-	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l) || {
-		error "Failed to check running processes"
-		return 1
-	}
+	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l) || { error "Failed to check running processes"; return 1; }
 	if [ "$important_processes" -gt 0 ]; then
 		echo -e "${CLR1}Warning: There are $important_processes important processes running.\n${CLR0}"
 		echo -e "${CLR8}Top 5 processes by CPU usage:${CLR0}"
@@ -1001,10 +948,7 @@ function SYS_UPDATE() {
 				echo "* Waiting for dpkg lock to be released..."
 				sleep 1
 				((wait_time++))
-				if [ "$wait_time" -gt 300 ]; then
-					error "Timeout waiting for dpkg lock to be released"
-					return 1
-				fi
+				[ "$wait_time" -gt 300 ] && { error "Timeout waiting for dpkg lock to be released"; return 1; }
 			done
 			echo "* Configuring pending packages..."
 			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || { error "Failed to configure pending packages"; return 1; }
@@ -1020,8 +964,8 @@ function SYS_UPDATE() {
 		*dnf) update_packages "dnf" "dnf check-update" "dnf -y update" ;;
 		*) { error "Unsupported package manager"; return 1; } ;;
 	esac
-	echo "* Updating shell functions..."
-	bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh) || { error "Failed to update shell functions"; return 1; }
+	echo "* Updating utilkit..."
+	bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh) || { error "Failed to update utilkit"; return 1; }
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
