@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.038.005"
+Version="5.038.006"
 License="MIT License"
 
 SH="utilkit.sh"
@@ -726,23 +726,35 @@ function RUN() {
 					*) break ;;
 				esac
 			done
+			echo -e "${CLR3}Downloading and executing script [${script_name}] from ${repo_owner}/${repo_name}${CLR0}"
 			github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
-			response=$(curl -sL "$github_url")
-			if [[ "$response" == "404: Not Found" ]] && [[ "$branch" == "main" ]]; then
-				branch="master"
-				github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
+			if [[ "$branch" == "main" ]]; then
+				echo "* Checking main branch..."
 				response=$(curl -sL "$github_url")
-				[[ "$response" == "404: Not Found" ]] && { error "Script not found in either main or master branch"; return 1; }
+				if [[ "$response" == "404: Not Found" ]]; then
+					echo "* Checking master branch..."
+					branch="master"
+					github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
+					response=$(curl -sL "$github_url")
+					[[ "$response" == "404: Not Found" ]] && { error "Script not found in either main or master branch"; return 1; }
+				fi
+			else
+				echo "* Checking ${branch} branch..."
+				response=$(curl -sL "$github_url")
+				[[ "$response" == "404: Not Found" ]] && { error "Script not found in ${branch} branch"; return 1; }
 			fi
-			echo -e "${CLR3}Downloading and executing script [$script_name] from ${repo_owner}/${repo_name} (branch: $branch)${CLR0}"
-			curl -sSLO "$github_url" || { error "Failed to download script $script_name"; return 1; }
+			echo "* Downloading script..."
+			GET "$github_url" &>/dev/null || { error "Failed to download script $script_name"; return 1; }
 			chmod +x "$script_name" || { error "Failed to set execute permission for $script_name"; return 1; }
+			echo "* Download completed"
+			echo -e "${CLR8}$(LINE = "24")${CLR0}"
 			if [[ "$1" == "--" ]]; then
 				shift
 				./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
 			else
 				./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
 			fi
+			echo -e "${CLR8}$(LINE = "24")${CLR0}"
 			echo -e "${CLR2}FINISHED${CLR0}\n"
 		else
 			[ -x "$1" ] || chmod +x "$1"
