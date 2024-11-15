@@ -1,4 +1,4 @@
-# function.sh by OG-Open-Source
+# utilkit.sh by OG-Open-Source
 
 一個功能豐富的 Shell 函數庫，提供系統管理、網路配置、效能監控等多種實用功能。
 
@@ -19,7 +19,7 @@
 
 ## 簡介
 
-function.sh 是一個全面的 Shell 函數庫，專為系統管理員和開發者設計。它提供了豐富的系統管理功能，包括套件管理、系統監控、網路配置等，大大簡化了日常系統維護工作。
+utilkit.sh 是一個全面的 Shell 函數庫，專為系統管理員和開發者設計。它提供了豐富的系統管理功能，包括套件管理、系統監控、網路配置等，大大簡化了日常系統維護工作。
 
 ## 特性
 
@@ -36,14 +36,14 @@ function.sh 是一個全面的 Shell 函數庫，專為系統管理員和開發�
 ### 方法一：直接下載
 
 ```bash
-curl -sSLO 'https://raw.ogtt.tk/shell/function.sh'
-chmod +x function.sh
+curl -sSLO "https://raw.ogtt.tk/shell/utilkit.sh"
+chmod +x utilkit.sh
 ```
 
 ### 方法二：使用安裝腳本
 
 ```bash
-bash <(curl -sL 'https://raw.ogtt.tk/shell/update-function.sh')
+bash <(curl -sL "https://raw.ogtt.tk/shell/update-utilkit.sh")
 ```
 
 ## 使用方法
@@ -51,7 +51,7 @@ bash <(curl -sL 'https://raw.ogtt.tk/shell/update-function.sh')
 ### 基本命令格式
 
 ```bash
-source function.sh
+source utilkit.sh
 函數名稱 [參數]
 ```
 
@@ -87,19 +87,19 @@ source function.sh
 
 ### 系統資訊查詢
 ```bash
-source function.sh
+source utilkit.sh
 SYS_INFO
 ```
 
 ### 安裝套件
 ```bash
-source function.sh
+source utilkit.sh
 ADD nginx
 ```
 
 ### 系統優化
 ```bash
-source function.sh
+source utilkit.sh
 SYS_OPTIMIZE
 ```
 
