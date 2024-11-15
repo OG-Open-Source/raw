@@ -49,6 +49,6 @@ else
 		crontab utilkit
 		rm -f utilkit
 	fi
-	curl -sSLO ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh &>/dev/null && source utilkit.sh
+	curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh -o utilkit.sh &>/dev/null
 	grep -q "source ~/utilkit.sh" ~/.bashrc || echo "source ~/utilkit.sh" >> ~/.bashrc
 fi
