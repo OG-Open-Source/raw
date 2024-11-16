@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.039.002"
+Version="5.039.003"
 License="MIT License"
 
 SH="utilkit.sh"
@@ -232,50 +232,50 @@ function CPU_USAGE() {
 	echo "$usage%"
 }
 function CONVERT_SIZE() {
-    [ -z "$1" ] && { error "No size value provided for conversion"; return 2; }
-    size=$1
-    unit=${2:-iB}
-    unit_lower=$(echo "$unit" | tr '[:upper:]' '[:lower:]')
-    if ! [[ "$size" =~ ^[+-]?[0-9]*\.?[0-9]+$ ]]; then
-        { error "Invalid size value. Must be a numeric value"; return 2; }
-    elif [[ "$size" =~ ^[-].*$ ]]; then
-        { error "Size value cannot be negative"; return 2; }
-    elif [[ "$size" =~ ^[+].*$ ]]; then
-        size=${size#+}
-    fi
-    case "$unit_lower" in
-        b) bytes=$size ;;
-        kb|kib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "kb" ? 1000 : 1024)}') ;;
-        mb|mib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "mb" ? 1000000 : 1048576)}') ;;
-        gb|gib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "gb" ? 1000000000 : 1073741824)}') ;;
-        tb|tib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "tb" ? 1000000000000 : 1099511627776)}') ;;
-        pb|pib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "pb" ? 1000000000000000 : 1125899906842624)}') ;;
-        *) bytes=$size ;;
-    esac
-    [[ ! "$bytes" =~ ^[0-9]+\.?[0-9]*$ ]] && { error "Failed to convert size value"; return 1; }
-    LC_NUMERIC=C awk -v bytes="$bytes" -v is_binary="$([[ $unit_lower =~ ^.*ib$ ]] && echo 1 || echo 0)" '
-    BEGIN {
-        base = is_binary ? 1024 : 1000
-        units = is_binary ? "B KiB MiB GiB TiB PiB" : "B KB MB GB TB PB"
-        split(units, unit_array, " ")
-        power = 0
-        value = bytes
-        while (value >= base && power < 5) {
-            value /= base
-            power++
-        }
-        if (power == 0) {
-            printf "%d %s\n", bytes, unit_array[power + 1]
-        } else {
-            if (value >= 100) {
-                printf "%.1f %s\n", value, unit_array[power + 1]
-            } else if (value >= 10) {
-                printf "%.2f %s\n", value, unit_array[power + 1]
-            } else {
-                printf "%.3f %s\n", value, unit_array[power + 1]
-            }
-        }
-    }'
+	[ -z "$1" ] && { error "No size value provided for conversion"; return 2; }
+	size=$1
+	unit=${2:-iB}
+	unit_lower=$(echo "$unit" | tr '[:upper:]' '[:lower:]')
+	if ! [[ "$size" =~ ^[+-]?[0-9]*\.?[0-9]+$ ]]; then
+		{ error "Invalid size value. Must be a numeric value"; return 2; }
+	elif [[ "$size" =~ ^[-].*$ ]]; then
+		{ error "Size value cannot be negative"; return 2; }
+	elif [[ "$size" =~ ^[+].*$ ]]; then
+		size=${size#+}
+	fi
+	case "$unit_lower" in
+		b) bytes=$size ;;
+		kb|kib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "kb" ? 1000 : 1024)}') ;;
+		mb|mib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "mb" ? 1000000 : 1048576)}') ;;
+		gb|gib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "gb" ? 1000000000 : 1073741824)}') ;;
+		tb|tib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "tb" ? 1000000000000 : 1099511627776)}') ;;
+		pb|pib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "pb" ? 1000000000000000 : 1125899906842624)}') ;;
+		*) bytes=$size ;;
+	esac
+	[[ ! "$bytes" =~ ^[0-9]+\.?[0-9]*$ ]] && { error "Failed to convert size value"; return 1; }
+	LC_NUMERIC=C awk -v bytes="$bytes" -v is_binary="$([[ $unit_lower =~ ^.*ib$ ]] && echo 1 || echo 0)" '
+	BEGIN {
+		base = is_binary ? 1024 : 1000
+		units = is_binary ? "B KiB MiB GiB TiB PiB" : "B KB MB GB TB PB"
+		split(units, unit_array, " ")
+		power = 0
+		value = bytes
+		while (value >= base && power < 5) {
+			value /= base
+			power++
+		}
+		if (power == 0) {
+			printf "%d %s\n", bytes, unit_array[power + 1]
+		} else {
+			if (value >= 100) {
+				printf "%.1f %s\n", value, unit_array[power + 1]
+			} else if (value >= 10) {
+				printf "%.2f %s\n", value, unit_array[power + 1]
+			} else {
+				printf "%.3f %s\n", value, unit_array[power + 1]
+			}
+		}
+	}'
 }
 function COPYRIGHT() {
 	echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."
