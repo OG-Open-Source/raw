@@ -6,5 +6,5 @@ plugins:
 - jekyll-readme-index
 - jekyll-relative-links
 
-title: OG|OS - OGATA Open Source
+title: OGOS - OGATA Open Source
 description: Welcome to the OGATA Open Source repository, a collection of useful open-source tools and scripts.
