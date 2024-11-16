@@ -51,9 +51,11 @@ utilkit.sh 是一個全面的 Shell 函數庫，專為系統管理員和開發�
 
 ## 安裝
 
-### 方法一：直接下載```bash
+### 方法一：直接下載
+```bash
 curl -sSLO "https://raw.ogtt.tk/shell/utilkit.sh"
 chmod +x utilkit.sh
+source utilkit.sh
 ```
 
 ### 方法二：使用安裝腳本
