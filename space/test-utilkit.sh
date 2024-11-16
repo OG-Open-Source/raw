@@ -66,6 +66,10 @@ run_test "CHECK_OS" "" "測試檢查作業系統" false 0
 run_test "CHECK_ROOT" "" "測試檢查 root 權限" false 0
 run_test "CHECK_VIRT" "" "測試檢查虛擬化環境" false 0
 
+# CHECK_DEPS 測試
+run_test "dependencies=(curl wget);" "CHECK_DEPS" "測試檢查已安裝依賴" false 0
+run_test "dependencies=(nonexistcmd);" "CHECK_DEPS" "測試檢查未安裝依賴" false 0
+
 # CPU 相關函式測試
 run_test "CPU_CACHE" "" "測試獲取 CPU 快取大小" false 0
 run_test "CPU_FREQ" "" "測試獲取 CPU 頻率" false 0
