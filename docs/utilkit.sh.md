@@ -126,8 +126,8 @@ source utilkit.sh
     - 十進制：B/KB/MB/GB/TB/PB
 - 示例：
   ```bash
-  CONVERT_SIZE 1024        # 預設使用二進制（1 KiB）
-  CONVERT_SIZE 1000 KB     # 使用十進制（1000 KB = 0.98 MiB）
+  CONVERT_SIZE 1024        # 預設使用二進制（1.000 KiB）
+  CONVERT_SIZE 1000 KB     # 使用十進制（1000 KB =  1.000 MB）
   ```
 
 #### COPYRIGHT
@@ -237,12 +237,22 @@ source utilkit.sh
     - `TX_BYTES`：傳送的位元組數
     - `TX_PACKETS`：傳送的封包數
     - `TX_DROP`：丟棄的傳送封包數
+  - 無參數：顯示真實網卡名稱（自動過濾虛擬網卡）
 - 示例：
   ```bash
-  INTERFACE -i              # 顯示詳細資訊
-  INTERFACE RX_BYTES        # 顯示接收位元組數
-  INTERFACE TX_PACKETS      # 顯示傳送封包數
+  INTERFACE              # 顯示真實網卡名稱
+  INTERFACE -i           # 顯示詳細資訊
+  INTERFACE RX_BYTES     # 顯示接收位元組數
+  INTERFACE TX_PACKETS   # 顯示傳送封包數
   ```
+- 說明：
+  - 自動過濾以下虛擬網卡：
+    - lo、sit、stf、gif、dummy
+    - vmnet、vir、gre、ipip
+    - ppp、bond、tun、tap
+    - ip6gre、ip6tnl、teql
+    - ocserv、vpn、warp、wgcf
+    - wg、docker
 
 #### IP_ADDR
 - 功能：顯示 IP 地址
