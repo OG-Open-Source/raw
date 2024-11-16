@@ -1,10 +1,10 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.039.004"
+Script="utilkit.sh"
+Version="5.039.005"
 License="MIT License"
 
-SH="utilkit.sh"
 CLR1="\033[0;31m"
 CLR2="\033[0;32m"
 CLR3="\033[0;33m"
@@ -19,7 +19,7 @@ CLR0="\033[0m"
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
 error() {
 	echo -e "${CLR1}$1${CLR0}"
-	[ -s /var/log/ogos-error.log ] && echo "$(date '+%Y-%m-%d %H:%M:%S') | $SH - $Version - $(echo -e "$1" | tr -d '\n')" >> /var/log/ogos-error.log
+	[ -s /var/log/ogos-error.log ] && echo "$(date '+%Y-%m-%d %H:%M:%S') | $Script - $Version - $(echo -e "$1" | tr -d '\n')" >> /var/log/ogos-error.log
 }
 
 function ADD() {
@@ -294,7 +294,8 @@ function CONVERT_SIZE() {
 	}'
 }
 function COPYRIGHT() {
-	echo "Copyright (C) 2024 OG|OS OGATA-Open-Source. All Rights Reserved."
+	echo -e "$Script $Version"
+	echo -e "Copyright (C) 2024 $Author."
 }
 
 function DEL() {
@@ -1006,8 +1007,8 @@ function SYS_UPDATE() {
 		*dnf) update_packages "dnf" "dnf check-update" "dnf -y update" ;;
 		*) { error "Unsupported package manager"; return 1; } ;;
 	esac
-	echo "* Updating utilkit..."
-	bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh) || { error "Failed to update utilkit"; return 1; }
+	echo "* Updating $Script..."
+	bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script) || { error "Failed to update $Script"; return 1; }
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
@@ -1029,10 +1030,10 @@ function TIMEZONE() {
 	esac
 }
 
-[ ! -f ~/utilkit.sh ] && bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh)
-if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh | bash"; then
-	crontab -l > utilkit 2>/dev/null
-	echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh | bash" >> utilkit
-	crontab utilkit
-	rm -f utilkit
+[ ! -f ~/$Script ] && bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script)
+if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script | bash"; then
+	crontab -l > $Script 2>/dev/null
+	echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script | bash" >> $Script
+	crontab $Script
+	rm -f $Script
 fi
