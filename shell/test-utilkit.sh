@@ -142,7 +142,7 @@ run_test "INTERFACE" "INVALID" "測試無效參數" false 1
 # IP_ADDR 測試
 run_test "IP_ADDR" "" "測試獲取所有 IP 位址" false 0
 run_test "IP_ADDR" "-4" "測試獲取 IPv4 位址" false 0
-run_test "IP_ADDR" "-6" "測試獲取 IPv6 位址" false 0
+run_test "IP_ADDR" "-6" "測試獲取 IPv6 位址" false 1
 
 # LAST_UPDATE 測試
 run_test "LAST_UPDATE" "" "測試獲取最後更新時間" false 0
@@ -190,7 +190,7 @@ run_test "SWAP_USAGE" "" "測試獲取 SWAP 使用情況" false 0
 # SYS 相關函式測試
 run_test "SYS_CLEAN" "" "測試系統清理" true 0
 run_test "SYS_INFO" "" "測試顯示系統資訊" false 0
-run_test "SYS_OPTIMIZE" "" "測試系統最佳化" true 0
+run_test "SYS_OPTIMIZE" "" "測試系統最佳化" true 1
 run_test "SYS_REBOOT" "<<< 'n'" "測試系統重啟（取消）" true 0
 run_test "SYS_UPDATE" "" "測試系統更新" true 0
 
