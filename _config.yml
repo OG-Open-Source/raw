@@ -8,3 +8,6 @@ plugins:
 
 title: OG|OS - OGATA Open Source
 description: Welcome to the OGATA Open Source repository, a collection of useful open-source tools and scripts.
+
+# 添加自定義 JavaScript
+copy_button: true
