@@ -67,8 +67,8 @@ run_test "CHECK_ROOT" "" "測試檢查 root 權限" false 0
 run_test "CHECK_VIRT" "" "測試檢查虛擬化環境" false 0
 
 # CHECK_DEPS 測試
-run_test "dependencies=(curl wget);" "CHECK_DEPS" "測試檢查已安裝依賴" false 0
-run_test "dependencies=(nonexistcmd);" "CHECK_DEPS" "測試檢查未安裝依賴" false 0
+run_test "deps=(curl wget);" "CHECK_DEPS" "測試檢查已安裝依賴" false 0
+run_test "deps=(nonexistcmd);" "CHECK_DEPS" "測試檢查未安裝依賴" false 0
 
 # CPU 相關函式測試
 run_test "CPU_CACHE" "" "測試獲取 CPU 快取大小" false 0
@@ -123,11 +123,11 @@ run_test "FONT" "L.BG.RED 測試文字" "測試亮紅色背景" false 0
 run_test "FONT" "INVALID 測試文字" "測試無效樣式" false 0
 
 # GET 測試
-run_test "GET" "https://raw.ogtt.tk/space/text.txt" "測試下載檔案" false 0
-run_test "GET" "https://raw.ogtt.tk/space/text.txt -r rename.txt" "測試下載並重新命名檔案" false 0
-run_test "GET" "https://raw.ogtt.tk/space/text.txt test_dir" "測試下載到指定目錄" false 0
+run_test "GET" "https://raw.ogtt.tk/space/25mib.txt" "測試下載檔案" false 0
+run_test "GET" "https://raw.ogtt.tk/space/25mib.txt -r rename.txt" "測試下載並重新命名檔案" false 0
+run_test "GET" "https://raw.ogtt.tk/space/25mib.txt test_dir" "測試下載到指定目錄" false 0
 run_test "GET" "https://nonexist.example.com/file.txt" "測試下載不存在檔案" false 1
-run_test "GET" "raw.ogtt.tk/space/text.txt" "測試自動添加協議" false 0
+run_test "GET" "raw.ogtt.tk/space/25mib.txt" "測試自動添加協議" false 0
 
 # INPUT 測試
 run_test "INPUT" "'測試輸入：' test_var <<< 'test'" "測試使用者輸入" false 0

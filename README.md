@@ -15,14 +15,17 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 >  > [shell/](shell/)<br>
 >  >  > [dd.sh](shell/dd.sh)<br>
 >  >  > [netreinstall.sh](shell/netreinstall.sh)<br>
+>  >  > [update-function.sh](shell/update-function.sh)<br>
 >  >  > [update-utilkit.sh](shell/update-utilkit.sh)<br>
 >  >  > [utilkit.sh](shell/utilkit.sh)<br>
 >  >  > [README.md](shell/README.md)<br>
 >
 >  > [space/](space/)<br>
+>  >  > [25mib.txt](space/25mib.txt)<br>
+>  >  > [50mib.txt](space/50mib.txt)<br>
 >  >  > [apmd.cmd](space/apmd.cmd)<br>
 >  >  > [gtxt.sh](space/gtxt.sh)<br>
->  >  > [text.txt](space/text.txt)<br>
+>  >  > [test-utilkit.sh](space/test-utilkit.sh)<br>
 >
 >  > [worker/](worker/)<br>
 >  >  > [cf-proxy.js](worker/cf-proxy.js)<br>

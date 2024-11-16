@@ -20,6 +20,7 @@ Each script can be found in the `shell/` directory. Please refer to individual s
 >  > [dd.sh](dd.sh)<br>
 >  > [netreinstall.sh](netreinstall.sh)<br>
 >  > [update-function.sh](update-function.sh)<br>
+>  > [update-utilkit.sh](update-utilkit.sh)<br>
 >  > [utilkit.sh](utilkit.sh)<br>
 >  > [README.md](README.md)<br>
 
