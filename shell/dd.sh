@@ -6,7 +6,7 @@
 ## Blog: https://moeclub.org
 ## Written By MoeClub.org
 
-[ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/update-utilkit.sh) && source ~/utilkit.sh
+[ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh) && source ~/utilkit.sh
 
 tmpVER=''
 tmpDIST=''

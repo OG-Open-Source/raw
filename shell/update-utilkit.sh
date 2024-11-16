@@ -26,7 +26,7 @@ error() {
 if [ -f ~/utilkit.sh ]; then
 	curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh -o utilkit.sh &>/dev/null
 else
-	version=$(curl -sL raw.ogtt.tk/shell/utilkit.sh | grep -oP 'Version="\K[^"]+')
+	version=$(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh | grep -oP 'Version="\K[^"]+')
 	if [[ $version == 0.* ]]; then
 		if [ "$display_language" = "en" ]; then
 			echo -e "${CLR3}Warning: The current version ($version) is a development version. It is not recommended for use.${CLR0}"
