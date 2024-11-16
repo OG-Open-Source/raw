@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.039.001"
+Version="5.039.002"
 License="MIT License"
 
 SH="utilkit.sh"
@@ -116,10 +116,13 @@ function ADD() {
 }
 
 function CHECK_DEPS() {
-	for dep in "${dependencies[@]}"; do
-		status="${CLR2}[OK]${CLR0}"
-		command -v $dep &> /dev/null || status="${CLR1}[Missing]${CLR0}"
-		echo -e "$dep\t$status"
+	for dep in "${deps[@]}"; do
+		if command -v "$dep" &>/dev/null; then
+			status="${CLR2}[Available]${CLR0}"
+		else
+			status="${CLR1}[Not Found]${CLR0}"
+		fi
+		printf "%-20s %b\n" "$dep" "$status"
 	done
 }
 function CHECK_OS() {
@@ -457,8 +460,12 @@ function GET() {
 	output_path="$target_dir/$output_file"
 	url=$(echo "$url" | sed -E 's#([^:])/+#\1/#g; s#^(https?|ftp):/+#\1://#')
 	echo -e "${CLR3}DOWNLOAD [$url]${CLR0}"
-	if ! curl --location --insecure --max-time 5 --retry 2 "$url" -o "$output_path"; then
-		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_path" || { error "Failed to download file using curl and wget is not available\n"; return 1; }
+	file_size=$(curl -sI "$url" | grep -i content-length | awk '{print $2}' | tr -d '\r')
+	size_limit="26214400"
+	if [ -n "$file_size" ] && [ "$file_size" -gt "$size_limit" ]; then
+		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_path" || { error "Failed to download file using wget\n"; return 1; }
+	else
+		curl --location --insecure --connect-timeout 5 --retry 2 "$url" -o "$output_path" || { error "Failed to download file using curl\n"; return 1; }
 	fi
 	if [ -f "$output_path" ]; then
 		echo "* File downloaded successfully to $output_path"
