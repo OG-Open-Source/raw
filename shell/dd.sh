@@ -79,13 +79,13 @@ while [[ $# -ge 1 ]]; do
 			echo -e "\t${CLR8}-dd, --image${CLR0} URL\tSpecify image URL"
 			echo -e "\t${CLR8}-p${CLR0} PASSWORD\t\tSet Linux password"
 			echo -e "\t${CLR8}-port${CLR0} PORT\t\tSet SSH port"
-			exit 1
+			exit 2
 			;;
 	esac
 	shift
 done
 
-[ "$(id -u)" -ne 0 ] && { echo -e "${CLR1}Please run this script as root user.${CLR0}"; exit 1; }
+CHECK_ROOT
 
 dependence() {
 	Full='0';

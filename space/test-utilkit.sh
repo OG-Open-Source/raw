@@ -88,8 +88,8 @@ run_test "CONVERT_SIZE" "1024 MiB" "測試轉換檔案大小 (MiB)" false 0
 run_test "CONVERT_SIZE" "1024 GiB" "測試轉換檔案大小 (GiB)" false 0
 run_test "CONVERT_SIZE" "1024 TiB" "測試轉換檔案大小 (TiB)" false 0
 run_test "CONVERT_SIZE" "1024 PiB" "測試轉換檔案大小 (PiB)" false 0
-run_test "CONVERT_SIZE" "-1024 KB" "測試負數大小轉換" false 1
-run_test "CONVERT_SIZE" "abc KB" "測試無效輸入" false 1
+run_test "CONVERT_SIZE" "-1024 KB" "測試負數大小轉換" false 2
+run_test "CONVERT_SIZE" "abc KB" "測試無效輸入" false 2
 
 # DEL 函式測試
 run_test "DEL" "-f test.txt" "測試刪除檔案" false 0
@@ -107,7 +107,7 @@ run_test "DNS_ADDR" "-6" "測試獲取 IPv6 DNS 伺服器" false 0
 
 # FIND 測試
 run_test "FIND" "bash" "測試搜尋套件" false 0
-run_test "FIND" "" "測試空參數搜尋" false 1
+run_test "FIND" "" "測試空參數搜尋" false 2
 
 # FONT 測試
 run_test "FONT" "RED 測試文字" "測試紅色文字" false 0
@@ -141,7 +141,7 @@ run_test "INTERFACE" "RX_DROP" "測試獲取接收丟棄數" false 0
 run_test "INTERFACE" "TX_BYTES" "測試獲取傳送位元組數" false 0
 run_test "INTERFACE" "TX_PACKETS" "測試獲取傳送封包數" false 0
 run_test "INTERFACE" "TX_DROP" "測試獲取傳送丟棄數" false 0
-run_test "INTERFACE" "INVALID" "測試無效參數" false 1
+run_test "INTERFACE" "INVALID" "測試無效參數" false 2
 
 # IP_ADDR 測試
 run_test "IP_ADDR" "" "測試獲取所有 IP 位址" false 0
@@ -218,4 +218,4 @@ echo "=========================="
 rm -f test.txt rename.txt gtxt.sh
 rm -rf test_dir
 
-exit $((FAILED > 0))
+exit

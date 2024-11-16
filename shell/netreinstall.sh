@@ -3696,4 +3696,4 @@ else
 	SYS_REBOOT
 fi
 
-exit 1
+exit
