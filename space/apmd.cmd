@@ -44,8 +44,8 @@ for /f "tokens=*" %%D in ('dir /b /a:d "!current_dir!" 2^>nul ^| findstr /v "^\.
 
     :: Process files in subdirectory
     pushd "!current_dir!\%%D"
-    :: Process non-README.md and non-CNAME files first
-    for /f "tokens=*" %%F in ('dir /b /a:-d 2^>nul ^| findstr /v "^\..*" ^| findstr /v /i "^README\.md$ ^CNAME$"') do (
+    :: Process non-README.md, non-CNAME, and non-_config.yml files first
+    for /f "tokens=*" %%F in ('dir /b /a:-d 2^>nul ^| findstr /v "^\..*" ^| findstr /v /i "^README\.md$ ^CNAME$ ^_config\.yml$"') do (
         echo ^>  ^>  ^> [%%F](%%D/%%F^)^<br^>
     )
     :: Process README.md last (if exists)
@@ -60,8 +60,8 @@ for /f "tokens=*" %%D in ('dir /b /a:d "!current_dir!" 2^>nul ^| findstr /v "^\.
 :: Process files in current directory
 set "has_files=0"
 pushd "!current_dir!"
-:: Process non-README.md and non-CNAME files first
-for /f "tokens=*" %%F in ('dir /b /a:-d 2^>nul ^| findstr /v "^\..*" ^| findstr /v /i "^README\.md$ ^CNAME$"') do (
+:: Process non-README.md, non-CNAME, and non-_config.yml files first
+for /f "tokens=*" %%F in ('dir /b /a:-d 2^>nul ^| findstr /v "^\..*" ^| findstr /v /i "^README\.md$ ^CNAME$ ^_config\.yml$"') do (
     if not "!has_files!"=="1" (
         if not "!first_item!"=="1" echo ^>
         set "has_files=1"
