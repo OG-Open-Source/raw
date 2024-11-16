@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.039.003"
+Version="5.039.004"
 License="MIT License"
 
 SH="utilkit.sh"
@@ -25,6 +25,7 @@ error() {
 function ADD() {
 	[ $# -eq 0 ] && { error "No items specified for insertion. Please provide at least one item to add"; return 2; }
 	mode="package"
+	failed=0
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			-f) mode="file"; shift; continue ;;
@@ -35,13 +36,16 @@ function ADD() {
 				echo -e "${CLR3}INSERT DEB PACKAGE [$deb_file]\n${CLR0}"
 				GET "$1"
 				if [ -f "$deb_file" ]; then
-					dpkg -i "$deb_file" || { error "Failed to install $deb_file. Check package compatibility and dependencies"; rm -f "$deb_file"; return 1; }
-					apt --fix-broken install -y || { error "Failed to fix dependencies"; rm -f "$deb_file"; return 1; }
+					dpkg -i "$deb_file" || { error "Failed to install $deb_file. Check package compatibility and dependencies\n"; rm -f "$deb_file"; failed=1; shift; continue; }
+					apt --fix-broken install -y || { error "Failed to fix dependencies"; rm -f "$deb_file"; failed=1; shift; continue; }
 					echo "* DEB package $deb_file installed successfully"
 					rm -f "$deb_file"
 					echo -e "${CLR2}FINISHED${CLR0}\n"
 				else
-					{ error "DEB package $deb_file not found or download failed"; return 1; }
+					error "DEB package $deb_file not found or download failed\n"
+					failed=1
+					shift
+					continue
 				fi
 				shift
 				;;
@@ -49,16 +53,16 @@ function ADD() {
 				echo -e "${CLR3}INSERT $(echo "$mode" | tr '[:lower:]' '[:upper:]') [$1]${CLR0}"
 				case "$mode" in
 					"file")
-						[ -d "$1" ] && { error "Directory $1 already exists. Cannot create file with the same name\n"; return 1; }
-						[ -f "$1" ] && { error "File $1 already exists\n"; return 1; }
-						touch "$1" || { error "Failed to create file $1. Check permissions and disk space\n"; return 1; }
+						[ -d "$1" ] && { error "Directory $1 already exists. Cannot create file with the same name\n"; failed=1; shift; continue; }
+						[ -f "$1" ] && { error "File $1 already exists\n"; failed=1; shift; continue; }
+						touch "$1" || { error "Failed to create file $1. Check permissions and disk space\n"; failed=1; shift; continue; }
 						echo "* File $1 created successfully"
 						echo -e "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"directory")
-						[ -f "$1" ] && { error "File $1 already exists. Cannot create directory with the same name\n"; return 1; }
-						[ -d "$1" ] && { error "Directory $1 already exists\n"; return 1; }
-						mkdir -p "$1" || { error "Failed to create directory $1. Check permissions and path validity\n"; return 1; }
+						[ -f "$1" ] && { error "File $1 already exists. Cannot create directory with the same name\n"; failed=1; shift; continue; }
+						[ -d "$1" ] && { error "Directory $1 already exists\n"; failed=1; shift; continue; }
+						mkdir -p "$1" || { error "Failed to create directory $1. Check permissions and path validity\n"; failed=1; shift; continue; }
 						echo "* Directory $1 created successfully"
 						echo -e "${CLR2}FINISHED${CLR0}\n"
 						;;
@@ -95,17 +99,28 @@ function ADD() {
 											echo "* Package $1 installed successfully"
 											echo -e "${CLR2}FINISHED${CLR0}\n"
 										else
-											{ error "Failed to install $1 using $pkg_manager\n"; return 1; }
+											error "Failed to install $1 using $pkg_manager\n"
+											failed=1
+											shift
+											continue
 										fi
 									else
-										{ error "Failed to install $1 using $pkg_manager\n"; return 1; }
+										error "Failed to install $1 using $pkg_manager\n"
+										failed=1
+										shift
+										continue
 									fi
 								else
 									echo "* Package $1 is already installed"
 									echo -e "${CLR2}FINISHED${CLR0}\n"
 								fi
 								;;
-							*) { error "Package manager not found. Please install a supported package manager\n"; return 1; } ;;
+							*)
+								error "Package manager not found. Please install a supported package manager\n"
+								failed=1
+								shift
+								continue
+								;;
 						esac
 						;;
 				esac
@@ -113,6 +128,7 @@ function ADD() {
 				;;
 		esac
 	done
+	return $failed
 }
 
 function CHECK_DEPS() {
@@ -284,6 +300,7 @@ function COPYRIGHT() {
 function DEL() {
 	[ $# -eq 0 ] && { error "No items specified for deletion. Please provide at least one item to delete"; return 2; }
 	mode="package"
+	failed=0
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			-f) mode="file"; shift; continue ;;
@@ -292,16 +309,16 @@ function DEL() {
 				echo -e "${CLR3}REMOVE $(echo "$mode" | tr '[:lower:]' '[:upper:]') [$1]${CLR0}"
 				case "$mode" in
 					"file")
-						[ ! -f "$1" ] && { error "File $1 does not exist"; return 1; }
+						[ ! -f "$1" ] && { error "File $1 does not exist\n"; failed=1; shift; continue; }
 						echo "* File $1 exists. Attempting removal..."
-						rm -f "$1" || { error "Failed to remove file $1"; return 1; }
+						rm -f "$1" || { error "Failed to remove file $1\n"; failed=1; shift; continue; }
 						echo "* File $1 removed successfully"
 						echo -e "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"directory")
-						[ ! -d "$1" ] && { error "Directory $1 does not exist"; return 1; }
+						[ ! -d "$1" ] && { error "Directory $1 does not exist\n"; failed=1; shift; continue; }
 						echo "* Directory $1 exists. Attempting removal..."
-						rm -rf "$1" || { error "Failed to remove directory $1"; return 1; }
+						rm -rf "$1" || { error "Failed to remove directory $1\n"; failed=1; shift; continue; }
 						echo "* Directory $1 removed successfully"
 						echo -e "${CLR2}FINISHED${CLR0}\n"
 						;;
@@ -332,14 +349,23 @@ function DEL() {
 									esac
 								}
 								if ! is_installed "$1"; then
-									{ error "Package $1 is not installed\n"; return 1; }
+									error "Package $1 is not installed\n"
+									failed=1
+									shift
+									continue
 								fi
 								echo "* Package $1 is installed. Attempting removal..."
 								if ! remove_package "$1"; then
-									{ error "Failed to remove $1 using $pkg_manager\n"; return 1; }
+									error "Failed to remove $1 using $pkg_manager\n"
+									failed=1
+									shift
+									continue
 								fi
 								if is_installed "$1"; then
-									{ error "Failed to remove $1 using $pkg_manager\n"; return 1; }
+									error "Failed to remove $1 using $pkg_manager\n"
+									failed=1
+									shift
+									continue
 								fi
 								echo "* Package $1 removed successfully"
 								echo -e "${CLR2}FINISHED${CLR0}\n"
@@ -352,6 +378,7 @@ function DEL() {
 				;;
 		esac
 	done
+	return $failed
 }
 function DISK_USAGE() {
 	used=$(df -B1 / | awk 'NR==2 {printf "%.0f", $3}') || { error "Failed to get disk usage statistics"; return 1; }
