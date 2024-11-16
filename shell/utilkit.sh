@@ -2,7 +2,7 @@
 
 Author="OGATA Open-Source"
 Script="utilkit.sh"
-Version="5.039.005"
+Version="5.039.006"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -138,7 +138,7 @@ function CHECK_DEPS() {
 		else
 			status="${CLR1}[Not Found]${CLR0}"
 		fi
-		printf "%-20s %b\n" "$dep" "$status"
+		echo -e "$status\t$dep"
 	done
 }
 function CHECK_OS() {
