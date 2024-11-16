@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Author="OGATA Open-Source"
-Version="5.038.009"
+Version="5.039.001"
 License="MIT License"
 
 SH="utilkit.sh"
@@ -20,11 +20,10 @@ CLR0="\033[0m"
 error() {
 	echo -e "${CLR1}$1${CLR0}"
 	[ -s /var/log/ogos-error.log ] && echo "$(date '+%Y-%m-%d %H:%M:%S') | $SH - $Version - $(echo -e "$1" | tr -d '\n')" >> /var/log/ogos-error.log
-	return 1
 }
 
 function ADD() {
-	[ $# -eq 0 ] && { error "No items specified for insertion. Please provide at least one item to add"; return 1; }
+	[ $# -eq 0 ] && { error "No items specified for insertion. Please provide at least one item to add"; return 2; }
 	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -116,6 +115,13 @@ function ADD() {
 	done
 }
 
+function CHECK_DEPS() {
+	for dep in "${dependencies[@]}"; do
+		status="${CLR2}[OK]${CLR0}"
+		command -v $dep &> /dev/null || status="${CLR1}[Missing]${CLR0}"
+		echo -e "$dep\t$status"
+	done
+}
 function CHECK_OS() {
 	if [ -f /etc/debian_version ]; then
 		. /etc/os-release
@@ -223,14 +229,14 @@ function CPU_USAGE() {
 	echo "$usage%"
 }
 function CONVERT_SIZE() {
-    [ -z "$1" ] && { error "No size value provided for conversion"; return 1; }
+    [ -z "$1" ] && { error "No size value provided for conversion"; return 2; }
     size=$1
     unit=${2:-iB}
     unit_lower=$(echo "$unit" | tr '[:upper:]' '[:lower:]')
     if ! [[ "$size" =~ ^[+-]?[0-9]*\.?[0-9]+$ ]]; then
-        { error "Invalid size value. Must be a numeric value"; return 1; }
+        { error "Invalid size value. Must be a numeric value"; return 2; }
     elif [[ "$size" =~ ^[-].*$ ]]; then
-        { error "Size value cannot be negative"; return 1; }
+        { error "Size value cannot be negative"; return 2; }
     elif [[ "$size" =~ ^[+].*$ ]]; then
         size=${size#+}
     fi
@@ -273,7 +279,7 @@ function COPYRIGHT() {
 }
 
 function DEL() {
-	[ $# -eq 0 ] && { error "No items specified for deletion. Please provide at least one item to delete"; return 1; }
+	[ $# -eq 0 ] && { error "No items specified for deletion. Please provide at least one item to delete"; return 2; }
 	mode="package"
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -379,7 +385,7 @@ function DNS_ADDR () {
 }
 
 function FIND() {
-	[ $# -eq 0 ] && { error "No search terms provided. Please specify what to search for"; return 1; }
+	[ $# -eq 0 ] && { error "No search terms provided. Please specify what to search for"; return 2; }
 	package_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
 	case ${package_manager##*/} in
 		apk) search_command="apk search" ;;
@@ -428,7 +434,7 @@ function FONT() {
 }
 
 function GET() {
-	[ $# -eq 0 ] && { error "No URL specified. Please provide a URL to download"; return 1; }
+	[ $# -eq 0 ] && { error "No URL specified. Please provide a URL to download"; return 2; }
 	url="$1"
 	[[ "$url" =~ ^(http|https|ftp):// ]] || url="https://$url"
 	output_file="${url##*/}"
@@ -439,7 +445,7 @@ function GET() {
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			-r)
-				[ -z "$2" ] || [[ "$2" == -* ]] && { error "No filename specified after -r option\n"; return 1; }
+				[ -z "$2" ] || [[ "$2" == -* ]] && { error "No filename specified after -r option\n"; return 2; }
 				rename_file="$2"
 				shift 2
 				;;
@@ -529,7 +535,7 @@ function INTERFACE() {
 				TX_DROP) echo "$tx_drop" ;;
 				-i) echo "$interface: RX: $(CONVERT_SIZE $rx_bytes), TX: $(CONVERT_SIZE $tx_bytes)" ;;
 				"") echo "$interface" ;;
-				*) { error "Invalid parameter: $1. Valid parameters are: RX_BYTES, RX_PACKETS, RX_DROP, TX_BYTES, TX_PACKETS, TX_DROP, -i"; return 1; } ;;
+				*) { error "Invalid parameter: $1. Valid parameters are: RX_BYTES, RX_PACKETS, RX_DROP, TX_BYTES, TX_PACKETS, TX_DROP, -i"; return 2; } ;;
 			esac
 		else
 			{ error "No stats found for interface: $interface"; return 1; }
@@ -664,7 +670,7 @@ function RUN() {
 		[[ ${#COMPREPLY[@]} -eq 0 ]] && COMPREPLY=( $(compgen -c -- "$cur") )
 	}
 	complete -F _run_completions RUN
-	[ $# -eq 0 ] && { error "No command specified"; return 1; }
+	[ $# -eq 0 ] && { error "No command specified"; return 2; }
 	if [[ "$1" == *"/"* ]]; then
 		if [[ "$1" =~ ^[^/]+/[^/]+/.+ ]]; then
 			repo_owner=$(echo "$1" | cut -d'/' -f1)
@@ -675,7 +681,7 @@ function RUN() {
 			shift
 			while [[ $# -gt 0 ]]; do
 				case "$1" in
-					-b) [[ -z "$2" || "$2" == -* ]] && { error "Branch name required after -b"; return 1; }; branch="$2"; shift 2 ;;
+					-b) [[ -z "$2" || "$2" == -* ]] && { error "Branch name required after -b"; return 2; }; branch="$2"; shift 2 ;;
 					*) break ;;
 				esac
 			done
