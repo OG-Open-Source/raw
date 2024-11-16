@@ -22,7 +22,7 @@
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
 [ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh) && source ~/utilkit.sh
 
-Version="2024.11.15"
+Version="2024.11.16"
 License="GPL"
 SH="InstallNET.sh"
 
@@ -2438,12 +2438,8 @@ echo -e "\n${CLR3}# System Reinstall${CLR0}"
 
 echo -e "\n${CLR8}## Check Dependence${CLR0}"
 echo -e "${CLR8}$(LINE - "32")${CLR0}"
-dependencies=("awk" "basename" "cat" "cpio" "curl" "cut" "dirname" "file" "find" "grep" "gzip" "iconv" "ip" "lsblk" "openssl" "sed" "wget")
-for dep in "${dependencies[@]}"; do
-	status="${CLR2}[OK]${CLR0}"
-	command -v $dep &> /dev/null || status="${CLR1}[Missing]${CLR0}"
-	echo -e "$status\t$dep"
-done
+deps=("awk" "basename" "cat" "cpio" "curl" "cut" "dirname" "file" "find" "grep" "gzip" "iconv" "ip" "lsblk" "openssl" "sed" "wget")
+CHECK_DEPS
 
 echo -e "\n${CLR8}## System Information${CLR0}"
 echo -e "${CLR8}$(LINE - "32")${CLR0}"
