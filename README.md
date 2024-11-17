@@ -2,6 +2,9 @@
 
 Welcome to the OGATA Open Source repository, a collection of useful open-source tools and scripts.
 
+{: .warning }
+> This a test message. Don't mind it.
+
 ## Repository Structure
 
 > [raw/](.)<br>
