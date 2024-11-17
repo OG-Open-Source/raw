@@ -6,23 +6,11 @@ plugins:
 - jekyll-readme-index
 - jekyll-relative-links
 
-readme_index:
-  enabled: true
-  remove_originals: false
-  with_frontmatter: true
-
-safe: false
-
 color_scheme: dark
 search_enabled: true
 heading_anchors: true
-aux_links:
-  "View on GitHub":
-    - "https://github.com/OG-Open-Source"
-nav_external_links:
-  - title: OGATA Open Source on GitHub
-    url: https://github.com/OG-Open-Source
-    hide_icon: false
+aux_links: {}
+nav_external_links: []
 
 callouts:
   important:
@@ -43,17 +31,3 @@ callouts:
 
 sass:
   style: compressed
-
-nav:
-  enabled: true
-  auto_generate: true
-
-collections:
-  docs:
-    permalink: "/:collection/:path/"
-    output: true
-
-just_the_docs:
-  collections:
-    docs:
-      name: Documentation
