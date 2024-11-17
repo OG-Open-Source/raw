@@ -11,8 +11,13 @@ safe: false
 color_scheme: dark
 search_enabled: true
 heading_anchors: true
-aux_links: {}
-nav_external_links: []
+aux_links:
+  "View on GitHub":
+    - "https://github.com/OG-Open-Source"
+nav_external_links:
+  - title: OGATA Open Source on GitHub
+    url: https://github.com/OG-Open-Source
+    hide_icon: false
 
 callouts:
   important:
@@ -33,3 +38,13 @@ callouts:
 
 sass:
   style: compressed
+
+collections:
+  docs:
+    permalink: "/:collection/:path/"
+    output: true
+
+just_the_docs:
+  collections:
+    docs:
+      name: Documentation
