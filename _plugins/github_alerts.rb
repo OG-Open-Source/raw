@@ -11,10 +11,10 @@ module Jekyll
     end
 
     def convert(content)
-      content.gsub!(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\n(.*?)(?=\n\n|\z)/m) do |match|
+      content.gsub!(/>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]<br>\n>\s*(.*?)(?=\n\n|\n[^>]|\z)/m) do |match|
         type = $1.downcase
         text = $2.strip
-        "\n> #{text}\n{: .#{type}}\n"
+        "> #{text}\n{: .#{type}}\n"
       end
       content
     end
