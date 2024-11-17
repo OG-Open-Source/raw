@@ -1,5 +1,4 @@
 # gtxt.sh
-
 一個高效能的隨機文字生成工具，可快速產生指定字數的隨機英文字母和數字組合。
 
 ---
@@ -103,13 +102,13 @@ output_file="custom_output.txt"
 
 ## 常見問題
 
-### Q：為什麼生成大檔案時速度變慢？
+**Q：為什麼生成大檔案時速度變慢？**<br>
 A：檔案系統的寫入速度可能成為瓶頸，建議使用 SSD 儲存裝置。
 
-### Q：可以生成包含特殊字元的文字嗎？
+**Q：可以生成包含特殊字元的文字嗎？**<br>
 A：目前僅支援英文字母和數字。如需特殊字元，需修改腳本中的 tr 命令參數。
 
-### Q：執行時提示 "tr: command not found"？
+**Q：執行時提示 "tr: command not found"？**<br>
 A：需要安裝 coreutils 套件：
 ```bash
 # Debian/Ubuntu
@@ -117,13 +116,10 @@ sudo apt install -y coreutils
 ```
 
 ## 貢獻指南
-
-歡迎提交 Issue 和 Pull Request！貢獻時請注意：
-
-1. 確保程式碼符合 Shell Style Guide
-2. 添加適當的註釋和文件
-3. 確保所有測試案例都能通過
+1. Fork 專案
+2. 創建功能分支
+3. 提交更改
+4. 發起 Pull Request
 
 ## 許可證
-
 本專案採用 MIT 許可證。 

@@ -1,5 +1,4 @@
 # netreinstall.sh
-
 一鍵網絡重裝多系統腳本，支援 Debian/Ubuntu/Kali/CentOS/Rocky/AlmaLinux/Fedora/Alpine/Windows。
 
 ---
@@ -161,23 +160,20 @@ bash netreinstall.sh -windows 11 -lang en
 
 ## 常見問題
 
-### Q：安裝過程中提示記憶體不足？
+**Q：安裝過程中提示記憶體不足？**<br>
 A：最低要求為 384MB，建議 512MB 以上。
 
-### Q：如何選擇合適的網絡配置？
+**Q：如何選擇合適的網絡配置？**<br>
 A：一般情況下自動設定，如需固定 IP 則使用靜態配置。
 
-### Q：支援哪些硬體架構？
+**Q：支援哪些硬體架構？**<br>
 A：支援 x86_64/amd64、i386/x86、arm64/aarch64 架構。
 
 ## 貢獻指南
-
-1. Fork 本項目
-2. 創建您的特性分支
-3. 提交您的更改
-4. 推送到分支
-5. 創建新的 Pull Request
+1. Fork 專案
+2. 創建功能分支
+3. 提交更改
+4. 發起 Pull Request
 
 ## 許可證
-
 本專案採用 GPL 許可證。

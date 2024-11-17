@@ -1,5 +1,4 @@
 # cf-proxy.js
-
 一個基於 Cloudflare Workers 的代理服務，提供 WAF 防護、URL 訪問控制和請求計數功能。
 
 ---
@@ -147,22 +146,20 @@ curl -X POST 'https://your-worker.workers.dev/api/config' \
 
 ## 常見問題
 
-### Q：如何處理 CORS 錯誤？
+**Q：如何處理 CORS 錯誤？**<br>
 A：服務默認已啟用 CORS，響應頭包含 `Access-Control-Allow-Origin: *`。
 
-### Q：為什麼請求計數功能不工作？
+**Q：為什麼請求計數功能不工作？**<br>
 A：請確保已正確配置 D1 數據庫並創建了必要的表結構。
 
-### Q：如何更新 WAF 規則？
+**Q：如何更新 WAF 規則？**<br>
 A：使用 API 端點 `/api/config` 發送 POST 請求，記得包含正確的 `X-Update-Key`。
 
 ## 貢獻指南
-1. Fork 本專案
-2. 創建特性分支
+1. Fork 專案
+2. 創建功能分支
 3. 提交更改
 4. 發起 Pull Request
-
-歡迎提交 Issue 和 Pull Request！
 
 ## 許可證
 本專案採用 MIT 許可證。
