@@ -26,19 +26,19 @@ nav_external_links:
 
 callouts:
   important:
-    title: Important
+    title: IMPORTANT
     color: purple
   tip:
-    title: Tip
+    title: TIP
     color: green
   note:
-    title: Note
+    title: NOTE
     color: blue
   warning:
-    title: Warning
+    title: WARNING
     color: yellow
   caution:
-    title: Caution
+    title: CAUTION
     color: red
 
 sass:
