@@ -6,6 +6,11 @@ plugins:
 - jekyll-readme-index
 - jekyll-relative-links
 
+readme_index:
+  enabled: true
+  remove_originals: false
+  with_frontmatter: true
+
 safe: false
 
 color_scheme: dark
@@ -38,6 +43,10 @@ callouts:
 
 sass:
   style: compressed
+
+nav:
+  enabled: true
+  auto_generate: true
 
 collections:
   docs:
