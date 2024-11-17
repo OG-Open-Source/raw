@@ -6,6 +6,8 @@ plugins:
 - jekyll-readme-index
 - jekyll-relative-links
 
+safe: false
+
 color_scheme: dark
 search_enabled: true
 heading_anchors: true
@@ -13,19 +15,20 @@ aux_links: {}
 nav_external_links: []
 
 callouts:
-  highlight:
-    color: yellow
   important:
     title: Important
-    color: blue
-  new:
-    title: New
+    color: purple
+  tip:
+    title: Tip
     color: green
   note:
     title: Note
-    color: purple
+    color: blue
   warning:
     title: Warning
+    color: yellow
+  caution:
+    title: Caution
     color: red
 
 sass:
