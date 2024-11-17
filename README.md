@@ -4,6 +4,7 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 
 ## Repository Structure
 
+{: .note }
 > [raw/](.)<br>
 >  > [docs/](docs/)<br>
 >  >  > [apmd.cmd.md](docs/apmd.cmd.md)<br>
