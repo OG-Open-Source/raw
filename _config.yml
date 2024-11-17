@@ -6,6 +6,7 @@ plugins:
 - jekyll-sitemap
 - jekyll-readme-index
 - jekyll-relative-links
+- jekyll-include-cache
 
 color_scheme: dark
 search_enabled: true

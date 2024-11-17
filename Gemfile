@@ -9,6 +9,7 @@ group :jekyll_plugins do
   gem "jekyll-sitemap"
   gem "jekyll-readme-index"
   gem "jekyll-relative-links"
+  gem "jekyll-include-cache"
 end
 
 platforms :mingw, :x64_mingw, :mswin, :jruby do
