@@ -1,4 +1,4 @@
-remote_theme: just-the-docs/just-the-docs@v0.7.0
+remote_theme: just-the-docs/just-the-docs
 
 plugins:
 - jekyll-remote-theme
@@ -6,7 +6,6 @@ plugins:
 - jekyll-sitemap
 - jekyll-readme-index
 - jekyll-relative-links
-- jekyll-include-cache
 
 color_scheme: dark
 search_enabled: true

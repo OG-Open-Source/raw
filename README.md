@@ -4,18 +4,23 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 
 > [!NOTE]<br>
 > Highlights information that users should take into account, even when skimming.
+{:.note}
 
 > [!TIP]<br>
 > Optional information to help a user be more successful.
+{:.tip}
 
 > [!IMPORTANT]<br>
 > Crucial information necessary for users to succeed.
+{:.important}
 
 > [!WARNING]<br>
 > Critical content demanding immediate user attention due to potential risks.
+{:.warning}
 
 > [!CAUTION]<br>
 > Negative potential consequences of an action.
+{:.caution}
 
 ## Repository Structure
 
