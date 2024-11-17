@@ -1,17 +1,20 @@
-@import 'jekyll-theme-hacker';
+@import "{{ site.theme }}";
 
-#header .btn {
-  display: none;
-} 
+/* Hide GitHub button */
+.btn {
+  display: none !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
 
-#header .btn:hover {
-  display: none;
-} 
+.btn:hover {
+  background: none !important;
+}
 
-#header .btn .icon {
-  display: none;
-} 
-
-#header .btn-github .icon {
-  display: none;
+.btn .icon,
+.btn-github .icon {
+  display: none !important;
+  background: none !important;
+  opacity: 0 !important;
 }
