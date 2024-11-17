@@ -18,7 +18,6 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 >  >  > [update-function.sh](shell/update-function.sh)<br>
 >  >  > [update-utilkit.sh](shell/update-utilkit.sh)<br>
 >  >  > [utilkit.sh](shell/utilkit.sh)<br>
->  >  > [README.md](shell/README.md)<br>
 >
 >  > [space/](space/)<br>
 >  >  > [25mib.txt](space/25mib.txt)<br>
@@ -29,7 +28,6 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 >
 >  > [worker/](worker/)<br>
 >  >  > [cf-proxy.js](worker/cf-proxy.js)<br>
->  >  > [README.md](worker/README.md)<br>
 >
 >  > [README.md](README.md)<br>
 
