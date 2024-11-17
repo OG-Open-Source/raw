@@ -1,5 +1,5 @@
 # apmd.cmd
-一個用於自動生成目錄結構的 Windows 批次檔案，可快速產生 Markdown 格式的目錄導航。
+一個用於 Windows 系統下自動生成 Markdown 目錄結構的批次工具。
 
 ---
 
@@ -17,55 +17,53 @@
 ---
 
 ## 簡介
-apmd.cmd 是一個專門設計用於生成目錄結構的 Windows 批次檔案。它能夠遍歷指定目錄，並生成一個 Markdown 格式的目錄結構，特別適合用於文檔導航。生成的結構完全相容於 GitHub Pages 或其他 Markdown 閱讀器。
+apmd.cmd 是一個專為 Windows 環境開發的批次工具，能夠自動遍歷目錄並生成 Markdown 格式的目錄導航結構。它特別適合用於文檔管理和 GitHub Pages 項目。
 
 ## 特性
-- 自動遍歷目錄結構並生成 Markdown 格式輸出
-- 支援多層級目錄結構（最大深度 2 層）
-- 智能排序：目錄優先，檔案次之
-- 特殊檔案處理：README.md 置底顯示
-- 靈活的檔案隱藏選項：支援全域、目錄特定和當前目錄的檔案隱藏
-- 相容性強：生成的連結格式適用於 GitHub Pages 和主流 Markdown 渲染器
-- 支援包含空格的路徑名稱
+- 自動生成 Markdown 格式的目錄結構
+- 支援最深 2 層的目錄遍歷
+- 智能排序：目錄優先於檔案
+- 自動處理特殊檔案（如 README.md）
+- 支援多種檔案隱藏模式
+- 完全相容 GitHub Pages
+- 支援含空格的檔案路徑
 
 ## 安裝
-1. 下載 apmd.cmd 檔案
-2. 將檔案放置在系統 PATH 環境變數包含的目錄中（可選）
 ```batch
 # 下載檔案
 curl -sSLO "https://raw.ogtt.tk/space/apmd.cmd"
 
-# 移動到系統路徑（可選）
+# 移動到系統路徑（選擇性）
 move apmd.cmd %SystemRoot%
 ```
 
+{:.important}
+> 確保將檔案放置在系統 PATH 包含的目錄中以便全域使用。
+
 ## 使用方法
-執行腳本時需要提供目標目錄路徑和可選的隱藏選項：
+基本命令格式：
 
 ```batch
 apmd.cmd [directory_path] [-d "hidden_dirs"] [-f "hidden_files"]
 ```
 
-### 參數說明：
-- `directory_path`：要生成目錄結構的目標路徑
-  - 支援相對路徑和絕對路徑
-  - 路徑包含空格時需要使用引號
-- `-d "hidden_dirs"`：指定要隱藏的目錄（可選）
-  - 多個目錄用空格分隔
-- `-f "hidden_files"`：指定要隱藏的檔案（可選）
-  - 支援三種匹配模式：
-    - `filename.ext`：隱藏所有匹配的檔案
-    - `./filename.ext`：只隱藏當前目錄下的檔案
-    - `path/filename.ext`：隱藏指定路徑下的檔案
-  - 多個檔案用空格分隔
+### 參數說明
+- `directory_path`：目標目錄路徑
+- `-d "hidden_dirs"`：要隱藏的目錄列表
+- `-f "hidden_files"`：要隱藏的檔案列表
+
+{:.note}
+> 檔案隱藏支援三種模式：
+> - 全域模式：`filename.ext`
+> - 當前目錄：`./filename.ext`
+> - 指定路徑：`path/filename.ext`
 
 ## 示例
-
 ```batch
 # 基本使用
 apmd.cmd "."
 
-# 隱藏特定目錄
+# 隱藏指定目錄
 apmd.cmd "." -d "node_modules .git"
 
 # 隱藏特定檔案（全域）
@@ -81,7 +79,7 @@ apmd.cmd "." -f "./local-only.txt"
 apmd.cmd "." -d "node_modules" -f "./local.txt docs/secret.md"
 ```
 
-### 輸出示例：
+### 輸出示例
 ```markdown
 > [docs/](.)<br>
 >  > [image/](image/)<br>
@@ -97,10 +95,10 @@ apmd.cmd "." -d "node_modules" -f "./local.txt docs/secret.md"
 ```
 
 ## 配置
-本工具不需要額外配置檔案，所有設定都通過命令列參數完成。需要確保系統支援以下功能：
+本工具採用無配置檔案設計，所有設定通過命令列參數完成。
 
-- Windows 命令提示字元
-- 延遲環境變數擴充功能（自動啟用）
+{:.tip}
+> 使用前請確保 Windows 命令提示字元可正常運作。
 
 ## 常見問題
 
@@ -116,8 +114,11 @@ A：檔案可能被以下規則隱藏：
 - 通過 `-d` 或 `-f` 參數指定的檔案
 - 超過 2 層深度的檔案
 
-**Q：生成的連結在某些平台無法正常工作？**<br>
-A：確保目標平台支援相對路徑連結。某些特殊的 Markdown 渲染器可能需要調整連結格式。
+**Q：為什麼某些檔案未顯示？**<br>
+A：可能原因：
+- 檔案位於第 3 層以上目錄
+- 檔案名稱以 `.` 開頭
+- 檔案被隱藏參數指定
 
 ## 貢獻指南
 1. Fork 專案

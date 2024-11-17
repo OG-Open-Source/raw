@@ -1,5 +1,5 @@
 # utilkit.sh
-一個功能豐富的 Shell 函數庫，提供系統管理、網路配置、效能監控等多種實用功能。
+一個全面的 Shell 函數庫，提供系統管理、監控和網路配置等功能。
 
 ---
 
@@ -21,9 +21,7 @@
 ---
 
 ## 簡介
-
 utilkit.sh 是一個全面的 Shell 函數庫，專為系統管理員和開發者設計。它提供了豐富的函式可用，包括套件管理、系統監控、網路配置等，大大簡化了日常系統維護工作。
-
 
 | 可用函式 | | | |
 |------|------|------|------|
@@ -39,27 +37,33 @@ utilkit.sh 是一個全面的 Shell 函數庫，專為系統管理員和開發�
 | [SYS_REBOOT](#sys_reboot) | [SYS_UPDATE](#sys_update) | [TIMEZONE](#timezone) | |
 
 ## 特性
-
-- 完整的系統管理功能（安裝、更新、清理等）
-- 系統效能監控（CPU、記憶體、硬碟使用率）
-- 網路管理工具（IP 配置、DNS 設定等）
+- 完整的系統管理功能集
+- 即時系統效能監控
+- 網路配置與診斷工具
 - 自動化系統優化
-- 錯誤處理和日誌記錄
+- 完整的錯誤處理機制
 - 支援多種 Linux 發行版
+- 豐富的文字處理功能
 - 自動更新機制
 
 ## 安裝
 
-### 方法一：直接下載
+### 環境要求
+- Unix-like 作業系統（Linux、macOS）
+- Bash Shell 4.0 或更高版本
+- 基本系統工具（tr、bc、curl）
+- root 權限（部分功能需要）
+
+{:.important}
+> 使用前請確保系統已安裝所需的基本工具。
+
 ```bash
+# 直接下載
 curl -sSLO "https://raw.ogtt.tk/shell/utilkit.sh"
 chmod +x utilkit.sh
 source utilkit.sh
-```
 
-### 方法二：使用安裝腳本
-
-```bash
+# 或使用安裝腳本
 bash <(curl -sL "https://raw.ogtt.tk/shell/update-utilkit.sh")
 ```
 
@@ -383,6 +387,9 @@ source utilkit.sh
   - `-i`：顯示內部時區設定
   - `-e`：顯示外部偵測到的時區
 
+{:.note}
+> 每個函式都設計為獨立運作，可以單獨調用或組合使用。
+
 ## 示例
 
 ### 系統資訊查詢
@@ -391,22 +398,27 @@ source utilkit.sh
 SYS_INFO
 ```
 
-### 安裝套件
-```bash
-source utilkit.sh
-ADD nginx
-```
-
 ### 系統優化
 ```bash
 source utilkit.sh
 SYS_OPTIMIZE
 ```
 
+### 文字樣式設定
+```bash
+source utilkit.sh
+# 使用基本顏色
+FONT B RED "錯誤訊息"
+FONT B GREEN BG.WHITE "成功訊息"
+
+# 使用 RGB 顏色
+FONT RGB 255,0,0 "自定義紅色"
+FONT B RGB 255,0,0 BG.RGB 0,0,255 "紅字藍底"
+```
+
 ## 配置
 
-### 環境變數設定
-
+### 環境變數
 ```bash
 # 顏色定義
 CLR1="\033[0;31m"    # 紅色
@@ -420,9 +432,12 @@ CLR8="\033[0;96m"    # 亮青色
 CLR9="\033[0;97m"    # 亮白色
 CLR0="\033[0m"       # 重置
 
-# 代理設置（中國大陸使用）
+# 代理設置
 cf_proxy="https://proxy.ogtt.tk/"
 ```
+
+{:.tip}
+> 可以根據需要修改顏色定義和代理設置。
 
 ## 常見問題
 
@@ -430,10 +445,16 @@ cf_proxy="https://proxy.ogtt.tk/"
 A：系統層級的操作（如更新、安裝套件等）需要 root 權限以確保安全性。
 
 **Q：如何處理網路連接問題？**<br>
-A：確保系統能夠訪問網際網路，如果是中國大陸用戶可使用內建的代理服務
+A：
+- 確認網路連接狀態
+- 檢查代理設置
+- 使用 `NET_PROVIDER` 診斷網路
 
 **Q：自動更新無法運作？**<br>
-A：檢查 crontab 設定、系統時間是否正確，或確認網路連接狀態
+A：請檢查：
+- crontab 設定
+- 系統時間是否正確
+- 網路連接狀態
 
 ## 貢獻指南
 1. Fork 專案

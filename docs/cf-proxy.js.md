@@ -1,5 +1,5 @@
 # cf-proxy.js
-一個基於 Cloudflare Workers 的代理服務，提供 WAF 防護、URL 訪問控制和請求計數功能。
+基於 Cloudflare Workers 的高性能代理服務，提供 WAF 防護與訪問控制功能。
 
 ---
 
@@ -17,27 +17,31 @@
 ---
 
 ## 簡介
-cf-proxy.js 是一個運行在 Cloudflare Workers 平台上的代理服務，專為需要安全、高效的代理服務的開發者設計。它提供了 WAF 防護、URL 訪問控制和請求計數等功能，可以有效保護您的應用免受惡意訪問。
+cf-proxy.js 是一個運行在 Cloudflare Workers 平台上的代理服務，為開發者提供安全可靠的代理功能。透過內建的 WAF 防護、訪問控制和請求統計功能，有效保護應用程式免受惡意訪問。
 
 ## 特性
-- 內建 WAF（Web Application Firewall）功能
-- 基於國家和 IP 的訪問控制
-- 靈活的 URL 訪問控制
-- 請求計數和統計
-- 支持 API 配置管理
-- 高性能緩存機制
-- 完整的 CORS 支持
+- 內建 WAF 防護機制
+- 支援國家和 IP 級別的訪問控制
+- 靈活的 URL 過濾規則
+- 請求計數與統計功能
+- API 配置管理介面
+- 高效能緩存系統
+- 完整的 CORS 支援
 
 ## 安裝
 
 ### 環境要求
 - Cloudflare 帳戶
-- Cloudflare Workers
+- Node.js 14.0 或更高版本
+- npm 6.0 或更高版本
+- Wrangler CLI 工具
+- Cloudflare Workers（免費版或付費版）
 - Cloudflare D1 數據庫（可選，用於請求計數）
-- Cloudflare KV 命名空間
+- Cloudflare KV 命名空間（用於配置存儲）
 
-### 安裝步骤
-1. 創建 Cloudflare Worker
+{:.important}
+> 使用前請確保您擁有 Cloudflare 帳戶並已啟用 Workers 服務。
+
 ```bash
 # 安裝 Wrangler CLI
 npm install -g wrangler
@@ -45,25 +49,18 @@ npm install -g wrangler
 # 登錄到 Cloudflare
 wrangler login
 
-# 創建新的 Worker 專案
+# 創建專案
 wrangler init cf-proxy
-```
 
-2. 配置環境變量
-```bash
 # 設置必要的環境變量
 wrangler secret put CF_API_TOKEN
 wrangler secret put CF_ZONE_ID
 wrangler secret put CF_API_URL
-```
 
-3. 創建 KV 命名空間
-```bash
+# 創建 KV 命名空間
 wrangler kv:namespace create PROXY_CONFIG
-```
 
-4. 設置 D1 數據庫（可選）
-```bash
+# 創建 D1 數據庫（可選）
 wrangler d1 create proxy-db
 ```
 
@@ -80,8 +77,7 @@ wrangler deploy
 https://your-worker.workers.dev/https://example.com/path
 ```
 
-### API 使用
-更新 WAF 配置：
+### API 配置
 ```bash
 curl -X POST 'https://your-worker.workers.dev/api/config' \
 -H 'X-Update-Key: your-update-key' \
@@ -107,17 +103,12 @@ curl -X POST 'https://your-worker.workers.dev/api/config' \
 }
 ```
 
-### 配置更新響應
-```json
-{
-    "message": "Configuration updated",
-    "status": 200
-}
-```
+{:.note}
+> 配置更新後會立即生效，無需重新部署。
 
 ## 配置
 
-### 全局配置
+### 全局配置選項
 ```javascript
 {
     "API_ACCESS": {
@@ -144,16 +135,22 @@ curl -X POST 'https://your-worker.workers.dev/api/config' \
 }
 ```
 
+{:.tip}
+> 建議在正式環境中啟用 API 認證功能。
+
 ## 常見問題
 
-**Q：如何處理 CORS 錯誤？**<br>
-A：服務默認已啟用 CORS，響應頭包含 `Access-Control-Allow-Origin: *`。
+**Q：如何解決 CORS 問題？**<br>
+A：服務默認已啟用 CORS 支援，響應頭包含 `Access-Control-Allow-Origin: *`。如需特定域名限制，可通過配置修改。
 
-**Q：為什麼請求計數功能不工作？**<br>
-A：請確保已正確配置 D1 數據庫並創建了必要的表結構。
+**Q：請求計數功能無法使用？**<br>
+A：請確認：
+- D1 數據庫已正確配置
+- 數據表結構完整
+- Worker 有足夠的權限
 
 **Q：如何更新 WAF 規則？**<br>
-A：使用 API 端點 `/api/config` 發送 POST 請求，記得包含正確的 `X-Update-Key`。
+A：通過 `/api/config` API 端點發送 POST 請求，記得包含 `X-Update-Key` 認證頭。
 
 ## 貢獻指南
 1. Fork 專案
