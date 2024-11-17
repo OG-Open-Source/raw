@@ -24,7 +24,8 @@ apmd.cmd 是一個專門設計用於生成目錄結構的 Windows 批次檔案�
 - 自動遍歷目錄結構並生成 Markdown 格式輸出
 - 支援多層級目錄結構（最大深度 2 層）
 - 智能排序：目錄優先，檔案次之
-- 特殊檔案處理：README.md 置底顯示，自動忽略 CNAME 和隱藏檔案
+- 特殊檔案處理：README.md 置底顯示
+- 靈活的檔案隱藏選項：支援全域、目錄特定和當前目錄的檔案隱藏
 - 相容性強：生成的連結格式適用於 GitHub Pages 和主流 Markdown 渲染器
 - 支援包含空格的路徑名稱
 
@@ -41,28 +42,45 @@ move apmd.cmd %SystemRoot%
 ```
 
 ## 使用方法
-執行腳本時需要提供目標目錄路徑：
+執行腳本時需要提供目標目錄路徑和可選的隱藏選項：
 
 ```batch
-apmd.cmd [directory_path]
+apmd.cmd [directory_path] [-d "hidden_dirs"] [-f "hidden_files"]
 ```
 
 ### 參數說明：
 - `directory_path`：要生成目錄結構的目標路徑
   - 支援相對路徑和絕對路徑
   - 路徑包含空格時需要使用引號
+- `-d "hidden_dirs"`：指定要隱藏的目錄（可選）
+  - 多個目錄用空格分隔
+- `-f "hidden_files"`：指定要隱藏的檔案（可選）
+  - 支援三種匹配模式：
+    - `filename.ext`：隱藏所有匹配的檔案
+    - `./filename.ext`：只隱藏當前目錄下的檔案
+    - `path/filename.ext`：隱藏指定路徑下的檔案
+  - 多個檔案用空格分隔
 
 ## 示例
 
 ```batch
-# 使用絕對路徑
-apmd.cmd "C:\project\docs"
+# 基本使用
+apmd.cmd "."
 
-# 使用相對路徑
-apmd.cmd ..\docs
+# 隱藏特定目錄
+apmd.cmd "." -d "node_modules .git"
 
-# 包含空格的路徑
-apmd.cmd "My Documents"
+# 隱藏特定檔案（全域）
+apmd.cmd "." -f "_config.yml package-lock.json"
+
+# 隱藏特定路徑下的多個檔案
+apmd.cmd "." -f "docs/_config.yml space/test.txt"
+
+# 只隱藏當前目錄的檔案
+apmd.cmd "." -f "./local-only.txt"
+
+# 組合使用
+apmd.cmd "." -d "node_modules" -f "./local.txt docs/secret.md"
 ```
 
 ### 輸出示例：
@@ -81,20 +99,23 @@ apmd.cmd "My Documents"
 ```
 
 ## 配置
-本工具不需要額外配置檔案，但需要確保系統支援以下功能：
+本工具不需要額外配置檔案，所有設定都通過命令列參數完成。需要確保系統支援以下功能：
 
 - Windows 命令提示字元
 - 延遲環境變數擴充功能（自動啟用）
 
 ## 常見問題
 
-### Q：腳本無法處理某些特殊字元的檔案名稱？
-A：檔案名稱中不應包含 `<`、`>`、`|` 等特殊字元，這些字元可能導致腳本執行錯誤。
+### Q：如何隱藏特定目錄下的所有檔案？
+A：使用 `-d` 參數直接隱藏整個目錄即可。例如：`apmd.cmd "." -d "private_folder"`
+
+### Q：如何只隱藏某個目錄下的特定檔案？
+A：使用 `-f` 參數並指定完整路徑。例如：`apmd.cmd "." -f "docs/secret.txt"`
 
 ### Q：為什麼某些檔案沒有顯示在輸出中？
-A：腳本會自動忽略以下檔案：
+A：檔案可能被以下規則隱藏：
 - 以 `.` 開頭的隱藏檔案
-- CNAME 檔案
+- 通過 `-d` 或 `-f` 參數指定的檔案
 - 超過 2 層深度的檔案
 
 ### Q：生成的連結在某些平台無法正常工作？
