@@ -5,3 +5,6 @@ plugins:
 - jekyll-sitemap
 - jekyll-readme-index
 - jekyll-relative-links
+
+sass:
+  style: compressed
