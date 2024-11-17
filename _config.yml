@@ -12,20 +12,21 @@ heading_anchors: true
 aux_links: {}
 nav_external_links: []
 
-# 啟用 callouts 設定
 callouts:
-  warning:
-    title: Warning
+  highlight:
     color: yellow
-  note:
-    title: Note
-    color: blue
   important:
     title: Important
-    color: red
+    color: blue
   new:
     title: New
     color: green
+  note:
+    title: Note
+    color: purple
+  warning:
+    title: Warning
+    color: red
 
 sass:
   style: compressed
