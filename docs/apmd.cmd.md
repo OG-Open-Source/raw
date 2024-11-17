@@ -1,4 +1,4 @@
-# apmd.cmd by OG-Open-Source
+# apmd.cmd
 
 一個用於自動生成目錄結構的 Windows 批次檔案，可快速產生 Markdown 格式的目錄導航。
 

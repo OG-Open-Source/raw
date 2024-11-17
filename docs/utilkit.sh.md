@@ -1,4 +1,4 @@
-# utilkit.sh by OG-Open-Source
+# utilkit.sh
 
 一個功能豐富的 Shell 函數庫，提供系統管理、網路配置、效能監控等多種實用功能。
 

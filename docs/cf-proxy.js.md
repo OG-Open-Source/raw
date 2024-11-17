@@ -1,4 +1,4 @@
-# cf-proxy.js by OG-Open-Source
+# cf-proxy.js
 
 一個基於 Cloudflare Workers 的代理服務，提供 WAF 防護、URL 訪問控制和請求計數功能。
 

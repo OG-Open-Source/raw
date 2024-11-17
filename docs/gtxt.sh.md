@@ -1,4 +1,4 @@
-# gtxt.sh by OG-Open-Source
+# gtxt.sh
 
 一個高效能的隨機文字生成工具，可快速產生指定字數的隨機英文字母和數字組合。
 

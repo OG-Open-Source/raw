@@ -1,4 +1,4 @@
-# netreinstall.sh by OG-Open-Source
+# netreinstall.sh
 
 一鍵網絡重裝多系統腳本，支援 Debian/Ubuntu/Kali/CentOS/Rocky/AlmaLinux/Fedora/Alpine/Windows。
 
