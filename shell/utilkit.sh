@@ -2,7 +2,7 @@
 
 Author="OGATA Open-Source"
 Script="utilkit.sh"
-Version="5.039.006"
+Version="5.039.007"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -182,12 +182,8 @@ function CHECK_VIRT() {
 		virt_type=$(systemd-detect-virt 2>/dev/null)
 		[ -z "$virt_type" ] && { error "Unable to detect virtualization environment"; return 1; }
 		case "$virt_type" in
-			kvm)
-				grep -qi "proxmox" /sys/class/dmi/id/product_name 2>/dev/null && echo "Proxmox VE (KVM)" || echo "KVM"
-				;;
-			microsoft)
-				echo "Microsoft Hyper-V"
-				;;
+			kvm) grep -qi "proxmox" /sys/class/dmi/id/product_name 2>/dev/null && echo "Proxmox VE (KVM)" || echo "KVM" ;;
+			microsoft) echo "Microsoft Hyper-V" ;;
 			none)
 				if grep -q "container=lxc" /proc/1/environ 2>/dev/null; then
 					echo "LXC container"
@@ -197,9 +193,7 @@ function CHECK_VIRT() {
 					echo "Not detected (possibly bare metal)"
 				fi
 				;;
-			*)
-				echo "${virt_type:-Not detected (possibly bare metal)}"
-				;;
+			*) echo "${virt_type:-Not detected (possibly bare metal)}" ;;
 		esac
 	elif [ -f /proc/cpuinfo ]; then
 		virt_type=$(grep -i "hypervisor" /proc/cpuinfo >/dev/null && echo "VM" || echo "none")
@@ -465,24 +459,26 @@ function FONT() {
 }
 
 function GET() {
-	[ $# -eq 0 ] && { error "No URL specified. Please provide a URL to download"; return 2; }
-	url="$1"
-	[[ "$url" =~ ^(http|https|ftp):// ]] || url="https://$url"
-	output_file="${url##*/}"
-	[ -z "$output_file" ] && output_file="index.html"
+	extract="false"
 	target_dir="."
 	rename_file=""
-	shift
+	url=""
 	while [ $# -gt 0 ]; do
 		case "$1" in
+			-x) extract=true; shift ;;
 			-r)
 				[ -z "$2" ] || [[ "$2" == -* ]] && { error "No filename specified after -r option\n"; return 2; }
 				rename_file="$2"
 				shift 2
 				;;
-			*) target_dir="$1"; shift ;;
+			-*) { error "Invalid option: $1\n"; return 2; } ;;
+			*) [ -z "$url" ] && url="$1" || target_dir="$1"; shift ;;
 		esac
 	done
+	[ -z "$url" ] && { error "No URL specified. Please provide a URL to download"; return 2; }
+	[[ "$url" =~ ^(http|https|ftp):// ]] || url="https://$url"
+	output_file="${url##*/}"
+	[ -z "$output_file" ] && output_file="index.html"
 	[ "$target_dir" != "." ] && { mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }; }
 	[ -n "$rename_file" ] && output_file="$rename_file"
 	output_path="$target_dir/$output_file"
@@ -497,6 +493,20 @@ function GET() {
 	fi
 	if [ -f "$output_path" ]; then
 		echo "* File downloaded successfully to $output_path"
+		if [ "$extract" = true ]; then
+			case "$output_file" in
+				*.tar.gz|*.tgz) tar -xzf "$output_path" -C "$target_dir" || { error "Failed to extract tar.gz file\n"; return 1; } ;;
+				*.tar) tar -xf "$output_path" -C "$target_dir" || { error "Failed to extract tar file\n"; return 1; } ;;
+				*.tar.bz2|*.tbz2) tar -xjf "$output_path" -C "$target_dir" || { error "Failed to extract tar.bz2 file\n"; return 1; } ;;
+				*.tar.xz|*.txz) tar -xJf "$output_path" -C "$target_dir" || { error "Failed to extract tar.xz file\n"; return 1; } ;;
+				*.zip) unzip "$output_path" -d "$target_dir" || { error "Failed to extract zip file\n"; return 1; } ;;
+				*.7z) 7z x "$output_path" -o"$target_dir" || { error "Failed to extract 7z file\n"; return 1; } ;;
+				*.rar) unrar x "$output_path" "$target_dir" || { error "Failed to extract rar file\n"; return 1; } ;;
+				*.zst) zstd -d "$output_path" -o "$target_dir" || { error "Failed to extract zst file\n"; return 1; } ;;
+				*) echo "* File format not recognized for auto-extraction" ;;
+			esac
+			[ $? -eq 0 ] && echo "* File extracted successfully to $target_dir"
+		fi
 		echo -e "${CLR2}FINISHED${CLR0}\n"
 	else
 		{ error "Download failed. Check your internet connection and URL validity"; return 1; }
