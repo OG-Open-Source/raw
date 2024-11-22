@@ -12,6 +12,7 @@ const GLOBAL_CONFIG = {
 	},
 
 	URL_CONTROL: {
+		ALLOW_ALL_DOMAINS: false,
 		ALLOWED_DOMAIN_PREFIXES: [
 			'https://raw.githubusercontent.com/OG-Open-Source',
 			'https://raw.githubusercontent.com'
@@ -198,6 +199,16 @@ function isAllowedUrl(url) {
 	const cachedResult = URL_CACHE.get(url);
 	if (cachedResult !== undefined) {
 		return cachedResult;
+	}
+
+	if (GLOBAL_CONFIG.URL_CONTROL.ALLOW_ALL_DOMAINS) {
+		URL_CACHE.set(url, true);
+		return true;
+	}
+
+	if (RUNTIME_CONFIG.ALLOWED_DOMAIN_PREFIXES.size === 0) {
+		URL_CACHE.set(url, false);
+		return false;
 	}
 
 	for (const prefix of RUNTIME_CONFIG.ALLOWED_DOMAIN_PREFIXES) {
