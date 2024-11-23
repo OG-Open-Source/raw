@@ -111,26 +111,33 @@ curl -X POST 'https://your-worker.workers.dev/api/config' \
 ### 全局配置選項
 ```javascript
 {
-    "API_ACCESS": {
-        "ENABLE_AUTH": true,
-        "UPDATE_KEY": "your-update-key"
+    API_ACCESS: {
+        ENABLE_AUTH: true,
+        UPDATE_KEY: 'your-update-key'
     },
-    "WAF": {
-        "ENABLED": false,
-        "ALLOWED_COUNTRIES": [],
-        "BLOCKED_COUNTRIES": [],
-        "BLOCKED_IPS": []
+
+    WAF: {
+        ENABLED: false,
+        ALLOWED_COUNTRIES: [],
+        BLOCKED_COUNTRIES: [],
+        BLOCKED_IPS: []
     },
-    "URL_CONTROL": {
-        "ALLOWED_DOMAIN_PREFIXES": [
-            "https://raw.githubusercontent.com"
-        ]
+
+    URL_CONTROL: {
+        ALLOW_ALL_DOMAINS: false,
+        ALLOWED_DOMAIN_PREFIXES: [
+            'https://raw.githubusercontent.com/OG-Open-Source',
+            'https://raw.githubusercontent.com'
+        ],
+        ALLOWED_GENERAL_PATTERN: ''
     },
-    "PROXY": {
-        "TIMEOUT": 30
+
+    PROXY: {
+        TIMEOUT: 30
     },
-    "REQUEST_COUNT": {
-        "ENABLED": true
+
+    REQUEST_COUNT: {
+        ENABLED: true,
     }
 }
 ```
