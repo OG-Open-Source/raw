@@ -2,7 +2,7 @@
 
 Author="OGATA Open-Source"
 Script="utilkit.sh"
-Version="5.039.007"
+Version="5.039.008"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -536,10 +536,9 @@ function INTERFACE() {
 	default4_route=$(ip -4 route show default | grep -A 3 "^default")
 	default6_route=$(ip -6 route show default | grep -A 3 "^default")
 	get_arr_item_idx() {
-		local item="$1"
+		item="$1"
 		shift
-		local -a arr=("$@")
-		local i
+		arr=("$@")
 		for ((i=1; i<=${#arr[@]}; i++)); do
 			if [ "$item" = "${arr[$i]}" ]; then
 				echo "$i"
