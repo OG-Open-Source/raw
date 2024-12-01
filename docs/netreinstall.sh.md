@@ -21,23 +21,23 @@ netreinstall.sh 是一個功能強大的網絡重裝系統工具，支援多種�
 
 ## 特性
 - 支援多種主流 Linux 發行版
-  - Debian 10-12
-  - Ubuntu 20.04/22.04/24.04
-  - Kali rolling/dev
-  - CentOS 7-9
-  - Rocky Linux 8-9
-  - AlmaLinux 8.10/9.4
-  - Fedora 39/40
-  - Alpine Linux 3.16-3.20/edge
+	- Debian 10-12
+	- Ubuntu 20.04/22.04/24.04
+	- Kali rolling/dev
+	- CentOS 7-9
+	- Rocky Linux 8-9
+	- AlmaLinux 8.10/9.4
+	- Fedora 39/40
+	- Alpine Linux 3.16-3.20/edge
 - 支援 Windows DD 模式安裝
 - 完整的網絡配置支援
-  - IPv4/IPv6 雙棧
-  - DHCP/靜態 IP
-  - 多 IP 配置
+	- IPv4/IPv6 雙棧
+	- DHCP/靜態 IP
+	- 多 IP 配置
 - 系統優化與安全加固
-  - BBR 加速
-  - fail2ban 防護
-  - kejilion 工具集
+	- BBR 加速
+	- fail2ban 防護
+	- kejilion 工具集
 
 ## 安裝
 
@@ -66,7 +66,7 @@ bash netreinstall.sh [選項] [參數]
 ### 系統選擇
 ```bash
 # Linux 發行版
--debian [10-12]              # Debian 系統
+-debian [10-12]             # Debian 系統
 -ubuntu [20.04/22.04/24.04] # Ubuntu 系統
 -kali [rolling/dev]         # Kali Linux
 -centos [7-9]               # CentOS 系統
@@ -109,10 +109,10 @@ bash netreinstall.sh -debian 12 -pwd mypassword
 
 # 完整配置
 bash netreinstall.sh -debian 12 \
-  --ip-set 192.168.1.100 24 192.168.1.1 \
-  --ip6-set 2001:db8::100 64 2001:db8::1 \
-  --bbr --fail2ban --kejilion \
-  --reboot
+	--ip-set 192.168.1.100 24 192.168.1.1 \
+	--ip6-set 2001:db8::100 64 2001:db8::1 \
+	--bbr --fail2ban --kejilion \
+	--reboot
 ```
 
 {:.tip}
@@ -125,9 +125,9 @@ bash netreinstall.sh -ubuntu 24.04 --bbr
 
 # 雙棧網絡配置
 bash netreinstall.sh -ubuntu 24.04 \
-  --networkstack BiStack \
-  --ip-addr 192.168.1.100 \
-  --ip6-addr 2001:db8::100
+	--networkstack BiStack \
+	--ip-addr 192.168.1.100 \
+	--ip6-addr 2001:db8::100
 ```
 
 ## 配置

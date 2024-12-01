@@ -83,10 +83,10 @@ curl -X POST 'https://your-worker.workers.dev/api/config' \
 -H 'X-Update-Key: your-update-key' \
 -H 'Content-Type: application/json' \
 -d '{
-    "waf": {
-        "ENABLED": true,
-        "ALLOWED_COUNTRIES": ["TW", "JP"]
-    }
+	"waf": {
+		"ENABLED": true,
+		"ALLOWED_COUNTRIES": ["TW", "JP"]
+	}
 }'
 ```
 
@@ -95,11 +95,11 @@ curl -X POST 'https://your-worker.workers.dev/api/config' \
 ### WAF 配置示例
 ```javascript
 {
-    "waf": {
-        "ENABLED": true,
-        "ALLOWED_COUNTRIES": ["TW", "JP"],
-        "BLOCKED_IPS": ["1.2.3.4"]
-    }
+	"waf": {
+		"ENABLED": true,
+		"ALLOWED_COUNTRIES": ["TW", "JP"],
+		"BLOCKED_IPS": ["1.2.3.4"]
+	}
 }
 ```
 
@@ -111,34 +111,34 @@ curl -X POST 'https://your-worker.workers.dev/api/config' \
 ### 全局配置選項
 ```javascript
 {
-    API_ACCESS: {
-        ENABLE_AUTH: true,
-        UPDATE_KEY: 'your-update-key'
-    },
+	API_ACCESS: {
+		ENABLE_AUTH: true,
+		UPDATE_KEY: 'your-update-key'
+	},
 
-    WAF: {
-        ENABLED: false,
-        ALLOWED_COUNTRIES: [],
-        BLOCKED_COUNTRIES: [],
-        BLOCKED_IPS: []
-    },
+	WAF: {
+		ENABLED: false,
+		ALLOWED_COUNTRIES: [],
+		BLOCKED_COUNTRIES: [],
+		BLOCKED_IPS: []
+	},
 
-    URL_CONTROL: {
-        ALLOW_ALL_DOMAINS: false,
-        ALLOWED_DOMAIN_PREFIXES: [
-            'https://raw.githubusercontent.com/OG-Open-Source',
-            'https://raw.githubusercontent.com'
-        ],
-        ALLOWED_GENERAL_PATTERN: ''
-    },
+	URL_CONTROL: {
+		ALLOW_ALL_DOMAINS: false,
+		ALLOWED_DOMAIN_PREFIXES: [
+			'https://raw.githubusercontent.com/OG-Open-Source',
+			'https://raw.githubusercontent.com'
+		],
+		ALLOWED_GENERAL_PATTERN: ''
+	},
 
-    PROXY: {
-        TIMEOUT: 30
-    },
+	PROXY: {
+		TIMEOUT: 30
+	},
 
-    REQUEST_COUNT: {
-        ENABLED: true,
-    }
+	REQUEST_COUNT: {
+		ENABLED: true,
+	}
 }
 ```
 
