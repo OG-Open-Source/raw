@@ -2,7 +2,7 @@
 
 Author="OGATA Open-Source"
 Script="utilkit.sh"
-Version="5.041.001"
+Version="5.041.002"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -18,8 +18,14 @@ CLR0="\033[0m"
 
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
 error() {
+	[ -z "$1" ] && { echo -e "${CLR1}Unknown error${CLR0}"; return 1; }
 	echo -e "${CLR1}$1${CLR0}"
-	[ -s /var/log/ogos-error.log ] && echo "$(date '+%Y-%m-%d %H:%M:%S') | $Script - $Version - $(echo -e "$1" | tr -d '\n')" >> /var/log/ogos-error.log
+	if [ -w "/var/log" ]; then
+		log_file="/var/log/ogos-error.log"
+		timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+		log_entry="${timestamp} | ${Script} - ${Version} - $(echo -e "$1" | tr -d '\n')"
+		echo "${log_entry}" >> "${log_file}" 2>/dev/null
+	fi
 }
 
 function ADD() {
