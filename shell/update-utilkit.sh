@@ -18,9 +18,14 @@ CLR0="\033[0m"
 
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" && display_language="zh" || cf_proxy="" && display_language="en"
 error() {
+	[ -z "$1" ] && { echo -e "${CLR1}Unknown error${CLR0}"; return 1; }
 	echo -e "${CLR1}$1${CLR0}"
-	[ -s /var/log/ogos-error.log ] && echo "$(date '+%Y-%m-%d %H:%M:%S') | $Script - $Version - $(echo -e "$1" | tr -d '\n')" >> /var/log/ogos-error.log
-	return 1
+	if [ -w "/var/log" ]; then
+		log_file="/var/log/ogos-error.log"
+		timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+		log_entry="${timestamp} | ${Script} - ${Version} - $(echo -e "$1" | tr -d '\n')"
+		echo "${log_entry}" >> "${log_file}" 2>/dev/null
+	fi
 }
 
 if [ -f ~/utilkit.sh ]; then
