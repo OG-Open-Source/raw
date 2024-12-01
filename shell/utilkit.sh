@@ -2,7 +2,7 @@
 
 Author="OGATA Open-Source"
 Script="utilkit.sh"
-Version="5.039.008"
+Version="5.040.001"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -50,7 +50,7 @@ function ADD() {
 				shift
 				;;
 			*)
-				echo -e "${CLR3}INSERT $(echo "$mode" | tr '[:lower:]' '[:upper:]') [$1]${CLR0}"
+				echo -e "${CLR3}INSERT $(FORMAT -AA "$mode") [$1]${CLR0}"
 				case "$mode" in
 					"file")
 						[ -d "$1" ] && { error "Directory $1 already exists. Cannot create file with the same name\n"; failed=1; shift; continue; }
@@ -245,7 +245,7 @@ function CONVERT_SIZE() {
 	[ -z "$1" ] && { error "No size value provided for conversion"; return 2; }
 	size=$1
 	unit=${2:-iB}
-	unit_lower=$(echo "$unit" | tr '[:upper:]' '[:lower:]')
+	unit_lower=$(FORMAT -aa "$unit")
 	if ! [[ "$size" =~ ^[+-]?[0-9]*\.?[0-9]+$ ]]; then
 		{ error "Invalid size value. Must be a numeric value"; return 2; }
 	elif [[ "$size" =~ ^[-].*$ ]]; then
@@ -301,7 +301,7 @@ function DEL() {
 			-f) mode="file"; shift; continue ;;
 			-d) mode="directory"; shift; continue ;;
 			*)
-				echo -e "${CLR3}REMOVE $(echo "$mode" | tr '[:lower:]' '[:upper:]') [$1]${CLR0}"
+				echo -e "${CLR3}REMOVE $(FORMAT -AA "$mode") [$1]${CLR0}"
 				case "$mode" in
 					"file")
 						[ ! -f "$1" ] && { error "File $1 does not exist\n"; failed=1; shift; continue; }
@@ -456,6 +456,20 @@ function FONT() {
 		shift
 	done
 	echo -e "${font}${1}${CLR0}"
+}
+function FORMAT() {
+	option="$1"
+	value="$2"
+	result=""
+	[ -z "$value" ] && { error "No value provided for formatting"; return 2; }
+	[ -z "$option" ] && { error "No formatting option provided"; return 2; }
+	case "$option" in
+		-AA) result=$(echo "$value" | tr '[:lower:]' '[:upper:]') ;;
+		-aa) result=$(echo "$value" | tr '[:upper:]' '[:lower:]') ;;
+		-Aa) result=$(echo "$value" | tr '[:upper:]' '[:lower:]' | sed 's/\b\(.\)/\u\1/') ;;
+		*) result="$value" ;;
+	esac
+	echo "$result"
 }
 
 function GET() {
