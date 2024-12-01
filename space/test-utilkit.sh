@@ -16,11 +16,11 @@ TOTAL=0
 
 # 測試函式
 run_test() {
-	local func="$1"
-	local args="$2"
-	local description="$3"
-	local need_root="${4:-false}"
-	local expected_return="${5:-0}"
+	func="$1"
+	args="$2"
+	description="$3"
+	need_root="${4:-false}"
+	expected_return="${5:-0}"
 	((TOTAL++))
 
 	echo -e "${YELLOW}測試 $func $args${NC}"
@@ -33,7 +33,7 @@ run_test() {
 	fi
 
 	eval "$func $args"
-	local actual_return=$?
+	actual_return=$?
 
 	if [ "$actual_return" -eq "$expected_return" ]; then
 		echo -e "${GREEN}✓ 通過 (回傳值: $actual_return)${NC}"
@@ -63,6 +63,8 @@ run_test "ADD" "https://download.opensuse.org/repositories/home:/virtubox/Debian
 
 # CHECK 相關函式測試
 run_test "CHECK_OS" "" "測試檢查作業系統" false 0
+run_test "CHECK_OS" "-v" "測試獲取作業系統版本" false 0
+run_test "CHECK_OS" "-n" "測試獲取作業系統名稱" false 0
 run_test "CHECK_ROOT" "" "測試檢查 root 權限" false 0
 run_test "CHECK_VIRT" "" "測試檢查虛擬化環境" false 0
 
@@ -75,6 +77,13 @@ run_test "CPU_CACHE" "" "測試獲取 CPU 快取大小" false 0
 run_test "CPU_FREQ" "" "測試獲取 CPU 頻率" false 0
 run_test "CPU_MODEL" "" "測試獲取 CPU 型號" false 0
 run_test "CPU_USAGE" "" "測試獲取 CPU 使用率" false 0
+
+# FORMAT 測試
+run_test "FORMAT" "-AA hello" "測試轉換為大寫" false 0
+run_test "FORMAT" "-aa WORLD" "測試轉換為小寫" false 0
+run_test "FORMAT" "-Aa hELLo" "測試首字母大寫" false 0
+run_test "FORMAT" "-invalid text" "測試無效格式選項" false 2
+run_test "FORMAT" "-AA" "測試無輸入文字" false 2
 
 # CONVERT_SIZE 測試
 run_test "CONVERT_SIZE" "1024 B" "測試轉換檔案大小 (Bytes)" false 0
@@ -126,6 +135,7 @@ run_test "FONT" "INVALID 測試文字" "測試無效樣式" false 0
 run_test "GET" "https://raw.ogtt.tk/space/25mib.txt" "測試下載檔案" false 0
 run_test "GET" "https://raw.ogtt.tk/space/25mib.txt -r rename.txt" "測試下載並重新命名檔案" false 0
 run_test "GET" "https://raw.ogtt.tk/space/25mib.txt test_dir" "測試下載到指定目錄" false 0
+run_test "GET" "https://raw.ogtt.tk/space/25mib.txt -x" "測試下載並解壓縮" false 0
 run_test "GET" "https://nonexist.example.com/file.txt" "測試下載不存在檔案" false 1
 run_test "GET" "raw.ogtt.tk/space/25mib.txt" "測試自動添加協議" false 0
 
@@ -146,7 +156,7 @@ run_test "INTERFACE" "INVALID" "測試無效參數" false 2
 # IP_ADDR 測試
 run_test "IP_ADDR" "" "測試獲取所有 IP 位址" false 0
 run_test "IP_ADDR" "-4" "測試獲取 IPv4 位址" false 0
-run_test "IP_ADDR" "-6" "測試獲取 IPv6 位址" false 1
+run_test "IP_ADDR" "-6" "測試獲取 IPv6 位址" false 0
 
 # LAST_UPDATE 測試
 run_test "LAST_UPDATE" "" "測試獲取最後更新時間" false 0
@@ -197,6 +207,9 @@ run_test "SYS_INFO" "" "測試顯示系統資訊" false 0
 run_test "SYS_OPTIMIZE" "" "測試系統最佳化" true 1
 run_test "SYS_REBOOT" "<<< 'n'" "測試系統重啟（取消）" true 0
 run_test "SYS_UPDATE" "" "測試系統更新" true 0
+
+# SYS_UPGRADE 測試
+run_test "SYS_UPGRADE" "" "測試系統版本升級" true 0
 
 # TIMEZONE 測試
 run_test "TIMEZONE" "" "測試獲取預設時區" false 0
