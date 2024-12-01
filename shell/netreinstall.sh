@@ -148,7 +148,7 @@ while [[ $# -ge 1 ]]; do
 			[[ "$1" != "error" ]] && echo -e "\nInvaild option: "$1"\n"
 			echo -e "${CLR2}Usage:${CLR0}\n\tbash $(basename $0) [OPTIONS]\n"
 			echo -e "${CLR3}Options:${CLR0}"
-			echo -e "\t${CLR8}-debian${CLR0}\t\t[7/8/9/10/11/12]\tSpecify Debian distribution (${CLR2}'12'${CLR0} is the stable version)"
+			echo -e "\t${CLR8}-debian${CLR0}\t\t[10/11/12]\t\tSpecify Debian distribution (${CLR2}'12'${CLR0} is the stable version)"
 			echo -e "\t${CLR8}-ubuntu${CLR0}\t\t[20.04/22.04/24.04]\tSpecify Ubuntu distribution (${CLR2}'24.04'${CLR0} is the stable version)"
 			echo -e "\t${CLR8}-kali${CLR0}\t\t[rolling/dev]\t\tSpecify Kali Linux distribution (${CLR2}'rolling'${CLR0} is the stable version)"
 			echo -e "\t${CLR8}-centos${CLR0}\t\t[7/8/9]\t\t\tSpecify CentOS distribution (${CLR2}'9'${CLR0} is the stable version)"
@@ -158,9 +158,9 @@ while [[ $# -ge 1 ]]; do
 			echo -e "\t${CLR8}-alpine${CLR0}\t\t[3.16~3.20/edge]\tSpecify Alpine Linux distribution (${CLR2}'edge'${CLR0} is the stable version)"
 			echo -e "\t${CLR8}-windows${CLR0}\t[DIST]\t\t\tSpecify Microsoft Windows distribution"
 			echo -e "\t${CLR8}-architecture${CLR0}\t[32/i386|64/amd64|arm/arm64]"
-			echo -e "\t${CLR8}-mirror${CLR0}\t\t[URL]"
-			echo -e "\t${CLR8}-lang${CLR0}\t\t[LANG]\tNot for Linux, specify language for Windows"
-			echo -e "\t${CLR8}-dd${CLR0}\t\t[URL]"
+			echo -e "\t${CLR8}-mirror${CLR0}\t\t[URL]\t\t\tSpecify mirror URL for reinstall distribution"
+			echo -e "\t${CLR8}-lang${CLR0}\t\t[LANG]\t\t\tNot for Linux, specify language for Windows"
+			echo -e "\t${CLR8}-dd${CLR0}\t\t[URL]\t\t\tSpecify an installation package to reinstall"
 			echo -e "\t${CLR8}-hostname${CLR0}\t[HOSTNAME]"
 			echo -e "\t${CLR8}-pwd${CLR0}\t\t[PASSWORD]"
 			echo -e "\t${CLR8}-port${CLR0}\t\t[SSH-PORT]"
@@ -1091,9 +1091,6 @@ checkDIST() {
 		[[ $? -eq '0' ]] && {
 			isDigital="$(echo "$DIST" | grep -o '[\.0-9]\{1,\}' | sed -n '1h;1!H;$g;s/\n//g;$p' | cut -d'.' -f1)"
 			[[ -n $isDigital ]] && {
-				[[ "$isDigital" == '7' ]] && DIST='wheezy'
-				[[ "$isDigital" == '8' ]] && DIST='jessie'
-				[[ "$isDigital" == '9' ]] && DIST='stretch'
 				[[ "$isDigital" == '10' ]] && DIST='buster'
 				[[ "$isDigital" == '11' ]] && DIST='bullseye'
 				[[ "$isDigital" == '12' ]] && DIST='bookworm'
