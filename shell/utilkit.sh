@@ -2,7 +2,7 @@
 
 Author="OGATA Open-Source"
 Script="utilkit.sh"
-Version="5.040.001"
+Version="5.041.001"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -142,34 +142,52 @@ function CHECK_DEPS() {
 	done
 }
 function CHECK_OS() {
-	if [ -f /etc/debian_version ]; then
-		. /etc/os-release
-		if [ "$ID" = "ubuntu" ]; then
-			grep PRETTY_NAME /etc/os-release | cut -d '=' -f2 | tr -d '"'
-		else
-			echo "$NAME $(cat /etc/debian_version) ($VERSION_CODENAME)"
-		fi
-	elif [ -f /etc/os-release ]; then
-		. /etc/os-release
-		echo "$NAME $VERSION"
-	elif [ -f /etc/lsb-release ]; then
-		. /etc/lsb-release
-		echo "$DISTRIB_DESCRIPTION"
-	elif [ -f /etc/fedora-release ]; then
-		cat /etc/fedora-release
-	elif [ -f /etc/centos-release ]; then
-		cat /etc/centos-release
-	elif [ -f /etc/arch-release ]; then
-		echo "Arch Linux"
-	elif [ -f /etc/gentoo-release ]; then
-		cat /etc/gentoo-release
-	elif [ -f /etc/alpine-release ]; then
-		echo "Alpine Linux $(cat /etc/alpine-release)"
-	elif [ -f /etc/DISTRO_SPECS ]; then
-		grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
-	else
-		{ error "Unknown distribution"; return 1; }
-	fi
+	case "$1" in
+		-v)
+			if [ -f /etc/os-release ]; then
+				source /etc/os-release
+				if [ "$ID" = "debian" ]; then
+					cat /etc/debian_version
+				else
+					echo "$VERSION_ID"
+				fi
+			elif [ -f /etc/debian_version ]; then
+				cat /etc/debian_version
+			elif [ -f /etc/fedora-release ]; then
+				grep -oE '[0-9]+' /etc/fedora-release
+			elif [ -f /etc/centos-release ]; then
+				grep -oE '[0-9]+\.[0-9]+' /etc/centos-release
+			elif [ -f /etc/alpine-release ]; then
+				cat /etc/alpine-release
+			else
+				{ error "Unknown distribution version"; return 1; }
+			fi
+			;;
+		-n)
+			if [ -f /etc/os-release ]; then
+				source /etc/os-release
+				echo "$ID" | sed 's/.*/\u&/'
+			elif [ -f /etc/DISTRO_SPECS ]; then
+				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2 | awk '{print $1}'
+			else
+				{ error "Unknown distribution"; return 1; }
+			fi
+			;;
+		*)
+			if [ -f /etc/os-release ]; then
+				source /etc/os-release
+				if [ "$ID" = "debian" ]; then
+					echo "$NAME $(cat /etc/debian_version)"
+				else
+					echo "$PRETTY_NAME"
+				fi
+			elif [ -f /etc/DISTRO_SPECS ]; then
+				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
+			else
+				{ error "Unknown distribution"; return 1; }
+			fi
+			;;
+	esac
 }
 function CHECK_ROOT() {
 	if [ "$EUID" -ne 0 ] || [ "$(id -u)" -ne 0 ]; then
@@ -1034,6 +1052,43 @@ function SYS_UPDATE() {
 	bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script) || { error "Failed to update $Script"; return 1; }
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
+}
+function SYS_UPGRADE() {
+	CHECK_ROOT
+	echo -e "${CLR3}Upgrading system to next major version...${CLR0}"
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	os_name=$(CHECK_OS -n)
+	case "$os_name" in
+		Debian)
+			echo "* Detected Debian system"
+			echo "* Updating current system..."
+			apt update -y || { error "Failed to update package lists"; return 1; }
+			apt full-upgrade -y || { error "Failed to upgrade current packages"; return 1; }
+			echo "* Starting Debian release upgrade..."
+			current_codename=$(lsb_release -cs)
+			target_codename=$(curl -s http://ftp.debian.org/debian/dists/stable/Release | grep "^Codename:" | awk '{print $2}')
+			[ "$current_codename" = "$target_codename" ] && { error "System is already running the latest stable version (${target_codename})"; return 1; }
+			echo "* Upgrading from ${current_codename} to ${target_codename}"
+			cp /etc/apt/sources.list /etc/apt/sources.list.backup || { error "Failed to backup sources.list"; return 1; }
+			sed -i "s/${current_codename}/${target_codename}/g" /etc/apt/sources.list || { error "Failed to update sources.list"; return 1; }
+			apt update -y || { error "Failed to update package lists for new release"; return 1; }
+			apt full-upgrade -y || { error "Failed to upgrade to new Debian release"; return 1; }
+			;;
+		Ubuntu)
+			echo "* Detected Ubuntu system"
+			echo "* Updating current system..."
+			apt update -y || { error "Failed to update package lists"; return 1; }
+			apt full-upgrade -y || { error "Failed to upgrade current packages"; return 1; }
+			echo "* Installing update-manager-core..."
+			apt install -y update-manager-core || { error "Failed to install update-manager-core"; return 1; }
+			echo "* Starting Ubuntu release upgrade..."
+			do-release-upgrade -f DistUpgradeViewNonInteractive || { error "Failed to upgrade Ubuntu release"; return 1; }
+			SYS_REBOOT
+			;;
+		*) { error "Your system is not yet supported for major version upgrades"; return 1; } ;;
+	esac
+	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	echo -e "${CLR2}System upgrade completed.${CLR0}\n"
 }
 
 function TIMEZONE() {
