@@ -23,7 +23,7 @@
 [ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh) && source ~/utilkit.sh
 
 Script="netreinstall.sh"
-Version="2024.11.16"
+Version="2024.12.01"
 License="GPL"
 
 AddNum="1"
@@ -160,7 +160,7 @@ while [[ $# -ge 1 ]]; do
 			echo -e "\t${CLR8}-architecture${CLR0}\t[32/i386|64/amd64|arm/arm64]"
 			echo -e "\t${CLR8}-mirror${CLR0}\t\t[URL]"
 			echo -e "\t${CLR8}-lang${CLR0}\t\t[LANG]\tNot for Linux, specify language for Windows"
-			echo -e "\t${CLR8}-dd${CLR0}\t[URL]"
+			echo -e "\t${CLR8}-dd${CLR0}\t\t[URL]"
 			echo -e "\t${CLR8}-hostname${CLR0}\t[HOSTNAME]"
 			echo -e "\t${CLR8}-pwd${CLR0}\t\t[PASSWORD]"
 			echo -e "\t${CLR8}-port${CLR0}\t\t[SSH-PORT]"
@@ -173,7 +173,7 @@ while [[ $# -ge 1 ]]; do
 			echo -e "\t${CLR8}--fail2ban${CLR0}\tInstall and configure fail2ban"
 			echo -e "\t${CLR8}--kejilion${CLR0}\tInstall and configure Kejilion.sh"
 			echo -e "\t${CLR8}--reboot${CLR0}\tAuto reboot after preparation"
-			echo -e "\n${CLR6}LAST UPDATE: 2024/10/24${CLR0}"
+			echo -e "\n${CLR6}LAST UPDATE: 2024/12/01${CLR0}"
 			exit 1
 			;;
 	esac
