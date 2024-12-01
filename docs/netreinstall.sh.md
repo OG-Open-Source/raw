@@ -66,7 +66,7 @@ bash netreinstall.sh [選項] [參數]
 ### 系統選擇
 ```bash
 # Linux 發行版
--debian [7-12]              # Debian 系統
+-debian [10-12]              # Debian 系統
 -ubuntu [20.04/22.04/24.04] # Ubuntu 系統
 -kali [rolling/dev]         # Kali Linux
 -centos [7-9]               # CentOS 系統
