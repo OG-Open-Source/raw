@@ -31,7 +31,7 @@ utilkit.sh 是一個全面的 Shell 函數庫，專為系統管理員和開發�
 | [PKG_COUNT](#pkg_count) | [PROGRESS](#progress) | [PUBLIC_IP](#public_ip) | [RUN](#run) |
 | [SHELL_VER](#shell_ver) | [SWAP_USAGE](#swap_usage) | [SYS_CLEAN](#sys_clean) | [SYS_INFO](#sys_info) |
 | [SYS_OPTIMIZE](#sys_optimize) | [SYS_REBOOT](#sys_reboot) | [SYS_UPDATE](#sys_update) | [SYS_UPGRADE](#sys_upgrade) |
-| [TIMEZONE](#timezone) | | | |
+| [TASK](#task) | [TIMEZONE](#timezone) | | |
 
 ## 特性
 - 完整的系統管理功能集
@@ -425,6 +425,35 @@ source utilkit.sh
 
 {:.important}
 > 執行系統升級前請確保已備份重要資料。
+
+#### TASK
+- 功能：顯示任務執行狀態並處理命令輸出的輔助函數
+- 說明：
+	- 顯示任務描述和執行狀態
+	- 支持單行和多行命令執行
+	- 錯誤時自動中止並顯示詳細信息
+- 語法：
+	```bash
+	TASK "消息" "命令"
+	```
+- 參數：
+	- `消息`: 顯示的任務描述
+	- `命令`: 要執行的 Shell 命令
+- 返回值：
+	- 0: 命令成功執行
+	- 1: 命令執行失敗
+- 示例：
+	```bash
+	# 命令示例
+	TASK "更新套件列表" "apt-get update"
+	TASK "創建目錄" "ADD -d /path/to/dir"
+	```
+- 輸出格式：
+	```
+	* 任務描述... Done     # 成功時
+	* 任務描述... Failed   # 失敗時
+	  [錯誤詳情]           # 失敗時顯示具體錯誤
+	```
 
 #### TIMEZONE
 - 功能：顯示時區資訊
