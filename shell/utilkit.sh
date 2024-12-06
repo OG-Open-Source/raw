@@ -1,9 +1,9 @@
 #!/bin/bash
 
-Author="OGATA Open-Source"
-Script="utilkit.sh"
-Version="5.041.002"
-License="MIT License"
+readonly Author="OGATA Open-Source"
+readonly Script="utilkit.sh"
+readonly Version="5.042.001"
+readonly License="MIT License"
 
 CLR1="\033[0;31m"
 CLR2="\033[0;32m"
@@ -30,6 +30,8 @@ error() {
 
 function ADD() {
 	[ $# -eq 0 ] && { error "No items specified for insertion. Please provide at least one item to add"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "No file or directory path specified after -f or -d"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "No file or directory path specified after -f or -d"; return 2; }
 	mode="package"
 	failed=0
 	while [ $# -gt 0 ]; do
@@ -107,14 +109,12 @@ function ADD() {
 										else
 											error "Failed to install $1 using $pkg_manager\n"
 											failed=1
-											shift
-											continue
+											shift; continue
 										fi
 									else
 										error "Failed to install $1 using $pkg_manager\n"
 										failed=1
-										shift
-										continue
+										shift; continue
 									fi
 								else
 									echo "* Package $1 is already installed"
@@ -124,8 +124,7 @@ function ADD() {
 							*)
 								error "Package manager not found. Please install a supported package manager\n"
 								failed=1
-								shift
-								continue
+								shift; continue
 								;;
 						esac
 						;;
@@ -318,6 +317,8 @@ function COPYRIGHT() {
 
 function DEL() {
 	[ $# -eq 0 ] && { error "No items specified for deletion. Please provide at least one item to delete"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "No file or directory path specified after -f or -d"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "No file or directory path specified after -f or -d"; return 2; }
 	mode="package"
 	failed=0
 	while [ $# -gt 0 ]; do
@@ -400,9 +401,9 @@ function DEL() {
 	return $failed
 }
 function DISK_USAGE() {
-	used=$(df -B1 / | awk 'NR==2 {printf "%.0f", $3}') || { error "Failed to get disk usage statistics"; return 1; }
-	total=$(df -B1 / | awk 'NR==2 {printf "%.0f", $2}') || { error "Failed to get total disk space"; return 1; }
-	percentage=$(df / | awk 'NR==2 {printf "%.2f", $3/$2 * 100}')
+	used=$(df -B1 / | awk '/^\/dev/ {print $3}') || { error "Failed to get disk usage statistics"; return 1; }
+	total=$(df -B1 / | awk '/^\/dev/ {print $2}') || { error "Failed to get total disk space"; return 1; }
+	percentage=$(df / | awk '/^\/dev/ {printf("%.2f"), $3/$2 * 100.0}')
 	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 function DNS_ADDR () {
@@ -784,10 +785,10 @@ function RUN() {
 				response=$(curl -sL "$github_url")
 				[[ "$response" == "404: Not Found" ]] && { error "Script not found in ${branch} branch"; return 1; }
 			fi
-			echo "* Downloading script..."
-			GET "$github_url" &>/dev/null || { error "Failed to download script $script_name"; return 1; }
-			chmod +x "$script_name" || { error "Failed to set execute permission for $script_name"; return 1; }
-			echo "* Download completed"
+			TASK "* Downloading script" "
+				GET \"$github_url\" &>/dev/null || { error \"Failed to download script $script_name\"; return 1; }
+				chmod +x \"$script_name\" || { error \"Failed to set execute permission for $script_name\"; return 1; }
+			"
 			echo -e "${CLR8}$(LINE = "24")${CLR0}"
 			if [[ "$1" == "--" ]]; then
 				shift
@@ -833,60 +834,62 @@ function SYS_CLEAN() {
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk)
-			apk cache clean || { error "Failed to clean APK cache"; return 1; }
-			rm -rf /tmp/* /var/cache/apk/* || { error "Failed to remove temporary files"; return 1; }
-			apk fix || { error "Failed to fix APK packages"; return 1; }
+			TASK "* Cleaning APK cache" "apk cache clean" || { error "Failed to clean APK cache"; return 1; }
+			TASK "* Removing temporary files" "rm -rf /tmp/* /var/cache/apk/*" || { error "Failed to remove temporary files"; return 1; }
+			TASK "* Fixing APK packages" "apk fix" || { error "Failed to fix APK packages"; return 1; }
 			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				sleep 1
+				TASK "* Waiting for dpkg lock" "sleep 1" || return 1
+				((wait_time++))
+				[ "$wait_time" -gt 300 ] && { error "Timeout waiting for dpkg lock to be released"; return 1; }
 			done
-			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || { error "Failed to configure pending packages"; return 1; }
-			apt autoremove --purge -y || { error "Failed to autoremove packages"; return 1; }
-			apt clean -y || { error "Failed to clean APT cache"; return 1; }
-			apt autoclean -y || { error "Failed to autoclean APT cache"; return 1; }
+			TASK "* Configuring pending packages" "DEBIAN_FRONTEND=noninteractive dpkg --configure -a" || { error "Failed to configure pending packages"; return 1; }
+			TASK "* Autoremoving packages" "apt autoremove --purge -y" || { error "Failed to autoremove packages"; return 1; }
+			TASK "* Cleaning APT cache" "apt clean -y" || { error "Failed to clean APT cache"; return 1; }
+			TASK "* Autocleaning APT cache" "apt autoclean -y" || { error "Failed to autoclean APT cache"; return 1; }
 			;;
 		*opkg)
-			rm -rf /tmp/* || { error "Failed to remove temporary files"; return 1; }
-			opkg update || { error "Failed to update OPKG"; return 1; }
-			opkg clean || { error "Failed to clean OPKG cache"; return 1; }
+			TASK "* Removing temporary files" "rm -rf /tmp/*" || { error "Failed to remove temporary files"; return 1; }
+			TASK "* Updating OPKG" "opkg update" || { error "Failed to update OPKG"; return 1; }
+			TASK "* Cleaning OPKG cache" "opkg clean" || { error "Failed to clean OPKG cache"; return 1; }
 			;;
 		*pacman)
-			pacman -Syu --noconfirm || { error "Failed to update and upgrade packages"; return 1; }
-			pacman -Sc --noconfirm || { error "Failed to clean pacman cache"; return 1; }
-			pacman -Scc --noconfirm || { error "Failed to clean all pacman cache"; return 1; }
+			TASK "* Updating and upgrading packages" "pacman -Syu --noconfirm" || { error "Failed to update and upgrade packages using pacman"; return 1; }
+			TASK "* Cleaning pacman cache" "pacman -Sc --noconfirm" || { error "Failed to clean pacman cache"; return 1; }
+			TASK "* Cleaning all pacman cache" "pacman -Scc --noconfirm" || { error "Failed to clean all pacman cache"; return 1; }
 			;;
 		*yum)
-			yum autoremove -y || { error "Failed to autoremove packages"; return 1; }
-			yum clean all || { error "Failed to clean YUM cache"; return 1; }
-			yum makecache || { error "Failed to make YUM cache"; return 1; }
+			TASK "* Autoremoving packages" "yum autoremove -y" || { error "Failed to autoremove packages"; return 1; }
+			TASK "* Cleaning YUM cache" "yum clean all" || { error "Failed to clean YUM cache"; return 1; }
+			TASK "* Making YUM cache" "yum makecache" || { error "Failed to make YUM cache"; return 1; }
 			;;
 		*zypper)
-			zypper clean --all || { error "Failed to clean Zypper cache"; return 1; }
-			zypper refresh || { error "Failed to refresh Zypper repositories"; return 1; }
+			TASK "* Cleaning Zypper cache" "zypper clean --all" || { error "Failed to clean Zypper cache"; return 1; }
+			TASK "* Refreshing Zypper repositories" "zypper refresh" || { error "Failed to refresh Zypper repositories"; return 1; }
 			;;
 		*dnf)
-			dnf autoremove -y || { error "Failed to autoremove packages"; return 1; }
-			dnf clean all || { error "Failed to clean DNF cache"; return 1; }
-			dnf makecache || { error "Failed to make DNF cache"; return 1; }
+			TASK "* Autoremoving packages" "dnf autoremove -y" || { error "Failed to autoremove packages"; return 1; }
+			TASK "* Cleaning DNF cache" "dnf clean all" || { error "Failed to clean DNF cache"; return 1; }
+			TASK "* Making DNF cache" "dnf makecache" || { error "Failed to make DNF cache"; return 1; }
 			;;
 		*) { error "Unsupported package manager. Skipping system-specific cleanup"; return 1; } ;;
 	esac
 	if command -v journalctl &>/dev/null; then
-		journalctl --rotate --vacuum-time=1d --vacuum-size=500M || { error "Failed to rotate and vacuum journalctl logs"; return 1; }
+		TASK "* Rotating and vacuuming journalctl logs" "journalctl --rotate --vacuum-time=1d --vacuum-size=500M" || { error "Failed to rotate and vacuum journalctl logs"; return 1; }
 	fi
-	rm -rf /tmp/* || { error "Failed to remove temporary files"; return 1; }
+	TASK "* Removing temporary files" "rm -rf /tmp/*" || { error "Failed to remove temporary files"; return 1; }
 	for cmd in docker npm pip; do
 		if command -v "$cmd" &>/dev/null; then
 			case "$cmd" in
-				docker) docker system prune -af || { error "Failed to clean Docker system"; return 1; } ;;
-				npm) npm cache clean --force || { error "Failed to clean NPM cache"; return 1; } ;;
-				pip) pip cache purge || { error "Failed to purge PIP cache"; return 1; } ;;
+				docker) TASK "* Cleaning Docker system" "docker system prune -af" || { error "Failed to clean Docker system"; return 1; } ;;
+				npm) TASK "* Cleaning NPM cache" "npm cache clean --force" || { error "Failed to clean NPM cache"; return 1; } ;;
+				pip) TASK "* Purging PIP cache" "pip cache purge" || { error "Failed to purge PIP cache"; return 1; } ;;
 			esac
 		fi
 	done
-	rm -rf ~/.cache/* || { error "Failed to remove user cache files"; return 1; }
-	rm -rf ~/.thumbnails/* || { error "Failed to remove thumbnail files"; return 1; }
+	TASK "* Removing user cache files" "rm -rf ~/.cache/*" || { error "Failed to remove user cache files"; return 1; }
+	TASK "* Removing thumbnail files" "rm -rf ~/.thumbnails/*" || { error "Failed to remove thumbnail files"; return 1; }
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
@@ -941,59 +944,80 @@ function SYS_INFO() {
 }
 function SYS_OPTIMIZE() {
 	CHECK_ROOT
-	echo -e "${CLR3}Optimizing system configuration...${CLR0}"
+	echo -e "${CLR3}Optimizing system configuration for long-running servers...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	SYSCTL_CONF="/etc/sysctl.d/99-custom-optimizations.conf"
-	echo "# Custom system optimizations" > "$SYSCTL_CONF"
-	echo "* Adjusting swappiness..."
-	echo "vm.swappiness = 10" >> "$SYSCTL_CONF"
-	if command -v systemctl &>/dev/null && systemctl list-unit-files | grep -q systemd-oomd; then
-		echo "* Enabling and starting systemd-oomd..."
-		systemctl enable --now systemd-oomd || { error "Failed to enable and start systemd-oomd"; return 1; }
-	fi
-	echo "* Optimizing disk I/O scheduler..."
-	for disk in /sys/block/sd*; do
-		if [ -e "$disk/queue/scheduler" ]; then
-			echo "mq-deadline" > "$disk/queue/scheduler" || { error "Failed to set I/O scheduler for $disk"; return 1; }
-			echo "echo mq-deadline > $disk/queue/scheduler" >> /etc/rc.local
-		fi
-	done
-	echo "* Disabling unnecessary services..."
-	services_to_disable=("bluetooth" "cups" "avahi-daemon")
-	for service in "${services_to_disable[@]}"; do
-		systemctl disable --now "$service" || { error "Failed to disable $service"; return 1; }
-	done
-	echo "* Updating system limits..."
-	limits_file="/etc/security/limits.conf"
-	grep -qxF "* soft nofile 65535" "$limits_file" || echo "* soft nofile 65535" >> "$limits_file"
-	grep -qxF "* hard nofile 65535" "$limits_file" || echo "* hard nofile 65535" >> "$limits_file"
-	echo "* Adjusting TCP settings and kernel parameters..."
-	kernel_params=(
-		"net.ipv4.tcp_fin_timeout = 30"
-		"net.ipv4.tcp_keepalive_time = 1200"
-		"net.ipv4.tcp_max_syn_backlog = 8192"
-		"net.ipv4.tcp_tw_reuse = 1"
-		"vm.dirty_ratio = 10"
-		"vm.dirty_background_ratio = 5"
-		"net.core.rmem_max = 16777216"
-		"net.core.wmem_max = 16777216"
-		"net.ipv4.tcp_rmem = 4096 87380 16777216"
-		"net.ipv4.tcp_wmem = 4096 65536 16777216"
-		"vm.vfs_cache_pressure = 50"
-	)
-	for param in "${kernel_params[@]}"; do
-		echo "$param" >> "$SYSCTL_CONF"
-	done
-	echo "* Clearing ARP cache..."
-	ip -s -s neigh flush all || { error "Failed to clear ARP cache"; return 1; }
-	echo "* Applying all sysctl changes..."
-	sysctl -p "$SYSCTL_CONF" || { error "Failed to apply sysctl changes"; return 1; }
+
+	SYSCTL_CONF="/etc/sysctl.d/99-server-optimizations.conf"
+	echo "# Server optimizations for long-running systems" > "$SYSCTL_CONF"
+
+	TASK "* Optimizing memory management" "
+		echo 'vm.swappiness = 1' >> $SYSCTL_CONF
+		echo 'vm.vfs_cache_pressure = 50' >> $SYSCTL_CONF
+		echo 'vm.dirty_ratio = 15' >> $SYSCTL_CONF
+		echo 'vm.dirty_background_ratio = 5' >> $SYSCTL_CONF
+		echo 'vm.min_free_kbytes = 65536' >> $SYSCTL_CONF
+	" || { error "Failed to optimize memory management"; return 1; }
+
+	TASK "* Optimizing network settings" "
+		echo 'net.core.somaxconn = 65535' >> $SYSCTL_CONF
+		echo 'net.core.netdev_max_backlog = 65535' >> $SYSCTL_CONF
+		echo 'net.ipv4.tcp_max_syn_backlog = 65535' >> $SYSCTL_CONF
+		echo 'net.ipv4.tcp_fin_timeout = 15' >> $SYSCTL_CONF
+		echo 'net.ipv4.tcp_keepalive_time = 300' >> $SYSCTL_CONF
+		echo 'net.ipv4.tcp_keepalive_probes = 5' >> $SYSCTL_CONF
+		echo 'net.ipv4.tcp_keepalive_intvl = 15' >> $SYSCTL_CONF
+		echo 'net.ipv4.tcp_tw_reuse = 1' >> $SYSCTL_CONF
+		echo 'net.ipv4.ip_local_port_range = 1024 65535' >> $SYSCTL_CONF
+	" || { error "Failed to optimize network settings"; return 1; }
+
+	TASK "* Optimizing TCP buffers" "
+		echo 'net.core.rmem_max = 16777216' >> $SYSCTL_CONF
+		echo 'net.core.wmem_max = 16777216' >> $SYSCTL_CONF
+		echo 'net.ipv4.tcp_rmem = 4096 87380 16777216' >> $SYSCTL_CONF
+		echo 'net.ipv4.tcp_wmem = 4096 65536 16777216' >> $SYSCTL_CONF
+		echo 'net.ipv4.tcp_mtu_probing = 1' >> $SYSCTL_CONF
+	" || { error "Failed to optimize TCP buffers"; return 1; }
+
+	TASK "* Optimizing filesystem settings" "
+		echo 'fs.file-max = 2097152' >> $SYSCTL_CONF
+		echo 'fs.nr_open = 2097152' >> $SYSCTL_CONF
+		echo 'fs.inotify.max_user_watches = 524288' >> $SYSCTL_CONF
+	" || { error "Failed to optimize filesystem settings"; return 1; }
+
+	TASK "* Optimizing system limits" "
+		echo '* soft nofile 1048576' >> /etc/security/limits.conf
+		echo '* hard nofile 1048576' >> /etc/security/limits.conf
+		echo '* soft nproc 65535' >> /etc/security/limits.conf
+		echo '* hard nproc 65535' >> /etc/security/limits.conf
+	" || { error "Failed to optimize system limits"; return 1; }
+
+	TASK "* Optimizing I/O scheduler" "
+		for disk in /sys/block/[sv]d*; do
+			echo 'none' > \$disk/queue/scheduler 2>/dev/null || true
+			echo '256' > \$disk/queue/nr_requests 2>/dev/null || true
+		done
+	" || { error "Failed to optimize I/O scheduler"; return 1; }
+
+	TASK "* Disabling non-essential services" "
+		for service in bluetooth cups avahi-daemon postfix nfs-server rpcbind autofs; do
+			systemctl disable --now \$service 2>/dev/null || true
+		done
+	" || { error "Failed to disable services"; return 1; }
+
+	TASK "* Applying system parameters" "sysctl -p $SYSCTL_CONF" || { error "Failed to apply system parameters"; return 1; }
+
+	TASK "* Clearing system cache" "
+		sync
+		echo 3 > /proc/sys/vm/drop_caches
+		ip -s -s neigh flush all
+	" || { error "Failed to clear system cache"; return 1; }
+
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
 function SYS_REBOOT() {
 	CHECK_ROOT
-	echo -e "${CLR3}Preparing to reboot system...${CLR0}"
+	echo -e "${CLR3}Preparing to reboot system${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	active_users=$(who | wc -l) || { error "Failed to get active user count"; return 1; }
 	if [ "$active_users" -gt 1 ]; then
@@ -1012,10 +1036,8 @@ function SYS_REBOOT() {
 	read -p "Are you sure you want to reboot the system now? (y/N) " -n 1 -r
 	echo
 	[[ ! $REPLY =~ ^[Yy]$ ]] && { echo -e "${CLR2}Reboot cancelled.\n${CLR0}"; return 0; }
-	echo "* Performing final checks before reboot..."
-	sync || { error "Failed to sync filesystems"; return 1; }
-	echo -e "${CLR3}Initiating system reboot...${CLR0}"
-	reboot || sudo reboot || { error "Failed to initiate reboot"; return 1; }
+	TASK "* Performing final checks" "sync" || { error "Failed to sync filesystems"; return 1; }
+	TASK "* Initiating reboot" "reboot || sudo reboot" || { error "Failed to initiate reboot"; return 1; }
 	echo -e "${CLR2}Reboot command issued successfully. The system will reboot momentarily.${CLR0}"
 }
 function SYS_UPDATE() {
@@ -1026,36 +1048,30 @@ function SYS_UPDATE() {
 		cmd="$1"
 		update_cmd="$2"
 		upgrade_cmd="$3"
-		echo "* Updating package lists..."
-		$update_cmd || { error "Failed to update package lists using $cmd"; return 1; }
-		echo "* Upgrading packages..."
-		$upgrade_cmd || { error "Failed to upgrade packages using $cmd"; return 1; }
+		TASK "* Updating package lists" "$update_cmd" || { error "Failed to update package lists using $cmd"; return 1; }
+		TASK "* Upgrading packages" "$upgrade_cmd" || { error "Failed to upgrade packages using $cmd"; return 1; }
 	}
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk) update_packages "apk" "apk update" "apk upgrade" ;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				echo "* Waiting for dpkg lock to be released..."
-				sleep 1
+				TASK "* Waiting for dpkg lock" "sleep 1" || return 1
 				((wait_time++))
 				[ "$wait_time" -gt 300 ] && { error "Timeout waiting for dpkg lock to be released"; return 1; }
 			done
-			echo "* Configuring pending packages..."
-			DEBIAN_FRONTEND=noninteractive dpkg --configure -a || { error "Failed to configure pending packages"; return 1; }
+			TASK "* Configuring pending packages" "DEBIAN_FRONTEND=noninteractive dpkg --configure -a" || { error "Failed to configure pending packages"; return 1; }
 			update_packages "apt" "apt update -y" "apt full-upgrade -y"
 			;;
 		*opkg) update_packages "opkg" "opkg update" "opkg upgrade" ;;
 		*pacman)
-			echo "* Updating package databases and upgrading packages..."
-			pacman -Syu --noconfirm || { error "Failed to update and upgrade packages using pacman"; return 1; }
+			TASK "* Updating and upgrading packages" "pacman -Syu --noconfirm" || { error "Failed to update and upgrade packages using pacman"; return 1; }
 			;;
 		*yum) update_packages "yum" "yum check-update" "yum -y update" ;;
 		*zypper) update_packages "zypper" "zypper refresh" "zypper update -y" ;;
 		*dnf) update_packages "dnf" "dnf check-update" "dnf -y update" ;;
 		*) { error "Unsupported package manager"; return 1; } ;;
 	esac
-	echo "* Updating $Script..."
-	bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script) || { error "Failed to update $Script"; return 1; }
+	TASK "* Updating $Script" "bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script)" || { error "Failed to update $Script"; return 1; }
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
 	echo -e "${CLR2}FINISHED${CLR0}\n"
 }
@@ -1067,28 +1083,26 @@ function SYS_UPGRADE() {
 	case "$os_name" in
 		Debian)
 			echo "* Detected Debian system"
-			echo "* Updating current system..."
-			apt update -y || { error "Failed to update package lists"; return 1; }
-			apt full-upgrade -y || { error "Failed to upgrade current packages"; return 1; }
+			TASK "* Updating package lists" "apt update -y" || { error "Failed to update package lists"; return 1; }
+			TASK "* Upgrading current packages" "apt full-upgrade -y" || { error "Failed to upgrade current packages"; return 1; }
 			echo "* Starting Debian release upgrade..."
 			current_codename=$(lsb_release -cs)
 			target_codename=$(curl -s http://ftp.debian.org/debian/dists/stable/Release | grep "^Codename:" | awk '{print $2}')
 			[ "$current_codename" = "$target_codename" ] && { error "System is already running the latest stable version (${target_codename})"; return 1; }
 			echo "* Upgrading from ${current_codename} to ${target_codename}"
-			cp /etc/apt/sources.list /etc/apt/sources.list.backup || { error "Failed to backup sources.list"; return 1; }
-			sed -i "s/${current_codename}/${target_codename}/g" /etc/apt/sources.list || { error "Failed to update sources.list"; return 1; }
-			apt update -y || { error "Failed to update package lists for new release"; return 1; }
-			apt full-upgrade -y || { error "Failed to upgrade to new Debian release"; return 1; }
+			TASK "* Backing up sources.list" "cp /etc/apt/sources.list /etc/apt/sources.list.backup" || { error "Failed to backup sources.list"; return 1; }
+			TASK "* Updating sources.list" "sed -i 's/${current_codename}/${target_codename}/g' /etc/apt/sources.list" || { error "Failed to update sources.list"; return 1; }
+			TASK "* Updating package lists for new release" "apt update -y" || { error "Failed to update package lists for new release"; return 1; }
+			TASK "* Upgrading to new Debian release" "apt full-upgrade -y" || { error "Failed to upgrade to new Debian release"; return 1; }
 			;;
 		Ubuntu)
 			echo "* Detected Ubuntu system"
-			echo "* Updating current system..."
-			apt update -y || { error "Failed to update package lists"; return 1; }
-			apt full-upgrade -y || { error "Failed to upgrade current packages"; return 1; }
+			TASK "* Updating package lists" "apt update -y" || { error "Failed to update package lists"; return 1; }
+			TASK "* Upgrading current packages" "apt full-upgrade -y" || { error "Failed to upgrade current packages"; return 1; }
 			echo "* Installing update-manager-core..."
-			apt install -y update-manager-core || { error "Failed to install update-manager-core"; return 1; }
+			TASK "* Installing update-manager-core" "apt install -y update-manager-core" || { error "Failed to install update-manager-core"; return 1; }
 			echo "* Starting Ubuntu release upgrade..."
-			do-release-upgrade -f DistUpgradeViewNonInteractive || { error "Failed to upgrade Ubuntu release"; return 1; }
+			TASK "* Upgrading Ubuntu release" "do-release-upgrade -f DistUpgradeViewNonInteractive" || { error "Failed to upgrade Ubuntu release"; return 1; }
 			SYS_REBOOT
 			;;
 		*) { error "Your system is not yet supported for major version upgrades"; return 1; } ;;
@@ -1097,6 +1111,24 @@ function SYS_UPGRADE() {
 	echo -e "${CLR2}System upgrade completed.${CLR0}\n"
 }
 
+function TASK() {
+	message="$1"
+	command="$2"
+	temp_file=$(mktemp)
+	echo -ne "${message}... "
+	if eval "$command" > "$temp_file" 2>&1; then
+		echo -e "${CLR2}Done${CLR0}"
+		ret=0
+	else
+		ret=$?
+		echo -e "${CLR1}Failed (${ret})${CLR0}"
+		if [[ -s "$temp_file" ]]; then
+			echo -e "${CLR8}$(cat "$temp_file")${CLR0}"
+		fi
+	fi
+	rm -f "$temp_file"
+	return $ret
+}
 function TIMEZONE() {
 	case "$1" in
 		-e)
