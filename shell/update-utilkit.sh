@@ -1,9 +1,9 @@
 #!/bin/bash
 # [ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/update-utilkit.sh) && source ~/utilkit.sh
 
-readonly Author="OGATA Open-Source"
-readonly Script="update-utilkit.sh"
-readonly License="MIT License"
+Author="OGATA Open-Source"
+Script="update-utilkit.sh"
+License="MIT License"
 
 CLR1="\033[0;31m"
 CLR2="\033[0;32m"
