@@ -2,7 +2,7 @@
 
 readonly Author="OGATA Open-Source"
 readonly Script="utilkit.sh"
-readonly Version="5.042.001"
+readonly Version="5.042.002"
 readonly License="MIT License"
 
 CLR1="\033[0;31m"
@@ -101,7 +101,7 @@ function ADD() {
 									esac
 								}
 								if ! is_installed "$1"; then
-									echo "* Package $1 is not installed. Attempting installation..."
+									echo "* Package $1 is not installed"
 									if install_package "$1"; then
 										if is_installed "$1"; then
 											echo "* Package $1 installed successfully"
@@ -330,14 +330,14 @@ function DEL() {
 				case "$mode" in
 					"file")
 						[ ! -f "$1" ] && { error "File $1 does not exist\n"; failed=1; shift; continue; }
-						echo "* File $1 exists. Attempting removal..."
+						echo "* File $1 exists"
 						rm -f "$1" || { error "Failed to remove file $1\n"; failed=1; shift; continue; }
 						echo "* File $1 removed successfully"
 						echo -e "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"directory")
 						[ ! -d "$1" ] && { error "Directory $1 does not exist\n"; failed=1; shift; continue; }
-						echo "* Directory $1 exists. Attempting removal..."
+						echo "* Directory $1 exists"
 						rm -rf "$1" || { error "Failed to remove directory $1\n"; failed=1; shift; continue; }
 						echo "* Directory $1 removed successfully"
 						echo -e "${CLR2}FINISHED${CLR0}\n"
@@ -374,7 +374,7 @@ function DEL() {
 									shift
 									continue
 								fi
-								echo "* Package $1 is installed. Attempting removal..."
+								echo "* Package $1 is installed"
 								if ! remove_package "$1"; then
 									error "Failed to remove $1 using $pkg_manager\n"
 									failed=1
@@ -761,43 +761,104 @@ function RUN() {
 			script_path=$(echo "$1" | cut -d'/' -f3-)
 			script_name=$(basename "$script_path")
 			branch="main"
+			download_repo=false
 			shift
 			while [[ $# -gt 0 ]]; do
 				case "$1" in
 					-b) [[ -z "$2" || "$2" == -* ]] && { error "Branch name required after -b"; return 2; }; branch="$2"; shift 2 ;;
+					-r) download_repo=true; shift ;;
 					*) break ;;
 				esac
 			done
-			echo -e "${CLR3}Downloading and executing script [${script_name}] from ${repo_owner}/${repo_name}${CLR0}"
-			github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
-			if [[ "$branch" == "main" ]]; then
-				echo "* Checking main branch..."
-				response=$(curl -sL "$github_url")
-				if [[ "$response" == "404: Not Found" ]]; then
-					echo "* Checking master branch..."
-					branch="master"
-					github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
-					response=$(curl -sL "$github_url")
-					[[ "$response" == "404: Not Found" ]] && { error "Script not found in either main or master branch"; return 1; }
+			if [[ "$download_repo" == true ]]; then
+				echo -e "${CLR3}Cloning repository ${repo_owner}/${repo_name}${CLR0}"
+				[[ -d "$repo_name" ]] && { error "Directory $repo_name already exists"; return 1; }
+				temp_dir=$(mktemp -d)
+				if [[ "$branch" != "main" ]]; then
+					TASK "* Cloning from branch $branch" "
+						git clone --branch $branch https://github.com/${repo_owner}/${repo_name}.git \"$temp_dir\"
+					"
+					if [ $? -ne 0 ]; then
+						rm -rf "$temp_dir"
+						{ error "Failed to clone repository from $branch branch"; return 1; }
+					fi
+				else
+					TASK "* Checking main branch" "
+						git clone --branch main https://github.com/${repo_owner}/${repo_name}.git \"$temp_dir\"
+					" true
+					if [ $? -ne 0 ]; then
+						TASK "* Trying master branch" "
+							git clone --branch master https://github.com/${repo_owner}/${repo_name}.git \"$temp_dir\"
+						"
+						if [ $? -ne 0 ]; then
+							rm -rf "$temp_dir"
+							{ error "Failed to clone repository from either main or master branch"; return 1; }
+						fi
+					fi
+				fi
+				TASK "* Creating target directory" "
+					mkdir -p \"$repo_name\" &&
+					cp -r \"$temp_dir\"/* \"$repo_name\"/
+				"
+				TASK "* Cleaning up temporary files" "
+					rm -rf \"$temp_dir\"
+				"
+				echo -e "* Repository cloned to directory: ${CLR2}$repo_name${CLR0}"
+				if [[ -f "$repo_name/$script_path" ]]; then
+					TASK "* Setting execute permissions" "
+						chmod +x \"$repo_name/$script_path\"
+					"
+					echo -e "${CLR8}$(LINE = "24")${CLR0}"
+					if [[ "$1" == "--" ]]; then
+						shift
+						./"$repo_name/$script_path" "$@" || { error "Failed to execute script $script_name"; return 1; }
+					else
+						./"$repo_name/$script_path" || { error "Failed to execute script $script_name"; return 1; }
+					fi
+					echo -e "${CLR8}$(LINE = "24")${CLR0}"
+					echo -e "${CLR2}FINISHED${CLR0}\n"
 				fi
 			else
-				echo "* Checking ${branch} branch..."
-				response=$(curl -sL "$github_url")
-				[[ "$response" == "404: Not Found" ]] && { error "Script not found in ${branch} branch"; return 1; }
+				echo -e "${CLR3}Downloading and executing script [${script_name}] from ${repo_owner}/${repo_name}${CLR0}"
+				github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
+				if [[ "$branch" != "main" ]]; then
+					TASK "* Checking $branch branch" "
+						curl -sLf \"$github_url\" >/dev/null
+					"
+					if [ $? -ne 0 ]; then
+						error "Script not found in $branch branch"
+						return 1
+					fi
+				else
+					TASK "* Checking main branch" "
+						curl -sLf \"$github_url\" >/dev/null
+					" true
+					if [ $? -ne 0 ]; then
+						TASK "* Checking master branch" "
+							branch=\"master\"
+							github_url=\"https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/master/${script_path}\"
+							curl -sLf \"$github_url\" >/dev/null
+						"
+						if [ $? -ne 0 ]; then
+							error "Script not found in either main or master branch"
+							return 1
+						fi
+					fi
+				fi
+				TASK "* Downloading script" "
+					GET \"$github_url\" &>/dev/null || { error \"Failed to download script $script_name\"; return 1; }
+					chmod +x \"$script_name\" || { error \"Failed to set execute permission for $script_name\"; return 1; }
+				"
+				echo -e "${CLR8}$(LINE = "24")${CLR0}"
+				if [[ "$1" == "--" ]]; then
+					shift
+					./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
+				else
+					./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
+				fi
+				echo -e "${CLR8}$(LINE = "24")${CLR0}"
+				echo -e "${CLR2}FINISHED${CLR0}\n"
 			fi
-			TASK "* Downloading script" "
-				GET \"$github_url\" &>/dev/null || { error \"Failed to download script $script_name\"; return 1; }
-				chmod +x \"$script_name\" || { error \"Failed to set execute permission for $script_name\"; return 1; }
-			"
-			echo -e "${CLR8}$(LINE = "24")${CLR0}"
-			if [[ "$1" == "--" ]]; then
-				shift
-				./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
-			else
-				./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
-			fi
-			echo -e "${CLR8}$(LINE = "24")${CLR0}"
-			echo -e "${CLR2}FINISHED${CLR0}\n"
 		else
 			[ -x "$1" ] || chmod +x "$1"
 			if [[ "$2" == "--" ]]; then
@@ -946,7 +1007,6 @@ function SYS_OPTIMIZE() {
 	CHECK_ROOT
 	echo -e "${CLR3}Optimizing system configuration for long-running servers...${CLR0}"
 	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-
 	SYSCTL_CONF="/etc/sysctl.d/99-server-optimizations.conf"
 	echo "# Server optimizations for long-running systems" > "$SYSCTL_CONF"
 
@@ -1082,26 +1142,24 @@ function SYS_UPGRADE() {
 	os_name=$(CHECK_OS -n)
 	case "$os_name" in
 		Debian)
-			echo "* Detected Debian system"
+			echo -e "* Detected ${CLR2}'Debian'${CLR0} system"
 			TASK "* Updating package lists" "apt update -y" || { error "Failed to update package lists"; return 1; }
 			TASK "* Upgrading current packages" "apt full-upgrade -y" || { error "Failed to upgrade current packages"; return 1; }
-			echo "* Starting Debian release upgrade..."
+			echo -e "* Starting ${CLR2}'Debian'${CLR0} release upgrade..."
 			current_codename=$(lsb_release -cs)
 			target_codename=$(curl -s http://ftp.debian.org/debian/dists/stable/Release | grep "^Codename:" | awk '{print $2}')
 			[ "$current_codename" = "$target_codename" ] && { error "System is already running the latest stable version (${target_codename})"; return 1; }
-			echo "* Upgrading from ${current_codename} to ${target_codename}"
+			echo -e "* Upgrading from ${CLR2}${current_codename}${CLR0} to ${CLR3}${target_codename}${CLR0}"
 			TASK "* Backing up sources.list" "cp /etc/apt/sources.list /etc/apt/sources.list.backup" || { error "Failed to backup sources.list"; return 1; }
 			TASK "* Updating sources.list" "sed -i 's/${current_codename}/${target_codename}/g' /etc/apt/sources.list" || { error "Failed to update sources.list"; return 1; }
 			TASK "* Updating package lists for new release" "apt update -y" || { error "Failed to update package lists for new release"; return 1; }
 			TASK "* Upgrading to new Debian release" "apt full-upgrade -y" || { error "Failed to upgrade to new Debian release"; return 1; }
 			;;
 		Ubuntu)
-			echo "* Detected Ubuntu system"
+			echo -e "* Detected ${CLR2}'Ubuntu'${CLR0} system"
 			TASK "* Updating package lists" "apt update -y" || { error "Failed to update package lists"; return 1; }
 			TASK "* Upgrading current packages" "apt full-upgrade -y" || { error "Failed to upgrade current packages"; return 1; }
-			echo "* Installing update-manager-core..."
 			TASK "* Installing update-manager-core" "apt install -y update-manager-core" || { error "Failed to install update-manager-core"; return 1; }
-			echo "* Starting Ubuntu release upgrade..."
 			TASK "* Upgrading Ubuntu release" "do-release-upgrade -f DistUpgradeViewNonInteractive" || { error "Failed to upgrade Ubuntu release"; return 1; }
 			SYS_REBOOT
 			;;
@@ -1114,6 +1172,7 @@ function SYS_UPGRADE() {
 function TASK() {
 	message="$1"
 	command="$2"
+	ignore_error=${3:-false}
 	temp_file=$(mktemp)
 	echo -ne "${message}... "
 	if eval "$command" > "$temp_file" 2>&1; then
@@ -1122,9 +1181,8 @@ function TASK() {
 	else
 		ret=$?
 		echo -e "${CLR1}Failed (${ret})${CLR0}"
-		if [[ -s "$temp_file" ]]; then
-			echo -e "${CLR8}$(cat "$temp_file")${CLR0}"
-		fi
+		[[ -s "$temp_file" ]] && echo -e "${CLR1}$(cat "$temp_file")${CLR0}"
+		[[ "$ignore_error" != "true" ]] && return $ret
 	fi
 	rm -f "$temp_file"
 	return $ret
