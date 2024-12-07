@@ -1,9 +1,9 @@
 #!/bin/bash
 
-readonly Author="OGATA Open-Source"
-readonly Script="utilkit.sh"
-readonly Version="5.042.002"
-readonly License="MIT License"
+Author="OGATA Open-Source"
+Script="utilkit.sh"
+Version="5.042.003"
+License="MIT License"
 
 CLR1="\033[0;31m"
 CLR2="\033[0;32m"
@@ -755,18 +755,46 @@ function RUN() {
 	complete -F _run_completions RUN
 	[ $# -eq 0 ] && { error "No command specified"; return 2; }
 	if [[ "$1" == *"/"* ]]; then
-		if [[ "$1" =~ ^[^/]+/[^/]+/.+ ]]; then
+		if [[ "$1" =~ ^https?:// ]]; then
+			url="$1"
+			script_name=$(basename "$1")
+			delete_after=false
+			shift
+			while [[ $# -gt 0 && "$1" == -* ]]; do
+				case "$1" in
+					-d) delete_after=true; shift ;;
+					*) break ;;
+				esac
+			done
+			echo -e "${CLR3}Downloading and executing script [${script_name}] from URL${CLR0}"
+			TASK "* Downloading script" "
+				curl -sSLf \"$url\" -o \"$script_name\" || { error \"Failed to download script $script_name\"; return 1; }
+				chmod +x \"$script_name\" || { error \"Failed to set execute permission for $script_name\"; return 1; }
+			"
+			echo -e "${CLR8}$(LINE = "24")${CLR0}"
+			if [[ "$1" == "--" ]]; then
+				shift
+				./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
+			else
+				./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
+			fi
+			echo -e "${CLR8}$(LINE = "24")${CLR0}"
+			echo -e "${CLR2}FINISHED${CLR0}\n"
+			[[ "$delete_after" == true ]] && rm -rf "$script_name"
+		elif [[ "$1" =~ ^[^/]+/[^/]+/.+ ]]; then
 			repo_owner=$(echo "$1" | cut -d'/' -f1)
 			repo_name=$(echo "$1" | cut -d'/' -f2)
 			script_path=$(echo "$1" | cut -d'/' -f3-)
 			script_name=$(basename "$script_path")
 			branch="main"
 			download_repo=false
+			delete_after=false
 			shift
-			while [[ $# -gt 0 ]]; do
+			while [[ $# -gt 0 && "$1" == -* ]]; do
 				case "$1" in
 					-b) [[ -z "$2" || "$2" == -* ]] && { error "Branch name required after -b"; return 2; }; branch="$2"; shift 2 ;;
 					-r) download_repo=true; shift ;;
+					-d) delete_after=true; shift ;;
 					*) break ;;
 				esac
 			done
@@ -817,6 +845,7 @@ function RUN() {
 					fi
 					echo -e "${CLR8}$(LINE = "24")${CLR0}"
 					echo -e "${CLR2}FINISHED${CLR0}\n"
+					[[ "$delete_after" == true ]] && rm -rf "$repo_name"
 				fi
 			else
 				echo -e "${CLR3}Downloading and executing script [${script_name}] from ${repo_owner}/${repo_name}${CLR0}"
@@ -858,19 +887,23 @@ function RUN() {
 				fi
 				echo -e "${CLR8}$(LINE = "24")${CLR0}"
 				echo -e "${CLR2}FINISHED${CLR0}\n"
+				[[ "$delete_after" == true ]] && rm -rf "$script_name"
 			fi
 		else
 			[ -x "$1" ] || chmod +x "$1"
+			script_path="$1"
 			if [[ "$2" == "--" ]]; then
 				shift 2
-				"$script_name" "$@"
+				"$script_path" "$@" || { error "Failed to execute script $script_name"; return 1; }
 			else
-				"$1" "${@:2}"
+				shift
+				"$script_path" "$@" || { error "Failed to execute script $script_name"; return 1; }
 			fi
 		fi
 	else
 		eval "$*"
 	fi
+	rm -rf /tmp/* &>/dev/null
 }
 
 function SHELL_VER() {
