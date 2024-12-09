@@ -2,7 +2,7 @@
 
 Author="OGATA Open-Source"
 Script="utilkit.sh"
-Version="5.042.003"
+Version="5.042.004"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -137,25 +137,45 @@ function ADD() {
 }
 
 function CHECK_DEPS() {
+	mode="display"
+	missing_deps=()
+	while [[ "$1" == -* ]]; do
+		case "$1" in
+			-i) mode="interactive" ;;
+			-a) mode="auto" ;;
+			*) error "Invalid option: $1"; return 1 ;;
+		esac
+		shift
+	done
 	for dep in "${deps[@]}"; do
 		if command -v "$dep" &>/dev/null; then
 			status="${CLR2}[Available]${CLR0}"
 		else
 			status="${CLR1}[Not Found]${CLR0}"
+			missing_deps+=("$dep")
 		fi
 		echo -e "$status\t$dep"
 	done
+	[[ ${#missing_deps[@]} -eq 0 ]] && return 0
+	case "$mode" in
+		"interactive")
+			echo -e "\n${CLR3}Missing packages:${CLR0} ${missing_deps[*]}"
+			read -p "Do you want to install the missing packages? (y/N) " -n 1 -r
+			echo -e "/n"
+			[[ $REPLY =~ ^[Yy] ]] && ADD "${missing_deps[@]}"
+			;;
+		"auto")
+			echo
+			ADD "${missing_deps[@]}"
+			;;
+	esac
 }
 function CHECK_OS() {
 	case "$1" in
 		-v)
 			if [ -f /etc/os-release ]; then
 				source /etc/os-release
-				if [ "$ID" = "debian" ]; then
-					cat /etc/debian_version
-				else
-					echo "$VERSION_ID"
-				fi
+				[ "$ID" = "debian" ] && cat /etc/debian_version || echo "$VERSION_ID"
 			elif [ -f /etc/debian_version ]; then
 				cat /etc/debian_version
 			elif [ -f /etc/fedora-release ]; then
@@ -181,11 +201,7 @@ function CHECK_OS() {
 		*)
 			if [ -f /etc/os-release ]; then
 				source /etc/os-release
-				if [ "$ID" = "debian" ]; then
-					echo "$NAME $(cat /etc/debian_version)"
-				else
-					echo "$PRETTY_NAME"
-				fi
+				[ "$ID" = "debian" ] && echo "$NAME $(cat /etc/debian_version)" || echo "$PRETTY_NAME"
 			elif [ -f /etc/DISTRO_SPECS ]; then
 				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
 			else
@@ -776,7 +792,7 @@ function RUN() {
 				shift
 				./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
 			else
-				./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
+				./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
 			fi
 			echo -e "${CLR8}$(LINE = "24")${CLR0}"
 			echo -e "${CLR2}FINISHED${CLR0}\n"
