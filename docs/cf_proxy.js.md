@@ -1,4 +1,4 @@
-# cf-proxy.js
+# cf_proxy.js
 基於 Cloudflare Workers 的高性能代理服務，提供 WAF 防護與訪問控制功能。
 
 ---
@@ -17,7 +17,7 @@
 ---
 
 ## 簡介
-cf-proxy.js 是一個運行在 Cloudflare Workers 平台上的代理服務，為開發者提供安全可靠的代理功能。透過內建的 WAF 防護、訪問控制和請求統計功能，有效保護應用程式免受惡意訪問。
+cf_proxy.js 是一個運行在 Cloudflare Workers 平台上的代理服務，為開發者提供安全可靠的代理功能。透過內建的 WAF 防護、訪問控制和請求統計功能，有效保護應用程式免受惡意訪問。
 
 ## 特性
 - 內建 WAF 防護機制
