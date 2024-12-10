@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.002"
+Version="6.042.003"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -165,10 +165,7 @@ function CHECK_DEPS() {
 			text "\n"
 			[[ $REPLY =~ ^[Yy] ]] && ADD "${missing_deps[@]}"
 			;;
-		"auto")
-			echo
-			ADD "${missing_deps[@]}"
-			;;
+		"auto") text; ADD "${missing_deps[@]}" ;;
 	esac
 }
 function CHECK_OS() {
@@ -303,7 +300,7 @@ function CONVERT_SIZE() {
 		*) bytes=$size ;;
 	esac
 	[[ ! "$bytes" =~ ^[0-9]+\.?[0-9]*$ ]] && { error "Failed to convert size value"; return 1; }
-	LC_NUMERIC=C awk -v bytes="$bytes" -v is_binary="$([[ $unit_lower =~ ^.*ib$ ]] && echo 1 || echo 0)" '
+	LC_NUMERIC=C awk -v bytes="$bytes" -v is_binary="$([[ $unit_lower =~ ^.*ib$ ]] && text 1 || text 0)" '
 	BEGIN {
 		base = is_binary ? 1024 : 1000
 		units = is_binary ? "B KiB MiB GiB TiB PiB" : "B KB MB GB TB PB"
@@ -1061,50 +1058,50 @@ function SYS_OPTIMIZE() {
 	text "# Server optimizations for long-running systems" > "$SYSCTL_CONF"
 
 	TASK "* Optimizing memory management" "
-		echo 'vm.swappiness = 1' >> $SYSCTL_CONF
-		echo 'vm.vfs_cache_pressure = 50' >> $SYSCTL_CONF
-		echo 'vm.dirty_ratio = 15' >> $SYSCTL_CONF
-		echo 'vm.dirty_background_ratio = 5' >> $SYSCTL_CONF
-		echo 'vm.min_free_kbytes = 65536' >> $SYSCTL_CONF
+		textvm.swappiness = 1' >> $SYSCTL_CONF
+		text 'vm.vfs_cache_pressure = 50' >> $SYSCTL_CONF
+		text 'vm.dirty_ratio = 15' >> $SYSCTL_CONF
+		text 'vm.dirty_background_ratio = 5' >> $SYSCTL_CONF
+		text 'vm.min_free_kbytes = 65536' >> $SYSCTL_CONF
 	" || { error "Failed to optimize memory management"; return 1; }
 
 	TASK "* Optimizing network settings" "
-		echo 'net.core.somaxconn = 65535' >> $SYSCTL_CONF
-		echo 'net.core.netdev_max_backlog = 65535' >> $SYSCTL_CONF
-		echo 'net.ipv4.tcp_max_syn_backlog = 65535' >> $SYSCTL_CONF
-		echo 'net.ipv4.tcp_fin_timeout = 15' >> $SYSCTL_CONF
-		echo 'net.ipv4.tcp_keepalive_time = 300' >> $SYSCTL_CONF
-		echo 'net.ipv4.tcp_keepalive_probes = 5' >> $SYSCTL_CONF
-		echo 'net.ipv4.tcp_keepalive_intvl = 15' >> $SYSCTL_CONF
-		echo 'net.ipv4.tcp_tw_reuse = 1' >> $SYSCTL_CONF
-		echo 'net.ipv4.ip_local_port_range = 1024 65535' >> $SYSCTL_CONF
+		text 'net.core.somaxconn = 65535' >> $SYSCTL_CONF
+		text 'net.core.netdev_max_backlog = 65535' >> $SYSCTL_CONF
+		text 'net.ipv4.tcp_max_syn_backlog = 65535' >> $SYSCTL_CONF
+		text 'net.ipv4.tcp_fin_timeout = 15' >> $SYSCTL_CONF
+		text 'net.ipv4.tcp_keepalive_time = 300' >> $SYSCTL_CONF
+		text 'net.ipv4.tcp_keepalive_probes = 5' >> $SYSCTL_CONF
+		text 'net.ipv4.tcp_keepalive_intvl = 15' >> $SYSCTL_CONF
+		text 'net.ipv4.tcp_tw_reuse = 1' >> $SYSCTL_CONF
+		text 'net.ipv4.ip_local_port_range = 1024 65535' >> $SYSCTL_CONF
 	" || { error "Failed to optimize network settings"; return 1; }
 
 	TASK "* Optimizing TCP buffers" "
-		echo 'net.core.rmem_max = 16777216' >> $SYSCTL_CONF
-		echo 'net.core.wmem_max = 16777216' >> $SYSCTL_CONF
-		echo 'net.ipv4.tcp_rmem = 4096 87380 16777216' >> $SYSCTL_CONF
-		echo 'net.ipv4.tcp_wmem = 4096 65536 16777216' >> $SYSCTL_CONF
-		echo 'net.ipv4.tcp_mtu_probing = 1' >> $SYSCTL_CONF
+		text 'net.core.rmem_max = 16777216' >> $SYSCTL_CONF
+		text 'net.core.wmem_max = 16777216' >> $SYSCTL_CONF
+		text 'net.ipv4.tcp_rmem = 4096 87380 16777216' >> $SYSCTL_CONF
+		text 'net.ipv4.tcp_wmem = 4096 65536 16777216' >> $SYSCTL_CONF
+		text 'net.ipv4.tcp_mtu_probing = 1' >> $SYSCTL_CONF
 	" || { error "Failed to optimize TCP buffers"; return 1; }
 
 	TASK "* Optimizing filesystem settings" "
-		echo 'fs.file-max = 2097152' >> $SYSCTL_CONF
-		echo 'fs.nr_open = 2097152' >> $SYSCTL_CONF
-		echo 'fs.inotify.max_user_watches = 524288' >> $SYSCTL_CONF
+		text 'fs.file-max = 2097152' >> $SYSCTL_CONF
+		text 'fs.nr_open = 2097152' >> $SYSCTL_CONF
+		text 'fs.inotify.max_user_watches = 524288' >> $SYSCTL_CONF
 	" || { error "Failed to optimize filesystem settings"; return 1; }
 
 	TASK "* Optimizing system limits" "
-		echo '* soft nofile 1048576' >> /etc/security/limits.conf
-		echo '* hard nofile 1048576' >> /etc/security/limits.conf
-		echo '* soft nproc 65535' >> /etc/security/limits.conf
-		echo '* hard nproc 65535' >> /etc/security/limits.conf
+		text '* soft nofile 1048576' >> /etc/security/limits.conf
+		text '* hard nofile 1048576' >> /etc/security/limits.conf
+		text '* soft nproc 65535' >> /etc/security/limits.conf
+		text '* hard nproc 65535' >> /etc/security/limits.conf
 	" || { error "Failed to optimize system limits"; return 1; }
 
 	TASK "* Optimizing I/O scheduler" "
 		for disk in /sys/block/[sv]d*; do
-			echo 'none' > \$disk/queue/scheduler 2>/dev/null || true
-			echo '256' > \$disk/queue/nr_requests 2>/dev/null || true
+			text 'none' > \$disk/queue/scheduler 2>/dev/null || true
+			text '256' > \$disk/queue/nr_requests 2>/dev/null || true
 		done
 	" || { error "Failed to optimize I/O scheduler"; return 1; }
 
@@ -1118,7 +1115,7 @@ function SYS_OPTIMIZE() {
 
 	TASK "* Clearing system cache" "
 		sync
-		echo 3 > /proc/sys/vm/drop_caches
+		text 3 > /proc/sys/vm/drop_caches
 		ip -s -s neigh flush all
 	" || { error "Failed to clear system cache"; return 1; }
 
@@ -1134,17 +1131,17 @@ function SYS_REBOOT() {
 		text "${CLR1}Warning: There are currently $active_users active users on the system.\n${CLR0}"
 		text "Active users:"
 		who | awk '{print $1 " since " $3 " " $4}'
-		echo
+		text
 	fi
 	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l) || { error "Failed to check running processes"; return 1; }
 	if [ "$important_processes" -gt 0 ]; then
 		text "${CLR1}Warning: There are $important_processes important processes running.\n${CLR0}"
 		text "${CLR8}Top 5 processes by CPU usage:${CLR0}"
 		ps aux --sort=-%cpu | head -n 6
-		echo
+		text
 	fi
 	read -p "Are you sure you want to reboot the system now? (y/N) " -n 1 -r
-	echo
+	text
 	[[ ! $REPLY =~ ^[Yy]$ ]] && { text "${CLR2}Reboot cancelled.\n${CLR0}"; return 0; }
 	TASK "* Performing final checks" "sync" || { error "Failed to sync filesystems"; return 1; }
 	TASK "* Initiating reboot" "reboot || sudo reboot" || { error "Failed to initiate reboot"; return 1; }
@@ -1224,7 +1221,7 @@ function TASK() {
 	command="$2"
 	ignore_error=${3:-false}
 	temp_file=$(mktemp)
-	echo -ne "${message}... "
+	text -ne "${message}... "
 	if eval "$command" > "$temp_file" 2>&1; then
 		text "${CLR2}Done${CLR0}"
 		ret=0
