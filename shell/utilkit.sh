@@ -1,8 +1,8 @@
 #!/bin/bash
 
-Author="OGATA Open-Source"
-Script="utilkit.sh"
-Version="5.042.004"
+Authors="OGATA Open-Source"
+Scripts="utilkit.sh"
+Version="6.042.001"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -17,14 +17,15 @@ CLR9="\033[0;97m"
 CLR0="\033[0m"
 
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
+text() { echo -e "$1"; }
 error() {
-	[ -z "$1" ] && { echo -e "${CLR1}Unknown error${CLR0}"; return 1; }
-	echo -e "${CLR1}$1${CLR0}"
+	[ -z "$1" ] && { text "${CLR1}Unknown error${CLR0}"; return 1; }
+	text "${CLR1}$1${CLR0}"
 	if [ -w "/var/log" ]; then
 		log_file="/var/log/ogos-error.log"
 		timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-		log_entry="${timestamp} | ${Script} - ${Version} - $(echo -e "$1" | tr -d '\n')"
-		echo "${log_entry}" >> "${log_file}" 2>/dev/null
+		log_entry="${timestamp} | ${Scripts} - ${Version} - $(text "$1" | tr -d '\n')"
+		text "${log_entry}" >> "${log_file}" 2>/dev/null
 	fi
 }
 
@@ -41,14 +42,14 @@ function ADD() {
 			*.deb)
 				CHECK_ROOT
 				deb_file=$(basename "$1")
-				echo -e "${CLR3}INSERT DEB PACKAGE [$deb_file]\n${CLR0}"
+				text "${CLR3}INSERT DEB PACKAGE [$deb_file]\n${CLR0}"
 				GET "$1"
 				if [ -f "$deb_file" ]; then
 					dpkg -i "$deb_file" || { error "Failed to install $deb_file. Check package compatibility and dependencies\n"; rm -f "$deb_file"; failed=1; shift; continue; }
 					apt --fix-broken install -y || { error "Failed to fix dependencies"; rm -f "$deb_file"; failed=1; shift; continue; }
-					echo "* DEB package $deb_file installed successfully"
+					text "* DEB package $deb_file installed successfully"
 					rm -f "$deb_file"
-					echo -e "${CLR2}FINISHED${CLR0}\n"
+					text "${CLR2}FINISHED${CLR0}\n"
 				else
 					error "DEB package $deb_file not found or download failed\n"
 					failed=1
@@ -58,21 +59,21 @@ function ADD() {
 				shift
 				;;
 			*)
-				echo -e "${CLR3}INSERT $(FORMAT -AA "$mode") [$1]${CLR0}"
+				text "${CLR3}INSERT $(FORMAT -AA "$mode") [$1]${CLR0}"
 				case "$mode" in
 					"file")
 						[ -d "$1" ] && { error "Directory $1 already exists. Cannot create file with the same name\n"; failed=1; shift; continue; }
 						[ -f "$1" ] && { error "File $1 already exists\n"; failed=1; shift; continue; }
 						touch "$1" || { error "Failed to create file $1. Check permissions and disk space\n"; failed=1; shift; continue; }
-						echo "* File $1 created successfully"
-						echo -e "${CLR2}FINISHED${CLR0}\n"
+						text "* File $1 created successfully"
+						text "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"directory")
 						[ -f "$1" ] && { error "File $1 already exists. Cannot create directory with the same name\n"; failed=1; shift; continue; }
 						[ -d "$1" ] && { error "Directory $1 already exists\n"; failed=1; shift; continue; }
 						mkdir -p "$1" || { error "Failed to create directory $1. Check permissions and path validity\n"; failed=1; shift; continue; }
-						echo "* Directory $1 created successfully"
-						echo -e "${CLR2}FINISHED${CLR0}\n"
+						text "* Directory $1 created successfully"
+						text "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"package")
 						CHECK_ROOT
@@ -101,11 +102,11 @@ function ADD() {
 									esac
 								}
 								if ! is_installed "$1"; then
-									echo "* Package $1 is not installed"
+									text "* Package $1 is not installed"
 									if install_package "$1"; then
 										if is_installed "$1"; then
-											echo "* Package $1 installed successfully"
-											echo -e "${CLR2}FINISHED${CLR0}\n"
+											text "* Package $1 installed successfully"
+											text "${CLR2}FINISHED${CLR0}\n"
 										else
 											error "Failed to install $1 using $pkg_manager\n"
 											failed=1
@@ -117,8 +118,8 @@ function ADD() {
 										shift; continue
 									fi
 								else
-									echo "* Package $1 is already installed"
-									echo -e "${CLR2}FINISHED${CLR0}\n"
+									text "* Package $1 is already installed"
+									text "${CLR2}FINISHED${CLR0}\n"
 								fi
 								;;
 							*)
@@ -154,14 +155,14 @@ function CHECK_DEPS() {
 			status="${CLR1}[Not Found]${CLR0}"
 			missing_deps+=("$dep")
 		fi
-		echo -e "$status\t$dep"
+		text "$status\t$dep"
 	done
 	[[ ${#missing_deps[@]} -eq 0 ]] && return 0
 	case "$mode" in
 		"interactive")
-			echo -e "\n${CLR3}Missing packages:${CLR0} ${missing_deps[*]}"
+			text "\n${CLR3}Missing packages:${CLR0} ${missing_deps[*]}"
 			read -p "Do you want to install the missing packages? (y/N) " -n 1 -r
-			echo -e "/n"
+			text "\n"
 			[[ $REPLY =~ ^[Yy] ]] && ADD "${missing_deps[@]}"
 			;;
 		"auto")
@@ -175,7 +176,7 @@ function CHECK_OS() {
 		-v)
 			if [ -f /etc/os-release ]; then
 				source /etc/os-release
-				[ "$ID" = "debian" ] && cat /etc/debian_version || echo "$VERSION_ID"
+				[ "$ID" = "debian" ] && cat /etc/debian_version || text "$VERSION_ID"
 			elif [ -f /etc/debian_version ]; then
 				cat /etc/debian_version
 			elif [ -f /etc/fedora-release ]; then
@@ -191,7 +192,7 @@ function CHECK_OS() {
 		-n)
 			if [ -f /etc/os-release ]; then
 				source /etc/os-release
-				echo "$ID" | sed 's/.*/\u&/'
+				text "$ID" | sed 's/.*/\u&/'
 			elif [ -f /etc/DISTRO_SPECS ]; then
 				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2 | awk '{print $1}'
 			else
@@ -201,7 +202,7 @@ function CHECK_OS() {
 		*)
 			if [ -f /etc/os-release ]; then
 				source /etc/os-release
-				[ "$ID" = "debian" ] && echo "$NAME $(cat /etc/debian_version)" || echo "$PRETTY_NAME"
+				[ "$ID" = "debian" ] && text "$NAME $(cat /etc/debian_version)" || text "$PRETTY_NAME"
 			elif [ -f /etc/DISTRO_SPECS ]; then
 				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
 			else
@@ -221,21 +222,21 @@ function CHECK_VIRT() {
 		virt_type=$(systemd-detect-virt 2>/dev/null)
 		[ -z "$virt_type" ] && { error "Unable to detect virtualization environment"; return 1; }
 		case "$virt_type" in
-			kvm) grep -qi "proxmox" /sys/class/dmi/id/product_name 2>/dev/null && echo "Proxmox VE (KVM)" || echo "KVM" ;;
-			microsoft) echo "Microsoft Hyper-V" ;;
+			kvm) grep -qi "proxmox" /sys/class/dmi/id/product_name 2>/dev/null && text "Proxmox VE (KVM)" || text "KVM" ;;
+			microsoft) text "Microsoft Hyper-V" ;;
 			none)
 				if grep -q "container=lxc" /proc/1/environ 2>/dev/null; then
-					echo "LXC container"
+					text "LXC container"
 				elif grep -qi "hypervisor" /proc/cpuinfo 2>/dev/null; then
-					echo "Virtual machine (Unknown type)"
+					text "Virtual machine (Unknown type)"
 				else
-					echo "Not detected (possibly bare metal)"
+					text "Not detected (possibly bare metal)"
 				fi
 				;;
-			*) echo "${virt_type:-Not detected (possibly bare metal)}" ;;
+			*) text "${virt_type:-Not detected (possibly bare metal)}" ;;
 		esac
 	elif [ -f /proc/cpuinfo ]; then
-		virt_type=$(grep -i "hypervisor" /proc/cpuinfo >/dev/null && echo "VM" || echo "none")
+		virt_type=$(grep -i "hypervisor" /proc/cpuinfo >/dev/null && text "VM" || text "none")
 	else
 		virt_type="Unknown"
 	fi
@@ -248,13 +249,13 @@ function CPU_CACHE() {
 	[ ! -f /proc/cpuinfo ] && { error "Cannot access CPU information. /proc/cpuinfo not available"; return 1; }
 	cpu_cache=$(awk '/^cache size/ {sum+=$4; count++} END {print (count>0) ? sum/count : "N/A"}' /proc/cpuinfo)
 	[ "$cpu_cache" = "N/A" ] && { error "Unable to determine CPU cache size"; return 1; }
-	echo "${cpu_cache} KB"
+	text "${cpu_cache} KB"
 }
 function CPU_FREQ() {
 	[ ! -f /proc/cpuinfo ] && { error "Cannot access CPU information. /proc/cpuinfo not available"; return 1; }
 	cpu_freq=$(awk '/^cpu MHz/ {sum+=$4; count++} END {print (count>0) ? sprintf("%.2f", sum/count/1000) : "N/A"}' /proc/cpuinfo)
 	[ "$cpu_freq" = "N/A" ] && { error "Unable to determine CPU frequency"; return 1; }
-	echo "${cpu_freq} GHz"
+	text "${cpu_freq} GHz"
 }
 function CPU_MODEL() {
 	if command -v lscpu &>/dev/null; then
@@ -264,7 +265,7 @@ function CPU_MODEL() {
 	elif command -v sysctl &>/dev/null && sysctl -n machdep.cpu.brand_string &>/dev/null; then
 		sysctl -n machdep.cpu.brand_string
 	else
-		{ echo -e "${CLR1}Unknown${CLR0}"; return 1; }
+		{ text "${CLR1}Unknown${CLR0}"; return 1; }
 	fi
 }
 function CPU_USAGE() {
@@ -278,7 +279,7 @@ function CPU_USAGE() {
 	total_diff=$((total2 - total1))
 	idle_diff=$((idle2 - idle1))
 	usage=$(( 100 * (total_diff - idle_diff) / total_diff ))
-	echo "$usage%"
+	text "$usage%"
 }
 function CONVERT_SIZE() {
 	[ -z "$1" ] && { error "No size value provided for conversion"; return 2; }
@@ -327,8 +328,8 @@ function CONVERT_SIZE() {
 	}'
 }
 function COPYRIGHT() {
-	echo -e "$Script $Version"
-	echo -e "Copyright (C) 2024 $Author."
+	text "$Scripts $Version"
+	text "Copyright (C) 2024 $Authors."
 }
 
 function DEL() {
@@ -342,21 +343,21 @@ function DEL() {
 			-f) mode="file"; shift; continue ;;
 			-d) mode="directory"; shift; continue ;;
 			*)
-				echo -e "${CLR3}REMOVE $(FORMAT -AA "$mode") [$1]${CLR0}"
+				text "${CLR3}REMOVE $(FORMAT -AA "$mode") [$1]${CLR0}"
 				case "$mode" in
 					"file")
 						[ ! -f "$1" ] && { error "File $1 does not exist\n"; failed=1; shift; continue; }
-						echo "* File $1 exists"
+						text "* File $1 exists"
 						rm -f "$1" || { error "Failed to remove file $1\n"; failed=1; shift; continue; }
-						echo "* File $1 removed successfully"
-						echo -e "${CLR2}FINISHED${CLR0}\n"
+						text "* File $1 removed successfully"
+						text "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"directory")
 						[ ! -d "$1" ] && { error "Directory $1 does not exist\n"; failed=1; shift; continue; }
-						echo "* Directory $1 exists"
+						text "* Directory $1 exists"
 						rm -rf "$1" || { error "Failed to remove directory $1\n"; failed=1; shift; continue; }
-						echo "* Directory $1 removed successfully"
-						echo -e "${CLR2}FINISHED${CLR0}\n"
+						text "* Directory $1 removed successfully"
+						text "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"package")
 						CHECK_ROOT
@@ -390,7 +391,7 @@ function DEL() {
 									shift
 									continue
 								fi
-								echo "* Package $1 is installed"
+								text "* Package $1 is installed"
 								if ! remove_package "$1"; then
 									error "Failed to remove $1 using $pkg_manager\n"
 									failed=1
@@ -403,8 +404,8 @@ function DEL() {
 									shift
 									continue
 								fi
-								echo "* Package $1 removed successfully"
-								echo -e "${CLR2}FINISHED${CLR0}\n"
+								text "* Package $1 removed successfully"
+								text "${CLR2}FINISHED${CLR0}\n"
 								;;
 							*) { error "Unsupported package manager"; return 1; } ;;
 						esac
@@ -420,7 +421,7 @@ function DISK_USAGE() {
 	used=$(df -B1 / | awk '/^\/dev/ {print $3}') || { error "Failed to get disk usage statistics"; return 1; }
 	total=$(df -B1 / | awk '/^\/dev/ {print $2}') || { error "Failed to get total disk space"; return 1; }
 	percentage=$(df / | awk '/^\/dev/ {printf("%.2f"), $3/$2 * 100.0}')
-	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
+	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 function DNS_ADDR () {
 	[ ! -f /etc/resolv.conf ] && { error "DNS configuration file /etc/resolv.conf not found"; return 1; }
@@ -437,15 +438,15 @@ function DNS_ADDR () {
 	case "$1" in
 		-4)
 			[ ${#ipv4_servers[@]} -eq 0 ] && { error "No IPv4 DNS servers found"; return 1; }
-			echo "${ipv4_servers[*]}"
+			text "${ipv4_servers[*]}"
 			;;
 		-6)
 			[ ${#ipv6_servers[@]} -eq 0 ] && { error "No IPv6 DNS servers found"; return 1; }
-			echo "${ipv6_servers[*]}"
+			text "${ipv6_servers[*]}"
 			;;
 		*)
 			[ ${#ipv4_servers[@]} -eq 0 -a ${#ipv6_servers[@]} -eq 0 ] && { error "No DNS servers found"; return 1; }
-			echo "${ipv4_servers[*]}   ${ipv6_servers[*]}"
+			text "${ipv4_servers[*]}   ${ipv6_servers[*]}"
 			;;
 	esac
 }
@@ -464,9 +465,9 @@ function FIND() {
 		*) { error "Package manager not found or unsupported"; return 1; } ;;
 	esac
 	for target in "$@"; do
-		echo -e "${CLR3}SEARCH [$target]${CLR0}"
+		text "${CLR3}SEARCH [$target]${CLR0}"
 		$search_command "$target" || { error "No results found for $target\n"; return 1; }
-		echo -e "${CLR2}FINISHED${CLR0}\n"
+		text "${CLR2}FINISHED${CLR0}\n"
 	done
 }
 function FONT() {
@@ -496,7 +497,7 @@ function FONT() {
 		esac
 		shift
 	done
-	echo -e "${font}${1}${CLR0}"
+	text "${font}${1}${CLR0}"
 }
 function FORMAT() {
 	option="$1"
@@ -505,12 +506,12 @@ function FORMAT() {
 	[ -z "$value" ] && { error "No value provided for formatting"; return 2; }
 	[ -z "$option" ] && { error "No formatting option provided"; return 2; }
 	case "$option" in
-		-AA) result=$(echo "$value" | tr '[:lower:]' '[:upper:]') ;;
-		-aa) result=$(echo "$value" | tr '[:upper:]' '[:lower:]') ;;
-		-Aa) result=$(echo "$value" | tr '[:upper:]' '[:lower:]' | sed 's/\b\(.\)/\u\1/') ;;
+		-AA) result=$(text "$value" | tr '[:lower:]' '[:upper:]') ;;
+		-aa) result=$(text "$value" | tr '[:upper:]' '[:lower:]') ;;
+		-Aa) result=$(text "$value" | tr '[:upper:]' '[:lower:]' | sed 's/\b\(.\)/\u\1/') ;;
 		*) result="$value" ;;
 	esac
-	echo "$result"
+	text "$result"
 }
 
 function GET() {
@@ -537,8 +538,8 @@ function GET() {
 	[ "$target_dir" != "." ] && { mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }; }
 	[ -n "$rename_file" ] && output_file="$rename_file"
 	output_path="$target_dir/$output_file"
-	url=$(echo "$url" | sed -E 's#([^:])/+#\1/#g; s#^(https?|ftp):/+#\1://#')
-	echo -e "${CLR3}DOWNLOAD [$url]${CLR0}"
+	url=$(text "$url" | sed -E 's#([^:])/+#\1/#g; s#^(https?|ftp):/+#\1://#')
+	text "${CLR3}DOWNLOAD [$url]${CLR0}"
 	file_size=$(curl -sI "$url" | grep -i content-length | awk '{print $2}' | tr -d '\r')
 	size_limit="26214400"
 	if [ -n "$file_size" ] && [ "$file_size" -gt "$size_limit" ]; then
@@ -547,7 +548,7 @@ function GET() {
 		curl --location --insecure --connect-timeout 5 --retry 2 "$url" -o "$output_path" || { error "Failed to download file using curl\n"; return 1; }
 	fi
 	if [ -f "$output_path" ]; then
-		echo "* File downloaded successfully to $output_path"
+		text "* File downloaded successfully to $output_path"
 		if [ "$extract" = true ]; then
 			case "$output_file" in
 				*.tar.gz|*.tgz) tar -xzf "$output_path" -C "$target_dir" || { error "Failed to extract tar.gz file\n"; return 1; } ;;
@@ -558,11 +559,11 @@ function GET() {
 				*.7z) 7z x "$output_path" -o"$target_dir" || { error "Failed to extract 7z file\n"; return 1; } ;;
 				*.rar) unrar x "$output_path" "$target_dir" || { error "Failed to extract rar file\n"; return 1; } ;;
 				*.zst) zstd -d "$output_path" -o "$target_dir" || { error "Failed to extract zst file\n"; return 1; } ;;
-				*) echo "* File format not recognized for auto-extraction" ;;
+				*) text "* File format not recognized for auto-extraction" ;;
 			esac
-			[ $? -eq 0 ] && echo "* File extracted successfully to $target_dir"
+			[ $? -eq 0 ] && text "* File extracted successfully to $target_dir"
 		fi
-		echo -e "${CLR2}FINISHED${CLR0}\n"
+		text "${CLR2}FINISHED${CLR0}\n"
 	else
 		{ error "Download failed. Check your internet connection and URL validity"; return 1; }
 	fi
@@ -596,7 +597,7 @@ function INTERFACE() {
 		arr=("$@")
 		for ((i=1; i<=${#arr[@]}; i++)); do
 			if [ "$item" = "${arr[$i]}" ]; then
-				echo "$i"
+				text "$i"
 				return 0
 			fi
 		done
@@ -616,9 +617,9 @@ function INTERFACE() {
 		[ -n "$interface4" ] && [ -n "$interface6" ] && break
 	done
 	interface="$interface4 $interface6"
-	[[ "$interface4" == "$interface6" ]] && interface=$(echo "$interface" | cut -d' ' -f 1)
+	[[ "$interface4" == "$interface6" ]] && interface=$(text "$interface" | cut -d' ' -f 1)
 	[[ -z "$interface4" || -z "$interface6" ]] && {
-		interface=$(echo "$interface" | sed 's/[[:space:]]//g')
+		interface=$(text "$interface" | sed 's/[[:space:]]//g')
 		[[ -z "$interface4" ]] && interface4="$interface"
 		[[ -z "$interface6" ]] && interface6="$interface"
 	}
@@ -626,14 +627,14 @@ function INTERFACE() {
 		if stats=$(awk -v iface="$interface" '$1 ~ iface":" {print $2, $3, $5, $10, $11, $13}' /proc/net/dev); then
 			read rx_bytes rx_packets rx_drop tx_bytes tx_packets tx_drop <<< "$stats"
 			case "$1" in
-				RX_BYTES) echo "$rx_bytes" ;;
-				RX_PACKETS) echo "$rx_packets" ;;
-				RX_DROP) echo "$rx_drop" ;;
-				TX_BYTES) echo "$tx_bytes" ;;
-				TX_PACKETS) echo "$tx_packets" ;;
-				TX_DROP) echo "$tx_drop" ;;
-				-i) echo "$interface: RX: $(CONVERT_SIZE $rx_bytes), TX: $(CONVERT_SIZE $tx_bytes)" ;;
-				"") echo "$interface" ;;
+				RX_BYTES) text "$rx_bytes" ;;
+				RX_PACKETS) text "$rx_packets" ;;
+				RX_DROP) text "$rx_drop" ;;
+				TX_BYTES) text "$tx_bytes" ;;
+				TX_PACKETS) text "$tx_packets" ;;
+				TX_DROP) text "$tx_drop" ;;
+				-i) text "$interface: RX: $(CONVERT_SIZE $rx_bytes), TX: $(CONVERT_SIZE $tx_bytes)" ;;
+				"") text "$interface" ;;
 				*) { error "Invalid parameter: $1. Valid parameters are: RX_BYTES, RX_PACKETS, RX_DROP, TX_BYTES, TX_PACKETS, TX_DROP, -i"; return 2; } ;;
 			esac
 		else
@@ -648,19 +649,19 @@ function IP_ADDR() {
 			ipv4_addr=$(timeout 1s dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null) ||
 			ipv4_addr=$(timeout 1s curl -sL ipv4.ip.sb 2>/dev/null) ||
 			ipv4_addr=$(timeout 1s wget -qO- -4 ifconfig.me 2>/dev/null) ||
-			[ -n "$ipv4_addr" ] && echo "$ipv4_addr" || { error "Failed to retrieve IPv4 address. Check your internet connection"; return 1; }
+			[ -n "$ipv4_addr" ] && text "$ipv4_addr" || { error "Failed to retrieve IPv4 address. Check your internet connection"; return 1; }
 			;;
 		-6)
 			ipv6_addr=$(timeout 1s curl -sL ipv6.ip.sb 2>/dev/null) ||
 			ipv6_addr=$(timeout 1s wget -qO- -6 ifconfig.me 2>/dev/null) ||
-			[ -n "$ipv6_addr" ] && echo "$ipv6_addr" || { error "Failed to retrieve IPv6 address. Check your internet connection"; return 1; }
+			[ -n "$ipv6_addr" ] && text "$ipv6_addr" || { error "Failed to retrieve IPv6 address. Check your internet connection"; return 1; }
 			;;
 		*)
 			ipv4_addr=$(IP_ADDR -4)
 			ipv6_addr=$(IP_ADDR -6)
 			[ -z "$ipv4_addr$ipv6_addr" ] && { error "Failed to retrieve IP addresses"; return 1; }
-			[ -n "$ipv4_addr" ] && echo "IPv4: $ipv4_addr"
-			[ -n "$ipv6_addr" ] && echo "IPv6: $ipv6_addr"
+			[ -n "$ipv4_addr" ] && text "IPv4: $ipv4_addr"
+			[ -n "$ipv6_addr" ] && text "IPv6: $ipv6_addr"
 			return
 			;;
 	esac
@@ -674,7 +675,7 @@ function LAST_UPDATE() {
 	elif command -v rpm &>/dev/null; then
 		last_update=$(rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}')
 	fi
-	[ -z "$last_update" ] && { error "Unable to determine last system update time. Update logs not found"; return 1; } || echo "$last_update"
+	[ -z "$last_update" ] && { error "Unable to determine last system update time. Update logs not found"; return 1; } || text "$last_update"
 }
 function LINE() {
 	char="${1:--}"
@@ -696,7 +697,7 @@ function LOAD_AVERAGE() {
 function MAC_ADDR() {
 	mac_address=$(ip link show | awk '/ether/ {print $2; exit}')
 	if [[ -n "$mac_address" ]]; then
-		echo "$mac_address"
+		text "$mac_address"
 	else
 		{ error "Unable to retrieve MAC address. Network interface not found"; return 1; }
 	fi
@@ -705,14 +706,14 @@ function MEM_USAGE() {
 	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}') || { error "Failed to get memory usage statistics"; return 1; }
 	total=$(free -b | awk '/^Mem:/ {print $2}') || total=$(grep MemTotal /proc/meminfo | awk '{print $2*1024}')
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}') || percentage=$(awk '/^MemTotal:/ {total=$2} /^MemAvailable:/ {available=$2} END {printf("%.2f", (total-available)/total * 100.0)}' /proc/meminfo)
-	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
+	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 
 function NET_PROVIDER() {
 	result=$(timeout 1s curl -sL ipinfo.io | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	result=$(timeout 1s curl -sL ipwhois.app/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
-	[ -n "$result" ] && echo "$result" || { error "Unable to detect network provider. Check your internet connection"; return 1; }
+	[ -n "$result" ] && text "$result" || { error "Unable to detect network provider. Check your internet connection"; return 1; }
 }
 
 function PKG_COUNT() {
@@ -729,7 +730,7 @@ function PKG_COUNT() {
 	if ! package_count=$($count_cmd 2>/dev/null | wc -l) || [[ -z "$package_count" || "$package_count" -eq 0 ]]; then
 		{ error "Failed to count packages for ${pkg_manager##*/}"; return 1; }
 	fi
-	echo "$package_count"
+	text "$package_count"
 }
 function PROGRESS() {
 	num_cmds=${#cmds[@]}
@@ -742,7 +743,7 @@ function PROGRESS() {
 		filled_width=$((progress * bar_width / 100))
 		printf "\r\033[30;42mProgress: [%3d%%]\033[0m [%s%s]" "$progress" "$(printf "%${filled_width}s" | tr ' ' '#')" "$(printf "%$((bar_width - filled_width))s" | tr ' ' '.')"
 		if ! output=$(eval "${cmds[$i]}" 2>&1); then
-			echo -e "\n$output"
+			text "\n$output"
 			stty echo
 			trap - SIGINT SIGQUIT SIGTSTP
 			{ error "Command execution failed: ${cmds[$i]}"; return 1; }
@@ -755,7 +756,7 @@ function PROGRESS() {
 }
 function PUBLIC_IP() {
 	ip=$(timeout 5s curl -sL https://ifconfig.me)
-	[ -n "$ip" ] && echo "$ip" || { error "Unable to detect public IP address. Check your internet connection"; return 1; }
+	[ -n "$ip" ] && text "$ip" || { error "Unable to detect public IP address. Check your internet connection"; return 1; }
 }
 
 function RUN() {
@@ -782,25 +783,25 @@ function RUN() {
 					*) break ;;
 				esac
 			done
-			echo -e "${CLR3}Downloading and executing script [${script_name}] from URL${CLR0}"
+			text "${CLR3}Downloading and executing script [${script_name}] from URL${CLR0}"
 			TASK "* Downloading script" "
 				curl -sSLf \"$url\" -o \"$script_name\" || { error \"Failed to download script $script_name\"; return 1; }
 				chmod +x \"$script_name\" || { error \"Failed to set execute permission for $script_name\"; return 1; }
 			"
-			echo -e "${CLR8}$(LINE = "24")${CLR0}"
+			text "${CLR8}$(LINE = "24")${CLR0}"
 			if [[ "$1" == "--" ]]; then
 				shift
 				./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
 			else
 				./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
 			fi
-			echo -e "${CLR8}$(LINE = "24")${CLR0}"
-			echo -e "${CLR2}FINISHED${CLR0}\n"
+			text "${CLR8}$(LINE = "24")${CLR0}"
+			text "${CLR2}FINISHED${CLR0}\n"
 			[[ "$delete_after" == true ]] && rm -rf "$script_name"
 		elif [[ "$1" =~ ^[^/]+/[^/]+/.+ ]]; then
-			repo_owner=$(echo "$1" | cut -d'/' -f1)
-			repo_name=$(echo "$1" | cut -d'/' -f2)
-			script_path=$(echo "$1" | cut -d'/' -f3-)
+			repo_owner=$(text "$1" | cut -d'/' -f1)
+			repo_name=$(text "$1" | cut -d'/' -f2)
+			script_path=$(text "$1" | cut -d'/' -f3-)
 			script_name=$(basename "$script_path")
 			branch="main"
 			download_repo=false
@@ -815,7 +816,7 @@ function RUN() {
 				esac
 			done
 			if [[ "$download_repo" == true ]]; then
-				echo -e "${CLR3}Cloning repository ${repo_owner}/${repo_name}${CLR0}"
+				text "${CLR3}Cloning repository ${repo_owner}/${repo_name}${CLR0}"
 				[[ -d "$repo_name" ]] && { error "Directory $repo_name already exists"; return 1; }
 				temp_dir=$(mktemp -d)
 				if [[ "$branch" != "main" ]]; then
@@ -847,24 +848,24 @@ function RUN() {
 				TASK "* Cleaning up temporary files" "
 					rm -rf \"$temp_dir\"
 				"
-				echo -e "* Repository cloned to directory: ${CLR2}$repo_name${CLR0}"
+				text "* Repository cloned to directory: ${CLR2}$repo_name${CLR0}"
 				if [[ -f "$repo_name/$script_path" ]]; then
 					TASK "* Setting execute permissions" "
 						chmod +x \"$repo_name/$script_path\"
 					"
-					echo -e "${CLR8}$(LINE = "24")${CLR0}"
+					text "${CLR8}$(LINE = "24")${CLR0}"
 					if [[ "$1" == "--" ]]; then
 						shift
 						./"$repo_name/$script_path" "$@" || { error "Failed to execute script $script_name"; return 1; }
 					else
 						./"$repo_name/$script_path" || { error "Failed to execute script $script_name"; return 1; }
 					fi
-					echo -e "${CLR8}$(LINE = "24")${CLR0}"
-					echo -e "${CLR2}FINISHED${CLR0}\n"
+					text "${CLR8}$(LINE = "24")${CLR0}"
+					text "${CLR2}FINISHED${CLR0}\n"
 					[[ "$delete_after" == true ]] && rm -rf "$repo_name"
 				fi
 			else
-				echo -e "${CLR3}Downloading and executing script [${script_name}] from ${repo_owner}/${repo_name}${CLR0}"
+				text "${CLR3}Downloading and executing script [${script_name}] from ${repo_owner}/${repo_name}${CLR0}"
 				github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
 				if [[ "$branch" != "main" ]]; then
 					TASK "* Checking $branch branch" "
@@ -894,15 +895,15 @@ function RUN() {
 					GET \"$github_url\" &>/dev/null || { error \"Failed to download script $script_name\"; return 1; }
 					chmod +x \"$script_name\" || { error \"Failed to set execute permission for $script_name\"; return 1; }
 				"
-				echo -e "${CLR8}$(LINE = "24")${CLR0}"
+				text "${CLR8}$(LINE = "24")${CLR0}"
 				if [[ "$1" == "--" ]]; then
 					shift
 					./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
 				else
 					./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
 				fi
-				echo -e "${CLR8}$(LINE = "24")${CLR0}"
-				echo -e "${CLR2}FINISHED${CLR0}\n"
+				text "${CLR8}$(LINE = "24")${CLR0}"
+				text "${CLR2}FINISHED${CLR0}\n"
 				[[ "$delete_after" == true ]] && rm -rf "$script_name"
 			fi
 		else
@@ -925,9 +926,9 @@ function RUN() {
 function SHELL_VER() {
 	LC_ALL=C
 	if [ -n "${BASH_VERSION-}" ]; then
-		echo "Bash ${BASH_VERSION}"
+		text "Bash ${BASH_VERSION}"
 	elif [ -n "${ZSH_VERSION-}" ]; then
-		echo "Zsh ${ZSH_VERSION}"
+		text "Zsh ${ZSH_VERSION}"
 	else
 		{ error "Unsupported shell"; return 1; }
 	fi
@@ -936,12 +937,12 @@ function SWAP_USAGE() {
 	used=$(free -b | awk '/^Swap:/ {printf "%.0f", $3}')
 	total=$(free -b | awk '/^Swap:/ {printf "%.0f", $2}')
 	percentage=$(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')
-	echo "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
+	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 function SYS_CLEAN() {
 	CHECK_ROOT
-	echo -e "${CLR3}Performing system cleanup...${CLR0}"
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	text "${CLR3}Performing system cleanup...${CLR0}"
+	text "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk)
 			TASK "* Cleaning APK cache" "apk cache clean" || { error "Failed to clean APK cache"; return 1; }
@@ -1000,64 +1001,64 @@ function SYS_CLEAN() {
 	done
 	TASK "* Removing user cache files" "rm -rf ~/.cache/*" || { error "Failed to remove user cache files"; return 1; }
 	TASK "* Removing thumbnail files" "rm -rf ~/.thumbnails/*" || { error "Failed to remove thumbnail files"; return 1; }
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	echo -e "${CLR2}FINISHED${CLR0}\n"
+	text "${CLR8}$(LINE = "24")${CLR0}"
+	text "${CLR2}FINISHED${CLR0}\n"
 }
 function SYS_INFO() {
-	echo -e "${CLR3}System Information${CLR0}"
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	text "${CLR3}System Information${CLR0}"
+	text "${CLR8}$(LINE = "24")${CLR0}"
 
-	echo -e "- Hostname:\t\t${CLR2}$(uname -n || { error "Failed to get hostname"; return 1; })${CLR0}"
-	echo -e "- Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
-	echo -e "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
-	echo -e "- System Language:\t${CLR2}$LANG${CLR0}"
-	echo -e "- Shell Version:\t${CLR2}$(SHELL_VER)${CLR0}"
-	echo -e "- Last System Update:\t${CLR2}$(LAST_UPDATE)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	text "- Hostname:\t\t${CLR2}$(uname -n || { error "Failed to get hostname"; return 1; })${CLR0}"
+	text "- Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
+	text "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
+	text "- System Language:\t${CLR2}$LANG${CLR0}"
+	text "- Shell Version:\t${CLR2}$(SHELL_VER)${CLR0}"
+	text "- Last System Update:\t${CLR2}$(LAST_UPDATE)${CLR0}"
+	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	echo -e "- Architecture:\t\t${CLR2}$(uname -m)${CLR0}"
-	echo -e "- CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
-	echo -e "- CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
-	echo -e "- CPU Frequency:\t${CLR2}$(CPU_FREQ)${CLR0}"
-	echo -e "- CPU Usage:\t\t${CLR2}$(CPU_USAGE)${CLR0}"
-	echo -e "- CPU Cache:\t\t${CLR2}$(CPU_CACHE)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	text "- Architecture:\t\t${CLR2}$(uname -m)${CLR0}"
+	text "- CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
+	text "- CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
+	text "- CPU Frequency:\t${CLR2}$(CPU_FREQ)${CLR0}"
+	text "- CPU Usage:\t\t${CLR2}$(CPU_USAGE)${CLR0}"
+	text "- CPU Cache:\t\t${CLR2}$(CPU_CACHE)${CLR0}"
+	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	echo -e "- Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
-	echo -e "- Swap Usage:\t\t${CLR2}$(SWAP_USAGE)${CLR0}"
-	echo -e "- Disk Usage:\t\t${CLR2}$(DISK_USAGE)${CLR0}"
-	echo -e "- File System Type:\t${CLR2}$(df -T / | awk 'NR==2 {print $2}')${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	text "- Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
+	text "- Swap Usage:\t\t${CLR2}$(SWAP_USAGE)${CLR0}"
+	text "- Disk Usage:\t\t${CLR2}$(DISK_USAGE)${CLR0}"
+	text "- File System Type:\t${CLR2}$(df -T / | awk 'NR==2 {print $2}')${CLR0}"
+	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	echo -e "- IPv4 Address:\t\t${CLR2}$(IP_ADDR -4)${CLR0}"
-	echo -e "- IPv6 Address:\t\t${CLR2}$(IP_ADDR -6)${CLR0}"
-	echo -e "- MAC Address:\t\t${CLR2}$(MAC_ADDR)${CLR0}"
-	echo -e "- Network Provider:\t${CLR2}$(NET_PROVIDER)${CLR0}"
-	echo -e "- DNS Servers:\t\t${CLR2}$(DNS_ADDR)${CLR0}"
-	echo -e "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
-	echo -e "- Network Interface:\t${CLR2}$(INTERFACE -i)${CLR0}"
-	echo -e "- Internal Timezone:\t${CLR2}$(TIMEZONE -i)${CLR0}"
-	echo -e "- External Timezone:\t${CLR2}$(TIMEZONE -e)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	text "- IPv4 Address:\t\t${CLR2}$(IP_ADDR -4)${CLR0}"
+	text "- IPv6 Address:\t\t${CLR2}$(IP_ADDR -6)${CLR0}"
+	text "- MAC Address:\t\t${CLR2}$(MAC_ADDR)${CLR0}"
+	text "- Network Provider:\t${CLR2}$(NET_PROVIDER)${CLR0}"
+	text "- DNS Servers:\t\t${CLR2}$(DNS_ADDR)${CLR0}"
+	text "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
+	text "- Network Interface:\t${CLR2}$(INTERFACE -i)${CLR0}"
+	text "- Internal Timezone:\t${CLR2}$(TIMEZONE -i)${CLR0}"
+	text "- External Timezone:\t${CLR2}$(TIMEZONE -e)${CLR0}"
+	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	echo -e "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
-	echo -e "- Process Count:\t${CLR2}$(ps aux | wc -l)${CLR0}"
-	echo -e "- Packages Installed:\t${CLR2}$(PKG_COUNT)${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	text "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
+	text "- Process Count:\t${CLR2}$(ps aux | wc -l)${CLR0}"
+	text "- Packages Installed:\t${CLR2}$(PKG_COUNT)${CLR0}"
+	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	echo -e "- Uptime:\t\t${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
-	echo -e "- Boot Time:\t\t${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
-	echo -e "${CLR8}$(LINE - "32")${CLR0}"
+	text "- Uptime:\t\t${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
+	text "- Boot Time:\t\t${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
+	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	echo -e "- Virtualization:\t${CLR2}$(CHECK_VIRT)${CLR0}"
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	text "- Virtualization:\t${CLR2}$(CHECK_VIRT)${CLR0}"
+	text "${CLR8}$(LINE = "24")${CLR0}"
 }
 function SYS_OPTIMIZE() {
 	CHECK_ROOT
-	echo -e "${CLR3}Optimizing system configuration for long-running servers...${CLR0}"
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	text "${CLR3}Optimizing system configuration for long-running servers...${CLR0}"
+	text "${CLR8}$(LINE = "24")${CLR0}"
 	SYSCTL_CONF="/etc/sysctl.d/99-server-optimizations.conf"
-	echo "# Server optimizations for long-running systems" > "$SYSCTL_CONF"
+	text "# Server optimizations for long-running systems" > "$SYSCTL_CONF"
 
 	TASK "* Optimizing memory management" "
 		echo 'vm.swappiness = 1' >> $SYSCTL_CONF
@@ -1121,38 +1122,38 @@ function SYS_OPTIMIZE() {
 		ip -s -s neigh flush all
 	" || { error "Failed to clear system cache"; return 1; }
 
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	echo -e "${CLR2}FINISHED${CLR0}\n"
+	text "${CLR8}$(LINE = "24")${CLR0}"
+	text "${CLR2}FINISHED${CLR0}\n"
 }
 function SYS_REBOOT() {
 	CHECK_ROOT
-	echo -e "${CLR3}Preparing to reboot system${CLR0}"
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	text "${CLR3}Preparing to reboot system${CLR0}"
+	text "${CLR8}$(LINE = "24")${CLR0}"
 	active_users=$(who | wc -l) || { error "Failed to get active user count"; return 1; }
 	if [ "$active_users" -gt 1 ]; then
-		echo -e "${CLR1}Warning: There are currently $active_users active users on the system.\n${CLR0}"
-		echo -e "Active users:"
+		text "${CLR1}Warning: There are currently $active_users active users on the system.\n${CLR0}"
+		text "Active users:"
 		who | awk '{print $1 " since " $3 " " $4}'
 		echo
 	fi
 	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l) || { error "Failed to check running processes"; return 1; }
 	if [ "$important_processes" -gt 0 ]; then
-		echo -e "${CLR1}Warning: There are $important_processes important processes running.\n${CLR0}"
-		echo -e "${CLR8}Top 5 processes by CPU usage:${CLR0}"
+		text "${CLR1}Warning: There are $important_processes important processes running.\n${CLR0}"
+		text "${CLR8}Top 5 processes by CPU usage:${CLR0}"
 		ps aux --sort=-%cpu | head -n 6
 		echo
 	fi
 	read -p "Are you sure you want to reboot the system now? (y/N) " -n 1 -r
 	echo
-	[[ ! $REPLY =~ ^[Yy]$ ]] && { echo -e "${CLR2}Reboot cancelled.\n${CLR0}"; return 0; }
+	[[ ! $REPLY =~ ^[Yy]$ ]] && { text "${CLR2}Reboot cancelled.\n${CLR0}"; return 0; }
 	TASK "* Performing final checks" "sync" || { error "Failed to sync filesystems"; return 1; }
 	TASK "* Initiating reboot" "reboot || sudo reboot" || { error "Failed to initiate reboot"; return 1; }
-	echo -e "${CLR2}Reboot command issued successfully. The system will reboot momentarily.${CLR0}"
+	text "${CLR2}Reboot command issued successfully. The system will reboot momentarily.${CLR0}"
 }
 function SYS_UPDATE() {
 	CHECK_ROOT
-	echo -e "${CLR3}Updating system software...${CLR0}"
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	text "${CLR3}Updating system software...${CLR0}"
+	text "${CLR8}$(LINE = "24")${CLR0}"
 	update_packages() {
 		cmd="$1"
 		update_cmd="$2"
@@ -1180,32 +1181,32 @@ function SYS_UPDATE() {
 		*dnf) update_packages "dnf" "dnf check-update" "dnf -y update" ;;
 		*) { error "Unsupported package manager"; return 1; } ;;
 	esac
-	TASK "* Updating $Script" "bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script)" || { error "Failed to update $Script"; return 1; }
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	echo -e "${CLR2}FINISHED${CLR0}\n"
+	TASK "* Updating $Scripts" "bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Scripts)" || { error "Failed to update $Scripts"; return 1; }
+	text "${CLR8}$(LINE = "24")${CLR0}"
+	text "${CLR2}FINISHED${CLR0}\n"
 }
 function SYS_UPGRADE() {
 	CHECK_ROOT
-	echo -e "${CLR3}Upgrading system to next major version...${CLR0}"
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
+	text "${CLR3}Upgrading system to next major version...${CLR0}"
+	text "${CLR8}$(LINE = "24")${CLR0}"
 	os_name=$(CHECK_OS -n)
 	case "$os_name" in
 		Debian)
-			echo -e "* Detected ${CLR2}'Debian'${CLR0} system"
+			text "* Detected ${CLR2}'Debian'${CLR0} system"
 			TASK "* Updating package lists" "apt update -y" || { error "Failed to update package lists"; return 1; }
 			TASK "* Upgrading current packages" "apt full-upgrade -y" || { error "Failed to upgrade current packages"; return 1; }
-			echo -e "* Starting ${CLR2}'Debian'${CLR0} release upgrade..."
+			text "* Starting ${CLR2}'Debian'${CLR0} release upgrade..."
 			current_codename=$(lsb_release -cs)
 			target_codename=$(curl -s http://ftp.debian.org/debian/dists/stable/Release | grep "^Codename:" | awk '{print $2}')
 			[ "$current_codename" = "$target_codename" ] && { error "System is already running the latest stable version (${target_codename})"; return 1; }
-			echo -e "* Upgrading from ${CLR2}${current_codename}${CLR0} to ${CLR3}${target_codename}${CLR0}"
+			text "* Upgrading from ${CLR2}${current_codename}${CLR0} to ${CLR3}${target_codename}${CLR0}"
 			TASK "* Backing up sources.list" "cp /etc/apt/sources.list /etc/apt/sources.list.backup" || { error "Failed to backup sources.list"; return 1; }
 			TASK "* Updating sources.list" "sed -i 's/${current_codename}/${target_codename}/g' /etc/apt/sources.list" || { error "Failed to update sources.list"; return 1; }
 			TASK "* Updating package lists for new release" "apt update -y" || { error "Failed to update package lists for new release"; return 1; }
 			TASK "* Upgrading to new Debian release" "apt full-upgrade -y" || { error "Failed to upgrade to new Debian release"; return 1; }
 			;;
 		Ubuntu)
-			echo -e "* Detected ${CLR2}'Ubuntu'${CLR0} system"
+			text "* Detected ${CLR2}'Ubuntu'${CLR0} system"
 			TASK "* Updating package lists" "apt update -y" || { error "Failed to update package lists"; return 1; }
 			TASK "* Upgrading current packages" "apt full-upgrade -y" || { error "Failed to upgrade current packages"; return 1; }
 			TASK "* Installing update-manager-core" "apt install -y update-manager-core" || { error "Failed to install update-manager-core"; return 1; }
@@ -1214,8 +1215,8 @@ function SYS_UPGRADE() {
 			;;
 		*) { error "Your system is not yet supported for major version upgrades"; return 1; } ;;
 	esac
-	echo -e "${CLR8}$(LINE = "24")${CLR0}"
-	echo -e "${CLR2}System upgrade completed.${CLR0}\n"
+	text "${CLR8}$(LINE = "24")${CLR0}"
+	text "${CLR2}System upgrade completed.${CLR0}\n"
 }
 
 function TASK() {
@@ -1225,12 +1226,12 @@ function TASK() {
 	temp_file=$(mktemp)
 	echo -ne "${message}... "
 	if eval "$command" > "$temp_file" 2>&1; then
-		echo -e "${CLR2}Done${CLR0}"
+		text "${CLR2}Done${CLR0}"
 		ret=0
 	else
 		ret=$?
-		echo -e "${CLR1}Failed (${ret})${CLR0}"
-		[[ -s "$temp_file" ]] && echo -e "${CLR1}$(cat "$temp_file")${CLR0}"
+		text "${CLR1}Failed (${ret})${CLR0}"
+		[[ -s "$temp_file" ]] && text "${CLR1}$(cat "$temp_file")${CLR0}"
 		[[ "$ignore_error" != "true" ]] && return $ret
 	fi
 	rm -f "$temp_file"
@@ -1242,21 +1243,21 @@ function TIMEZONE() {
 			result=$(timeout 1s curl -sL ipapi.co/timezone) ||
 			result=$(timeout 1s curl -sL worldtimeapi.org/api/ip | grep -oP '"timezone":"\K[^"]+') ||
 			result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"timezone":"\K[^"]+') ||
-			[ -n "$result" ] && echo "$result" || { error "Failed to detect timezone from external services"; return 1; }
+			[ -n "$result" ] && text "$result" || { error "Failed to detect timezone from external services"; return 1; }
 			;;
 		-i|*)
 			result=$(readlink /etc/localtime | sed 's|^.*/zoneinfo/||') 2>/dev/null ||
 			result=$(command -v timedatectl &>/dev/null && timedatectl status | awk '/Time zone:/ {print $3}') ||
 			result=$(cat /etc/timezone 2>/dev/null | uniq) ||
-			[ -n "$result" ] && echo "$result" || { error "Failed to detect system timezone"; return 1; }
+			[ -n "$result" ] && text "$result" || { error "Failed to detect system timezone"; return 1; }
 			;;
 	esac
 }
 
-[ ! -f ~/$Script ] && bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script)
-if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script | bash"; then
-	crontab -l > $Script 2>/dev/null
-	echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Script | bash" >> $Script
-	crontab $Script
-	rm -f $Script
+[ ! -f ~/$Scripts ] && bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Scripts)
+if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Scripts | bash"; then
+	crontab -l > $Scripts 2>/dev/null
+	text "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Scripts | bash" >> $Scripts
+	crontab $Scripts
+	rm -f $Scripts
 fi
