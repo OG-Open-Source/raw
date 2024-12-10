@@ -3,7 +3,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="get_utilkit.sh"
-Version="2024.12.10"
+Version="2024.12.11"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -35,7 +35,7 @@ error() {
 	if [ -w "/var/log" ]; then
 		log_file="/var/log/ogos-error.log"
 		timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-		log_entry="${timestamp} | ${Script} - ${Version} - $(text "$1" | tr -d '\n')"
+		log_entry="${timestamp} | ${Scripts} - ${Version} - $(text "$1" | tr -d '\n')"
 		text "${log_entry}" >> "${log_file}" 2>/dev/null
 	fi
 }
@@ -60,7 +60,7 @@ apply_translations() {
 }
 
 if [ -f ~/utilkit.sh ]; then
-	# curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh -o utilkit.sh &>/dev/null
+	curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh -o utilkit.sh &>/dev/null
 	apply_translations
 else
 	version=$(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh | grep -oP 'Version="\K[^"]+')
@@ -85,9 +85,9 @@ else
 			[[ ! $REPLY =~ ^[Yy]$ ]] && { text "${CLR3}Download cancelled.${CLR0}"; exit; }
 		fi
 	fi
-	if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/$Script | bash"; then
+	if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/$Scripts | bash"; then
 		crontab -l > utilkit 2>/dev/null
-		echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/$Script | bash" >> utilkit
+		echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/$Scripts | bash" >> utilkit
 		crontab utilkit
 		rm -f utilkit
 	fi
