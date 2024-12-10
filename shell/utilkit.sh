@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.001"
+Version="6.042.002"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -1181,7 +1181,7 @@ function SYS_UPDATE() {
 		*dnf) update_packages "dnf" "dnf check-update" "dnf -y update" ;;
 		*) { error "Unsupported package manager"; return 1; } ;;
 	esac
-	TASK "* Updating $Scripts" "bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Scripts)" || { error "Failed to update $Scripts"; return 1; }
+	TASK "* Updating $Scripts" "bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)" || { error "Failed to update $Scripts"; return 1; }
 	text "${CLR8}$(LINE = "24")${CLR0}"
 	text "${CLR2}FINISHED${CLR0}\n"
 }
@@ -1254,10 +1254,10 @@ function TIMEZONE() {
 	esac
 }
 
-[ ! -f ~/$Scripts ] && bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Scripts)
-if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Scripts | bash"; then
+[ ! -f ~/$Scripts ] && bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)
+if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash"; then
 	crontab -l > $Scripts 2>/dev/null
-	text "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-$Scripts | bash" >> $Scripts
+	echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash" >> $Scripts
 	crontab $Scripts
 	rm -f $Scripts
 fi
