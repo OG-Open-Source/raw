@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.003"
+Version="0.042.004"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -19,7 +19,7 @@ CLR0="\033[0m"
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
 text() { echo -e "$1"; }
 error() {
-	[ -z "$1" ] && { text "${CLR1}Unknown error${CLR0}"; return 1; }
+	[ -z "$1" ] && { text "${CLR1}*#er4k-UnknownError-j9m2#*${CLR0}"; return 1; }
 	text "${CLR1}$1${CLR0}"
 	if [ -w "/var/log" ]; then
 		log_file="/var/log/ogos-error.log"
@@ -30,9 +30,9 @@ error() {
 }
 
 function ADD() {
-	[ $# -eq 0 ] && { error "No items specified for insertion. Please provide at least one item to add"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "No file or directory path specified after -f or -d"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "No file or directory path specified after -f or -d"; return 2; }
+	[ $# -eq 0 ] && { error "*#xt5n-NoItemsSpecified-p8wy#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "*#kj2m-NoPathSpecified-h4vx#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "*#kj2m-NoPathSpecified-h4vx#*"; return 2; }
 	mode="package"
 	failed=0
 	while [ $# -gt 0 ]; do
@@ -42,16 +42,16 @@ function ADD() {
 			*.deb)
 				CHECK_ROOT
 				deb_file=$(basename "$1")
-				text "${CLR3}INSERT DEB PACKAGE [$deb_file]\n${CLR0}"
+				text "${CLR3}*#hn3m-InsertDebPackage-t5wq#*\n${CLR0}"
 				GET "$1"
 				if [ -f "$deb_file" ]; then
-					dpkg -i "$deb_file" || { error "Failed to install $deb_file. Check package compatibility and dependencies\n"; rm -f "$deb_file"; failed=1; shift; continue; }
-					apt --fix-broken install -y || { error "Failed to fix dependencies"; rm -f "$deb_file"; failed=1; shift; continue; }
-					text "* DEB package $deb_file installed successfully"
+					dpkg -i "$deb_file" || { error "*#rt7p-FailedInstallDeb-m3wx#*"; rm -f "$deb_file"; failed=1; shift; continue; }
+					apt --fix-broken install -y || { error "*#vn8k-FailedFixDeps-q2hy#*"; rm -f "$deb_file"; failed=1; shift; continue; }
+					text "*#kp9x-DebPackageSuccess-m2vn#*"
 					rm -f "$deb_file"
-					text "${CLR2}FINISHED${CLR0}\n"
+					text "${CLR2}*#yw4c-Finished-h8tn#*${CLR0}\n"
 				else
-					error "DEB package $deb_file not found or download failed\n"
+					error "*#yw6t-DebNotFound-c9fz#*\n"
 					failed=1
 					shift
 					continue
@@ -59,21 +59,21 @@ function ADD() {
 				shift
 				;;
 			*)
-				text "${CLR3}INSERT $(FORMAT -AA "$mode") [$1]${CLR0}"
+				text "${CLR3}*#qw2p-InsertType-n7xk#*${CLR0}"
 				case "$mode" in
 					"file")
-						[ -d "$1" ] && { error "Directory $1 already exists. Cannot create file with the same name\n"; failed=1; shift; continue; }
-						[ -f "$1" ] && { error "File $1 already exists\n"; failed=1; shift; continue; }
-						touch "$1" || { error "Failed to create file $1. Check permissions and disk space\n"; failed=1; shift; continue; }
-						text "* File $1 created successfully"
-						text "${CLR2}FINISHED${CLR0}\n"
+						[ -d "$1" ] && { error "*#bv5m-DirExists-y3wt#*\n"; failed=1; shift; continue; }
+						[ -f "$1" ] && { error "*#ct8n-FileExists-k4xr#*\n"; failed=1; shift; continue; }
+						touch "$1" || { error "*#hd6p-FailedCreateFile-l9mz#*\n"; failed=1; shift; continue; }
+						text "*#jf3k-FileCreated-w7vx#*"
+						text "${CLR2}*#yw4c-Finished-h8tn#*${CLR0}\n"
 						;;
 					"directory")
-						[ -f "$1" ] && { error "File $1 already exists. Cannot create directory with the same name\n"; failed=1; shift; continue; }
-						[ -d "$1" ] && { error "Directory $1 already exists\n"; failed=1; shift; continue; }
-						mkdir -p "$1" || { error "Failed to create directory $1. Check permissions and path validity\n"; failed=1; shift; continue; }
-						text "* Directory $1 created successfully"
-						text "${CLR2}FINISHED${CLR0}\n"
+						[ -f "$1" ] && { error "*#mg7t-FileExistsDir-r5nh#*\n"; failed=1; shift; continue; }
+						[ -d "$1" ] && { error "*#px4w-DirExistsDir-s8qy#*\n"; failed=1; shift; continue; }
+						mkdir -p "$1" || { error "*#tz2v-FailedCreateDir-u6bk#*\n"; failed=1; shift; continue; }
+						text "*#wc9h-DirCreated-a4mx#*"
+						text "${CLR2}*#yw4c-Finished-h8tn#*${CLR0}\n"
 						;;
 					"package")
 						CHECK_ROOT
