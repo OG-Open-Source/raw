@@ -22,8 +22,8 @@
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
 [ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh) && source ~/utilkit.sh
 
-Script="netreinstall.sh"
-Version="2024.12.07"
+Scripts="netreinstall.sh"
+Version="2024.12.10"
 License="GPL"
 
 AddNum="1"
