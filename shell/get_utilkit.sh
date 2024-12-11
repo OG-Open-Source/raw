@@ -49,7 +49,7 @@ apply_translations() {
 		{ error "Language '$lang' not found in translation file"; return 1; }
 	fi
 	for code in $(grep -oP '\*#[A-Za-z0-9_-]+#\*' "utilkit.sh" | sort | uniq); do
-		code_value=$(echo "$code" | sed 's/\*#\([A-Za-z0-9]*\)#\*/\1/')
+		code_value=$(echo "$code" | sed 's/\*#\([A-Za-z0-9_-]\+\)#\*/\1/')
 		translation=$(jq -r ".[\"$lang\"][\"$code_value\"]" "$json_file")
 		if [ -n "$translation" ] && [ "$translation" != "null" ]; then
 			sed -i "s/\*#${code_value}#\*/${translation}/g" "utilkit.sh"
