@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="0.042.004"
+Version="6.042.005"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -102,28 +102,28 @@ function ADD() {
 									esac
 								}
 								if ! is_installed "$1"; then
-									text "* Package $1 is not installed"
+									text "*#gm5p-PackageNotInstalled-n3wk#*"
 									if install_package "$1"; then
 										if is_installed "$1"; then
-											text "* Package $1 installed successfully"
-											text "${CLR2}FINISHED${CLR0}\n"
+											text "*#ht8k-PackageInstallSuccess-r4vx#*"
+											text "${CLR2}*#yw4c-Finished-h8tn#*${CLR0}\n"
 										else
-											error "Failed to install $1 using $pkg_manager\n"
+											error "*#jn2h-FailedInstallPkg-l7mx#*\n"
 											failed=1
 											shift; continue
 										fi
 									else
-										error "Failed to install $1 using $pkg_manager\n"
+										error "*#jn2h-FailedInstallPkg-l7mx#*\n"
 										failed=1
 										shift; continue
 									fi
 								else
-									text "* Package $1 is already installed"
-									text "${CLR2}FINISHED${CLR0}\n"
+									text "*#kp6t-PackageInstalled-w9nx#*"
+									text "${CLR2}*#yw4c-Finished-h8tn#*${CLR0}\n"
 								fi
 								;;
 							*)
-								error "Package manager not found. Please install a supported package manager\n"
+								error "*#xm3t-PkgMgrNotFound-k8wy#*\n"
 								failed=1
 								shift; continue
 								;;
@@ -150,18 +150,18 @@ function CHECK_DEPS() {
 	done
 	for dep in "${deps[@]}"; do
 		if command -v "$dep" &>/dev/null; then
-			status="${CLR2}[Available]${CLR0}"
+			status="${CLR2}*#vt7m-Available-p4nx#*${CLR0}"
 		else
-			status="${CLR1}[Not Found]${CLR0}"
+			status="${CLR1}*#rk9h-NotFound-w2mx#*${CLR0}"
 			missing_deps+=("$dep")
-		fi
+	fi
 		text "$status\t$dep"
 	done
 	[[ ${#missing_deps[@]} -eq 0 ]] && return 0
 	case "$mode" in
 		"interactive")
-			text "\n${CLR3}Missing packages:${CLR0} ${missing_deps[*]}"
-			read -p "Do you want to install the missing packages? (y/N) " -n 1 -r
+			text "\n${CLR3}*#ym6t-MissingPackages-k8wx#*${CLR0} ${missing_deps[*]}"
+			read -p "*#nt4p-InstallMissingPrompt-h3vx#* " -n 1 -r
 			text "\n"
 			[[ $REPLY =~ ^[Yy] ]] && ADD "${missing_deps[@]}"
 			;;
@@ -183,7 +183,7 @@ function CHECK_OS() {
 			elif [ -f /etc/alpine-release ]; then
 				cat /etc/alpine-release
 			else
-				{ error "Unknown distribution version"; return 1; }
+				{ error "*#wj5k-UnknownDistVer-m9tx#*"; return 1; }
 			fi
 			;;
 		-n)
@@ -193,7 +193,7 @@ function CHECK_OS() {
 			elif [ -f /etc/DISTRO_SPECS ]; then
 				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2 | awk '{print $1}'
 			else
-				{ error "Unknown distribution"; return 1; }
+				{ error "*#hm3n-UnknownDist-p7wx#*"; return 1; }
 			fi
 			;;
 		*)
@@ -203,21 +203,21 @@ function CHECK_OS() {
 			elif [ -f /etc/DISTRO_SPECS ]; then
 				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
 			else
-				{ error "Unknown distribution"; return 1; }
+				{ error "*#hm3n-UnknownDist-p7wx#*"; return 1; }
 			fi
 			;;
 	esac
 }
 function CHECK_ROOT() {
 	if [ "$EUID" -ne 0 ] || [ "$(id -u)" -ne 0 ]; then
-		error "Please run this script as root user"
+		error "*#pn5k-RunAsRoot-t7mx#*"
 		exit 1
 	fi
 }
 function CHECK_VIRT() {
 	if command -v systemd-detect-virt >/dev/null 2>&1; then
 		virt_type=$(systemd-detect-virt 2>/dev/null)
-		[ -z "$virt_type" ] && { error "Unable to detect virtualization environment"; return 1; }
+		[ -z "$virt_type" ] && { error "*#vm8n-NoDetectVirt-w4kx#*"; return 1; }
 		case "$virt_type" in
 			kvm) grep -qi "proxmox" /sys/class/dmi/id/product_name 2>/dev/null && text "Proxmox VE (KVM)" || text "KVM" ;;
 			microsoft) text "Microsoft Hyper-V" ;;
@@ -225,12 +225,12 @@ function CHECK_VIRT() {
 				if grep -q "container=lxc" /proc/1/environ 2>/dev/null; then
 					text "LXC container"
 				elif grep -qi "hypervisor" /proc/cpuinfo 2>/dev/null; then
-					text "Virtual machine (Unknown type)"
+					text "*#bk3p-UnknownVM-h9wx#*"
 				else
-					text "Not detected (possibly bare metal)"
+					text "*#rt6m-NotDetected-l2nx#*"
 				fi
 				;;
-			*) text "${virt_type:-Not detected (possibly bare metal)}" ;;
+			*) text "${virt_type:-*#rt6m-NotDetected-l2nx#*}" ;;
 		esac
 	elif [ -f /proc/cpuinfo ]; then
 		virt_type=$(grep -i "hypervisor" /proc/cpuinfo >/dev/null && text "VM" || text "none")
@@ -239,19 +239,19 @@ function CHECK_VIRT() {
 	fi
 }
 function CLEAN() {
-	cd "$HOME" || { error "Failed to change directory to HOME"; return 1; }
+	cd "$HOME" || { error "*#fy2k-FailedChangeDir-t8mx#*"; return 1; }
 	clear
 }
 function CPU_CACHE() {
-	[ ! -f /proc/cpuinfo ] && { error "Cannot access CPU information. /proc/cpuinfo not available"; return 1; }
+	[ ! -f /proc/cpuinfo ] && { error "*#nv7p-NoCpuInfo-w4hx#*"; return 1; }
 	cpu_cache=$(awk '/^cache size/ {sum+=$4; count++} END {print (count>0) ? sum/count : "N/A"}' /proc/cpuinfo)
-	[ "$cpu_cache" = "N/A" ] && { error "Unable to determine CPU cache size"; return 1; }
+	[ "$cpu_cache" = "N/A" ] && { error "*#bm4t-NoCacheSize-k9wx#*"; return 1; }
 	text "${cpu_cache} KB"
 }
 function CPU_FREQ() {
-	[ ! -f /proc/cpuinfo ] && { error "Cannot access CPU information. /proc/cpuinfo not available"; return 1; }
+	[ ! -f /proc/cpuinfo ] && { error "*#nv7p-NoCpuInfo-w4hx#*"; return 1; }
 	cpu_freq=$(awk '/^cpu MHz/ {sum+=$4; count++} END {print (count>0) ? sprintf("%.2f", sum/count/1000) : "N/A"}' /proc/cpuinfo)
-	[ "$cpu_freq" = "N/A" ] && { error "Unable to determine CPU frequency"; return 1; }
+	[ "$cpu_freq" = "N/A" ] && { error "*#ht6m-NoFreqInfo-l3nx#*"; return 1; }
 	text "${cpu_freq} GHz"
 }
 function CPU_MODEL() {
@@ -262,15 +262,15 @@ function CPU_MODEL() {
 	elif command -v sysctl &>/dev/null && sysctl -n machdep.cpu.brand_string &>/dev/null; then
 		sysctl -n machdep.cpu.brand_string
 	else
-		{ text "${CLR1}Unknown${CLR0}"; return 1; }
+		{ text "${CLR1}*#kp8n-Unknown-r5mx#*${CLR0}"; return 1; }
 	fi
 }
 function CPU_USAGE() {
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "Failed to read CPU statistics from /proc/stat"; return 1; }
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "*#wd5n-FailedReadCPUStat-j6mx#*"; return 1; }
 	total1=$((user + nice + system + idle + iowait + irq + softirq))
 	idle1=$idle
 	sleep 0.3
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "Failed to read CPU statistics from /proc/stat"; return 1; }
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "*#wd5n-FailedReadCPUStat-j6mx#*"; return 1; }
 	total2=$((user + nice + system + idle + iowait + irq + softirq))
 	idle2=$idle
 	total_diff=$((total2 - total1))
@@ -279,14 +279,14 @@ function CPU_USAGE() {
 	text "$usage%"
 }
 function CONVERT_SIZE() {
-	[ -z "$1" ] && { error "No size value provided for conversion"; return 2; }
+	[ -z "$1" ] && { error "*#gt7k-NoSizeValue-m4wx#*"; return 2; }
 	size=$1
 	unit=${2:-iB}
 	unit_lower=$(FORMAT -aa "$unit")
 	if ! [[ "$size" =~ ^[+-]?[0-9]*\.?[0-9]+$ ]]; then
-		{ error "Invalid size value. Must be a numeric value"; return 2; }
+		{ error "*#pv3n-InvalidSize-h8tx#*"; return 2; }
 	elif [[ "$size" =~ ^[-].*$ ]]; then
-		{ error "Size value cannot be negative"; return 2; }
+		{ error "*#rk6m-NegativeSize-l2nx#*"; return 2; }
 	elif [[ "$size" =~ ^[+].*$ ]]; then
 		size=${size#+}
 	fi
@@ -330,9 +330,9 @@ function COPYRIGHT() {
 }
 
 function DEL() {
-	[ $# -eq 0 ] && { error "No items specified for deletion. Please provide at least one item to delete"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "No file or directory path specified after -f or -d"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "No file or directory path specified after -f or -d"; return 2; }
+	[ $# -eq 0 ] && { error "*#yh4k-NoItemsDelete-w9mx#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "*#kj2m-NoPathSpecified-h4vx#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "*#kj2m-NoPathSpecified-h4vx#*"; return 2; }
 	mode="package"
 	failed=0
 	while [ $# -gt 0 ]; do
@@ -340,21 +340,21 @@ function DEL() {
 			-f) mode="file"; shift; continue ;;
 			-d) mode="directory"; shift; continue ;;
 			*)
-				text "${CLR3}REMOVE $(FORMAT -AA "$mode") [$1]${CLR0}"
+				text "${CLR3}*#rm8t-RemoveType-p5wx#*${CLR0}"
 				case "$mode" in
 					"file")
-						[ ! -f "$1" ] && { error "File $1 does not exist\n"; failed=1; shift; continue; }
-						text "* File $1 exists"
-						rm -f "$1" || { error "Failed to remove file $1\n"; failed=1; shift; continue; }
-						text "* File $1 removed successfully"
-						text "${CLR2}FINISHED${CLR0}\n"
+						[ ! -f "$1" ] && { error "*#fn4k-FileNotExist-j7mx#*\n"; failed=1; shift; continue; }
+						text "*#ht9p-FileExists-l2nx#*"
+						rm -f "$1" || { error "*#vp8n-FailedDelFile-t5wx#*\n"; failed=1; shift; continue; }
+						text "*#mj2t-FileDeleted-k7nx#*"
+						text "${CLR2}*#yw4c-Finished-h8tn#*${CLR0}\n"
 						;;
 					"directory")
-						[ ! -d "$1" ] && { error "Directory $1 does not exist\n"; failed=1; shift; continue; }
-						text "* Directory $1 exists"
-						rm -rf "$1" || { error "Failed to remove directory $1\n"; failed=1; shift; continue; }
-						text "* Directory $1 removed successfully"
-						text "${CLR2}FINISHED${CLR0}\n"
+						[ ! -d "$1" ] && { error "*#wk5h-DirNotExist-r8mx#*\n"; failed=1; shift; continue; }
+						text "*#gt6n-DirExists-v3wx#*"
+						rm -rf "$1" || { error "*#bk5h-FailedDelDir-r3mx#*\n"; failed=1; shift; continue; }
+						text "*#nt6p-DirDeleted-l9wx#*"
+						text "${CLR2}*#yw4c-Finished-h8tn#*${CLR0}\n"
 						;;
 					"package")
 						CHECK_ROOT
@@ -383,28 +383,28 @@ function DEL() {
 									esac
 								}
 								if ! is_installed "$1"; then
-									error "Package $1 is not installed\n"
+									error "*#pk7t-PackageNotInstalled-m3wx#*\n"
 									failed=1
 									shift
 									continue
 								fi
-								text "* Package $1 is installed"
+								text "*#ht5n-PackageInstalled-r9kx#*"
 								if ! remove_package "$1"; then
-									error "Failed to remove $1 using $pkg_manager\n"
+									error "*#wm4p-FailedRemovePkg-l6tx#*\n"
 									failed=1
 									shift
 									continue
 								fi
 								if is_installed "$1"; then
-									error "Failed to remove $1 using $pkg_manager\n"
+									error "*#wm4p-FailedRemovePkg-l6tx#*\n"
 									failed=1
 									shift
 									continue
 								fi
-								text "* Package $1 removed successfully"
-								text "${CLR2}FINISHED${CLR0}\n"
+								text "*#jn8k-PackageRemoved-v2mx#*"
+								text "${CLR2}*#yw4c-Finished-h8tn#*${CLR0}\n"
 								;;
-							*) { error "Unsupported package manager"; return 1; } ;;
+							*) { error "*#bv5t-UnsupportedPkgMgr-h7nx#*"; return 1; } ;;
 						esac
 						;;
 				esac
@@ -415,13 +415,13 @@ function DEL() {
 	return $failed
 }
 function DISK_USAGE() {
-	used=$(df -B1 / | awk '/^\/dev/ {print $3}') || { error "Failed to get disk usage statistics"; return 1; }
-	total=$(df -B1 / | awk '/^\/dev/ {print $2}') || { error "Failed to get total disk space"; return 1; }
+	used=$(df -B1 / | awk '/^\/dev/ {print $3}') || { error "*#tn5p-FailedDiskUsage-k8wx#*"; return 1; }
+	total=$(df -B1 / | awk '/^\/dev/ {print $2}') || { error "*#vm7t-FailedDiskTotal-r4nx#*"; return 1; }
 	percentage=$(df / | awk '/^\/dev/ {printf("%.2f"), $3/$2 * 100.0}')
 	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 function DNS_ADDR () {
-	[ ! -f /etc/resolv.conf ] && { error "DNS configuration file /etc/resolv.conf not found"; return 1; }
+	[ ! -f /etc/resolv.conf ] && { error "*#wt3p-NoResolvConf-k8mx#*"; return 1; }
 	ipv4_servers=()
 	ipv6_servers=()
 	while read -r server; do
@@ -431,25 +431,22 @@ function DNS_ADDR () {
 			ipv6_servers+=("$server")
 		fi
 	done < <(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}')
-	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && { error "No DNS servers configured in /etc/resolv.conf"; return 1; }
+	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && { error "*#hn7t-NoDNSServers-r2wx#*"; return 1; }
 	case "$1" in
 		-4)
-			[ ${#ipv4_servers[@]} -eq 0 ] && { error "No IPv4 DNS servers found"; return 1; }
+			[ ${#ipv4_servers[@]} -eq 0 ] && { error "*#bk5m-NoIPv4DNS-p9nx#*"; return 1; }
 			text "${ipv4_servers[*]}"
 			;;
 		-6)
-			[ ${#ipv6_servers[@]} -eq 0 ] && { error "No IPv6 DNS servers found"; return 1; }
+			[ ${#ipv6_servers[@]} -eq 0 ] && { error "*#vt8n-NoIPv6DNS-l4wx#*"; return 1; }
 			text "${ipv6_servers[*]}"
 			;;
-		*)
-			[ ${#ipv4_servers[@]} -eq 0 -a ${#ipv6_servers[@]} -eq 0 ] && { error "No DNS servers found"; return 1; }
-			text "${ipv4_servers[*]}   ${ipv6_servers[*]}"
-			;;
+		*) text "${ipv4_servers[*]}   ${ipv6_servers[*]}" ;;
 	esac
 }
 
 function FIND() {
-	[ $# -eq 0 ] && { error "No search terms provided. Please specify what to search for"; return 2; }
+	[ $# -eq 0 ] && { error "*#ht2k-NoSearchTerms-p7mx#*"; return 2; }
 	package_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
 	case ${package_manager##*/} in
 		apk) search_command="apk search" ;;
@@ -459,12 +456,12 @@ function FIND() {
 		yum) search_command="yum search" ;;
 		zypper) search_command="zypper search" ;;
 		dnf) search_command="dnf search" ;;
-		*) { error "Package manager not found or unsupported"; return 1; } ;;
+		*) { error "*#bv5t-UnsupportedPkgMgr-h7nx#*"; return 1; } ;;
 	esac
 	for target in "$@"; do
-		text "${CLR3}SEARCH [$target]${CLR0}"
-		$search_command "$target" || { error "No results found for $target\n"; return 1; }
-		text "${CLR2}FINISHED${CLR0}\n"
+		text "${CLR3}*#sr4n-SearchTarget-k2wx#*${CLR0}"
+		$search_command "$target" || { error "*#vm6p-NoResults-t9nx#*\n"; return 1; }
+		text "${CLR2}*#yw4c-Finished-h8tn#*${CLR0}\n"
 	done
 }
 function FONT() {
@@ -500,8 +497,8 @@ function FORMAT() {
 	option="$1"
 	value="$2"
 	result=""
-	[ -z "$value" ] && { error "No value provided for formatting"; return 2; }
-	[ -z "$option" ] && { error "No formatting option provided"; return 2; }
+	[ -z "$value" ] && { error "*#wt6p-NoFormatValue-k3mx#*"; return 2; }
+	[ -z "$option" ] && { error "*#hn8k-NoFormatOption-r5wx#*"; return 2; }
 	case "$option" in
 		-AA) result=$(text "$value" | tr '[:lower:]' '[:upper:]') ;;
 		-aa) result=$(text "$value" | tr '[:upper:]' '[:lower:]') ;;
@@ -520,54 +517,54 @@ function GET() {
 		case "$1" in
 			-x) extract=true; shift ;;
 			-r)
-				[ -z "$2" ] || [[ "$2" == -* ]] && { error "No filename specified after -r option\n"; return 2; }
+				[ -z "$2" ] || [[ "$2" == -* ]] && { error "*#vt4k-NoFilename-r8mx#*\n"; return 2; }
 				rename_file="$2"
 				shift 2
 				;;
-			-*) { error "Invalid option: $1\n"; return 2; } ;;
+			-*) { error "*#hn6p-InvalidOption-l2wx#*\n"; return 2; } ;;
 			*) [ -z "$url" ] && url="$1" || target_dir="$1"; shift ;;
 		esac
 	done
-	[ -z "$url" ] && { error "No URL specified. Please provide a URL to download"; return 2; }
+	[ -z "$url" ] && { error "*#wm8t-NoURL-k5nx#*"; return 2; }
 	[[ "$url" =~ ^(http|https|ftp):// ]] || url="https://$url"
 	output_file="${url##*/}"
 	[ -z "$output_file" ] && output_file="index.html"
-	[ "$target_dir" != "." ] && { mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }; }
+	[ "$target_dir" != "." ] && { mkdir -p "$target_dir" || { error "*#bk3n-FailedCreateDir-p7mx#*\n"; return 1; }; }
 	[ -n "$rename_file" ] && output_file="$rename_file"
 	output_path="$target_dir/$output_file"
 	url=$(text "$url" | sed -E 's#([^:])/+#\1/#g; s#^(https?|ftp):/+#\1://#')
-	text "${CLR3}DOWNLOAD [$url]${CLR0}"
+	text "${CLR3}*#gn5p-Download-t2wx#*${CLR0}"
 	file_size=$(curl -sI "$url" | grep -i content-length | awk '{print $2}' | tr -d '\r')
 	size_limit="26214400"
 	if [ -n "$file_size" ] && [ "$file_size" -gt "$size_limit" ]; then
-		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_path" || { error "Failed to download file using wget\n"; return 1; }
+		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_path" || { error "*#jt7m-FailedWget-h4vx#*\n"; return 1; }
 	else
-		curl --location --insecure --connect-timeout 5 --retry 2 "$url" -o "$output_path" || { error "Failed to download file using curl\n"; return 1; }
+		curl --location --insecure --connect-timeout 5 --retry 2 "$url" -o "$output_path" || { error "*#rw2k-FailedCurl-n9mx#*\n"; return 1; }
 	fi
 	if [ -f "$output_path" ]; then
-		text "* File downloaded successfully to $output_path"
+		text "*#ht9n-FileDownloaded-k4wx#*"
 		if [ "$extract" = true ]; then
 			case "$output_file" in
-				*.tar.gz|*.tgz) tar -xzf "$output_path" -C "$target_dir" || { error "Failed to extract tar.gz file\n"; return 1; } ;;
-				*.tar) tar -xf "$output_path" -C "$target_dir" || { error "Failed to extract tar file\n"; return 1; } ;;
-				*.tar.bz2|*.tbz2) tar -xjf "$output_path" -C "$target_dir" || { error "Failed to extract tar.bz2 file\n"; return 1; } ;;
-				*.tar.xz|*.txz) tar -xJf "$output_path" -C "$target_dir" || { error "Failed to extract tar.xz file\n"; return 1; } ;;
-				*.zip) unzip "$output_path" -d "$target_dir" || { error "Failed to extract zip file\n"; return 1; } ;;
-				*.7z) 7z x "$output_path" -o"$target_dir" || { error "Failed to extract 7z file\n"; return 1; } ;;
-				*.rar) unrar x "$output_path" "$target_dir" || { error "Failed to extract rar file\n"; return 1; } ;;
-				*.zst) zstd -d "$output_path" -o "$target_dir" || { error "Failed to extract zst file\n"; return 1; } ;;
-				*) text "* File format not recognized for auto-extraction" ;;
+				*.tar.gz|*.tgz) tar -xzf "$output_path" -C "$target_dir" || { error "*#wm5p-FailedExtractTarGz-r8nx#*\n"; return 1; } ;;
+				*.tar) tar -xf "$output_path" -C "$target_dir" || { error "*#vt3k-FailedExtractTar-h6mx#*\n"; return 1; } ;;
+				*.tar.bz2|*.tbz2) tar -xjf "$output_path" -C "$target_dir" || { error "*#bn7t-FailedExtractTarBz2-l4wx#*\n"; return 1; } ;;
+				*.tar.xz|*.txz) tar -xJf "$output_path" -C "$target_dir" || { error "*#kp9h-FailedExtractTarXz-m2nx#*\n"; return 1; } ;;
+				*.zip) unzip "$output_path" -d "$target_dir" || { error "*#rt5m-FailedExtractZip-w7vx#*\n"; return 1; } ;;
+				*.7z) 7z x "$output_path" -o"$target_dir" || { error "*#gn4k-FailedExtract7z-p9mx#*\n"; return 1; } ;;
+				*.rar) unrar x "$output_path" "$target_dir" || { error "*#ym8t-FailedExtractRar-k3wx#*\n"; return 1; } ;;
+				*.zst) zstd -d "$output_path" -o "$target_dir" || { error "*#ht6p-FailedExtractZst-r5nx#*\n"; return 1; } ;;
+				*) text "*#wk2n-UnknownFormat-l8mx#*" ;;
 			esac
-			[ $? -eq 0 ] && text "* File extracted successfully to $target_dir"
+			[ $? -eq 0 ] && text "*#jm7t-ExtractSuccess-h4wx#*"
 		fi
-		text "${CLR2}FINISHED${CLR0}\n"
+		text "${CLR2}*#yw4c-Finished-h8tn#*${CLR0}\n"
 	else
-		{ error "Download failed. Check your internet connection and URL validity"; return 1; }
+		{ error "*#pv5k-DownloadFailed-n2mx#*"; return 1; }
 	fi
 }
 
 function INPUT() {
-	read -e -p "$1" "$2" || { error "Failed to read user input"; return 1; }
+	read -e -p "$1" "$2" || { error "*#vp8t-FailedReadInput-k3wx#*"; return 1; }
 }
 function INTERFACE() {
 	interface=""
@@ -579,7 +576,7 @@ function INTERFACE() {
 		sed 's/\s//g' | \
 		grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | \
 		sort -n
-	) || { error "Failed to get network interfaces from /proc/net/dev"; return 1; }
+	) || { error "*#tn7k-FailedGetInterfaces-p4wx#*"; return 1; }
 	i=1
 	while read -r interface_item; do
 		[ -n "$interface_item" ] && interfaces[$i]="$interface_item"
@@ -630,12 +627,12 @@ function INTERFACE() {
 				TX_BYTES) text "$tx_bytes" ;;
 				TX_PACKETS) text "$tx_packets" ;;
 				TX_DROP) text "$tx_drop" ;;
-				-i) text "$interface: RX: $(CONVERT_SIZE $rx_bytes), TX: $(CONVERT_SIZE $tx_bytes)" ;;
+				-i) text "*#wn5p-InterfaceStats-k8mx#*" ;;
 				"") text "$interface" ;;
-				*) { error "Invalid parameter: $1. Valid parameters are: RX_BYTES, RX_PACKETS, RX_DROP, TX_BYTES, TX_PACKETS, TX_DROP, -i"; return 2; } ;;
+				*) { error "*#bk4t-InvalidParam-r6wx#*"; return 2; } ;;
 			esac
 		else
-			{ error "No stats found for interface: $interface"; return 1; }
+			{ error "*#ht3n-NoInterfaceStats-m9vx#*"; return 1; }
 		fi
 	done
 }
@@ -646,17 +643,17 @@ function IP_ADDR() {
 			ipv4_addr=$(timeout 1s dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null) ||
 			ipv4_addr=$(timeout 1s curl -sL ipv4.ip.sb 2>/dev/null) ||
 			ipv4_addr=$(timeout 1s wget -qO- -4 ifconfig.me 2>/dev/null) ||
-			[ -n "$ipv4_addr" ] && text "$ipv4_addr" || { error "Failed to retrieve IPv4 address. Check your internet connection"; return 1; }
+			[ -n "$ipv4_addr" ] && text "$ipv4_addr" || { error "*#wk7t-FailedIPv4-p5nx#*"; return 1; }
 			;;
 		-6)
 			ipv6_addr=$(timeout 1s curl -sL ipv6.ip.sb 2>/dev/null) ||
 			ipv6_addr=$(timeout 1s wget -qO- -6 ifconfig.me 2>/dev/null) ||
-			[ -n "$ipv6_addr" ] && text "$ipv6_addr" || { error "Failed to retrieve IPv6 address. Check your internet connection"; return 1; }
+			[ -n "$ipv6_addr" ] && text "$ipv6_addr" || { error "*#vn3p-FailedIPv6-m8wx#*"; return 1; }
 			;;
 		*)
 			ipv4_addr=$(IP_ADDR -4)
 			ipv6_addr=$(IP_ADDR -6)
-			[ -z "$ipv4_addr$ipv6_addr" ] && { error "Failed to retrieve IP addresses"; return 1; }
+			[ -z "$ipv4_addr$ipv6_addr" ] && { error "*#ht5k-FailedIP-r2nx#*"; return 1; }
 			[ -n "$ipv4_addr" ] && text "IPv4: $ipv4_addr"
 			[ -n "$ipv6_addr" ] && text "IPv6: $ipv6_addr"
 			return
@@ -672,18 +669,18 @@ function LAST_UPDATE() {
 	elif command -v rpm &>/dev/null; then
 		last_update=$(rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}')
 	fi
-	[ -z "$last_update" ] && { error "Unable to determine last system update time. Update logs not found"; return 1; } || text "$last_update"
+	[ -z "$last_update" ] && { error "*#vt2p-NoUpdateLogs-k7mx#*"; return 1; } || text "$last_update"
 }
 function LINE() {
 	char="${1:--}"
 	length="${2:-80}"
-	printf '%*s\n' "$length" | tr ' ' "$char" || { error "Failed to print line"; return 1; }
+	printf '%*s\n' "$length" | tr ' ' "$char" || { error "*#rn4t-FailedPrintLine-k7wx#*"; return 1; }
 }
 function LOAD_AVERAGE() {
 	if [ ! -f /proc/loadavg ]; then
-		load_data=$(uptime | sed 's/.*load average: //' | sed 's/,//g') || { error "Failed to get load average from uptime command"; return 1; }
+		load_data=$(uptime | sed 's/.*load average: //' | sed 's/,//g') || { error "*#wt8p-FailedLoadAvgUptime-k3nx#*"; return 1; }
 	else
-		read -r one_min five_min fifteen_min _ _ < /proc/loadavg || { error "Failed to read load average from /proc/loadavg"; return 1; }
+		read -r one_min five_min fifteen_min _ _ < /proc/loadavg || { error "*#vn5t-FailedLoadAvgProc-r7wx#*"; return 1; }
 	fi
 	[[ $one_min =~ ^[0-9.]+$ ]] || one_min=0
 	[[ $five_min =~ ^[0-9.]+$ ]] || five_min=0
@@ -696,11 +693,11 @@ function MAC_ADDR() {
 	if [[ -n "$mac_address" ]]; then
 		text "$mac_address"
 	else
-		{ error "Unable to retrieve MAC address. Network interface not found"; return 1; }
+		{ error "*#bk7t-NoMacAddr-p4nx#*"; return 1; }
 	fi
 }
 function MEM_USAGE() {
-	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}') || { error "Failed to get memory usage statistics"; return 1; }
+	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}') || { error "*#wt6k-FailedMemStats-n9mx#*"; return 1; }
 	total=$(free -b | awk '/^Mem:/ {print $2}') || total=$(grep MemTotal /proc/meminfo | awk '{print $2*1024}')
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}') || percentage=$(awk '/^MemTotal:/ {total=$2} /^MemAvailable:/ {available=$2} END {printf("%.2f", (total-available)/total * 100.0)}' /proc/meminfo)
 	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
@@ -710,7 +707,7 @@ function NET_PROVIDER() {
 	result=$(timeout 1s curl -sL ipinfo.io | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	result=$(timeout 1s curl -sL ipwhois.app/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
-	[ -n "$result" ] && text "$result" || { error "Unable to detect network provider. Check your internet connection"; return 1; }
+	[ -n "$result" ] && text "$result" || { error "*#ht8n-NoNetProvider-m5wx#*"; return 1; }
 }
 
 function PKG_COUNT() {
@@ -722,16 +719,16 @@ function PKG_COUNT() {
 		pacman) count_cmd="pacman -Q" ;;
 		yum|dnf) count_cmd="rpm -qa" ;;
 		zypper) count_cmd="zypper se --installed-only" ;;
-		*) { error "Unable to count installed packages. Package manager not supported"; return 1; } ;;
+		*) { error "*#vt8p-UnsupportedPkgCount-k3nx#*"; return 1; } ;;
 	esac
 	if ! package_count=$($count_cmd 2>/dev/null | wc -l) || [[ -z "$package_count" || "$package_count" -eq 0 ]]; then
-		{ error "Failed to count packages for ${pkg_manager##*/}"; return 1; }
+		{ error "*#ht4n-FailedPkgCount-m7wx#*"; return 1; }
 	fi
 	text "$package_count"
 }
 function PROGRESS() {
 	num_cmds=${#cmds[@]}
-	term_width=$(tput cols) || { error "Failed to get terminal width"; return 1; }
+	term_width=$(tput cols) || { error "*#vt5n-FailedTermWidth-k8wx#*"; return 1; }
 	bar_width=$((term_width - 23))
 	stty -echo
 	trap '' SIGINT SIGQUIT SIGTSTP
@@ -743,7 +740,7 @@ function PROGRESS() {
 			text "\n$output"
 			stty echo
 			trap - SIGINT SIGQUIT SIGTSTP
-			{ error "Command execution failed: ${cmds[$i]}"; return 1; }
+			{ error "*#ht7p-FailedCmdExec-m4nx#*"; return 1; }
 		fi
 	done
 	printf "\r\033[30;42mProgress: [100%%]\033[0m [%s]" "$(printf "%${bar_width}s" | tr ' ' '#')"
@@ -753,7 +750,7 @@ function PROGRESS() {
 }
 function PUBLIC_IP() {
 	ip=$(timeout 5s curl -sL https://ifconfig.me)
-	[ -n "$ip" ] && text "$ip" || { error "Unable to detect public IP address. Check your internet connection"; return 1; }
+	[ -n "$ip" ] && text "$ip" || { error "*#vn8k-NoPublicIP-r3wx#*"; return 1; }
 }
 
 function RUN() {
