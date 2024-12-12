@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.012"
+Version="6.042.013"
 License="MIT License"
 
 CLR1="\033[0;31m"
