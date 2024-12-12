@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.006"
+Version="6.042.007"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -19,7 +19,7 @@ CLR0="\033[0m"
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
 text() { echo -e "$1"; }
 error() {
-	[ -z "$1" ] && { text "${CLR1}Unknown error${CLR0}"; return 1; }
+	[ -z "$1" ] && { text "${CLR1}*#Xk9pL2-UnknownError-mN7vR4#*${CLR0}"; return 1; }
 	text "${CLR1}$1${CLR0}"
 	if [ -w "/var/log" ]; then
 		log_file="/var/log/ogos-error.log"
@@ -30,9 +30,9 @@ error() {
 }
 
 function ADD() {
-	[ $# -eq 0 ] && { error "No items specified for insertion. Please provide at least one item to add"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "No file or directory path specified after -f or -d"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "No file or directory path specified after -f or -d"; return 2; }
+	[ $# -eq 0 ] && { error "*#Ht5mK8-NoItemsSpecified-Nj2vP9#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "*#Qw3nR7-NoPathSpecified-Lk8mX4#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "*#Qw3nR7-NoPathSpecified-Lk8mX4#*"; return 2; }
 	mode="package"
 	failed=0
 	while [ $# -gt 0 ]; do
@@ -42,16 +42,16 @@ function ADD() {
 			*.deb)
 				CHECK_ROOT
 				deb_file=$(basename "$1")
-				text "${CLR3}INSERT DEB PACKAGE [$deb_file]\n${CLR0}"
+				text "${CLR3}*#Ym6pN4-InsertDebPackage-Kt7vL2#*\n${CLR0}"
 				GET "$1"
 				if [ -f "$deb_file" ]; then
-					dpkg -i "$deb_file" || { error "Failed to install $deb_file. Check package compatibility and dependencies\n"; rm -f "$deb_file"; failed=1; shift; continue; }
-					apt --fix-broken install -y || { error "Failed to fix dependencies"; rm -f "$deb_file"; failed=1; shift; continue; }
-					text "* DEB package $deb_file installed successfully"
+					dpkg -i "$deb_file" || { error "*#Bx5kM9-FailedToInstallDeb-Hs3nR6#*\n"; rm -f "$deb_file"; failed=1; shift; continue; }
+					apt --fix-broken install -y || { error "*#Vt4jK7-FailedToFixDeps-Pw2mN8#*"; rm -f "$deb_file"; failed=1; shift; continue; }
+					text "*#Gz7tP5-DebPackageInstalled-Yx8vM3#*"
 					rm -f "$deb_file"
-					text "${CLR2}FINISHED${CLR0}\n"
+					text "${CLR2}*#Rt9nK6-Finished-Mw4xL8#*\n${CLR0}"
 				else
-					error "DEB package $deb_file not found or download failed\n"
+					error "*#Jh2mP8-DebPackageNotFound-Qs5vN3#*\n"
 					failed=1
 					shift
 					continue
@@ -59,21 +59,21 @@ function ADD() {
 				shift
 				;;
 			*)
-				text "${CLR3}INSERT $(FORMAT -AA "$mode") [$1]${CLR0}"
+				text "${CLR3}*#Ym6pN4-InsertItem-Kt7vL2#*${CLR0}"
 				case "$mode" in
 					"file")
-						[ -d "$1" ] && { error "Directory $1 already exists. Cannot create file with the same name\n"; failed=1; shift; continue; }
-						[ -f "$1" ] && { error "File $1 already exists\n"; failed=1; shift; continue; }
-						touch "$1" || { error "Failed to create file $1. Check permissions and disk space\n"; failed=1; shift; continue; }
-						text "* File $1 created successfully"
-						text "${CLR2}FINISHED${CLR0}\n"
+						[ -d "$1" ] && { error "*#Cx7kR4-DirectoryExists-Wn5tM9#*\n"; failed=1; shift; continue; }
+						[ -f "$1" ] && { error "*#Fx3pL8-FileExists-Yt6mK2#*\n"; failed=1; shift; continue; }
+						touch "$1" || { error "*#Dw9nM5-FailedToCreateFile-Hs7kP4#*\n"; failed=1; shift; continue; }
+						text "*#Uz2xK7-FileCreated-Qm4vN8#*"
+						text "${CLR2}*#Rt9nK6-Finished-Mw4xL8#*\n${CLR0}"
 						;;
 					"directory")
-						[ -f "$1" ] && { error "File $1 already exists. Cannot create directory with the same name\n"; failed=1; shift; continue; }
-						[ -d "$1" ] && { error "Directory $1 already exists\n"; failed=1; shift; continue; }
-						mkdir -p "$1" || { error "Failed to create directory $1. Check permissions and path validity\n"; failed=1; shift; continue; }
-						text "* Directory $1 created successfully"
-						text "${CLR2}FINISHED${CLR0}\n"
+						[ -f "$1" ] && { error "*#Lp5tR2-FileExistsForDir-Bn8mK6#*\n"; failed=1; shift; continue; }
+						[ -d "$1" ] && { error "*#Wx7nJ4-DirectoryExists-Qs3vP9#*\n"; failed=1; shift; continue; }
+						mkdir -p "$1" || { error "*#Ht5kM8-FailedToCreateDir-Yx2vL7#*\n"; failed=1; shift; continue; }
+						text "*#Kz9pR4-DirectoryCreated-Tm6nW2#*"
+						text "${CLR2}*#Rt9nK6-Finished-Mw4xL8#*\n${CLR0}"
 						;;
 					"package")
 						CHECK_ROOT
@@ -94,7 +94,7 @@ function ADD() {
 								install_package() {
 									case $pkg_manager in
 										apk) apk update && apk add "$1" ;;
-										apt) apt update && apt install -y "$1" ;;
+										apt) apt install -y "$1" ;;
 										opkg) opkg update && opkg install "$1" ;;
 										pacman) pacman -Sy && pacman -S --noconfirm "$1" ;;
 										yum|dnf) $pkg_manager install -y "$1" ;;
@@ -102,28 +102,28 @@ function ADD() {
 									esac
 								}
 								if ! is_installed "$1"; then
-									text "* Package $1 is not installed"
+									text "*#Pn8kR5-PackageNotInstalled-Wm3vL9#*"
 									if install_package "$1"; then
 										if is_installed "$1"; then
-											text "* Package $1 installed successfully"
-											text "${CLR2}FINISHED${CLR0}\n"
+											text "*#Jt6mN4-PackageInstalled-Yx8kP2#*"
+											text "${CLR2}*#Rt9nK6-Finished-Mw4xL8#*\n${CLR0}"
 										else
-											error "Failed to install $1 using $pkg_manager\n"
+											error "*#Hv7pL3-FailedToInstallPackage-Qn5mK8#*\n"
 											failed=1
 											shift; continue
 										fi
 									else
-										error "Failed to install $1 using $pkg_manager\n"
+										error "*#Hv7pL3-FailedToInstallPackage-Qn5mK8#*\n"
 										failed=1
 										shift; continue
 									fi
 								else
-									text "* Package $1 is already installed"
-									text "${CLR2}FINISHED${CLR0}\n"
+									text "*#Bk4nM7-PackageAlreadyInstalled-Zt6vP3#*"
+									text "${CLR2}*#Rt9nK6-Finished-Mw4xL8#*\n${CLR0}"
 								fi
 								;;
 							*)
-								error "Package manager not found. Please install a supported package manager\n"
+								error "*#Wy5tN8-PackageManagerNotFound-Lk4vR7#*\n"
 								failed=1
 								shift; continue
 								;;
