@@ -3,7 +3,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="get_utilkit.sh"
-Version="2024.12.11"
+Version="2024.12.12"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -42,22 +42,21 @@ error() {
 
 lang="${1:-$dis_lang}"
 apply_translations() {
-	json_file="utilkit.json"
-	curl --location --insecure --connect-timeout 5 --retry 2 ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/space/$json_file -o "$json_file" &>/dev/null
-	[ ! -f "$json_file" ] && { error "Translation file $json_file not found"; return 1; }
-	if ! jq -e ".[\"$lang\"]" "$json_file" >/dev/null 2>&1; then
+	curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/space/utilkit.json -o "utilkit.json" &>/dev/null
+	[ ! -f "utilkit.json" ] && { error "Translation file utilkit.json not found"; return 1; }
+	if ! jq -e ".[\"$lang\"]" "utilkit.json" >/dev/null 2>&1; then
 		{ error "Language '$lang' not found in translation file"; return 1; }
 	fi
 	for code in $(grep -oP '\*#[A-Za-z0-9_-]+#\*' "utilkit.sh" | sort | uniq); do
 		code_value=$(echo "$code" | sed 's/\*#\([A-Za-z0-9_-]\+\)#\*/\1/')
-		translation=$(jq -r ".[\"$lang\"][\"$code_value\"]" "$json_file")
+		translation=$(jq -r ".[\"$lang\"][\"$code_value\"]" "utilkit.json")
 		if [ -n "$translation" ] && [ "$translation" != "null" ]; then
 			sed -i "s/\*#${code_value}#\*/${translation}/g" "utilkit.sh"
 		else
 			text "${CLR3}Warning: Translation for $code_value not found in $lang.${CLR0}"
 		fi
 	done
-	rm -rf "$json_file"
+	rm -rf "utilkit.json"
 }
 
 if [ -f ~/utilkit.sh ]; then
