@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.008"
+Version="6.042.009"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -183,7 +183,7 @@ function CHECK_OS() {
 			elif [ -f /etc/alpine-release ]; then
 				cat /etc/alpine-release
 			else
-				{ error "Unknown distribution version"; return 1; }
+				{ error "*#Rn5kP8-UnknownDistroVersion-Yt2mL6#*"; return 1; }
 			fi
 			;;
 		-n)
@@ -193,7 +193,7 @@ function CHECK_OS() {
 			elif [ -f /etc/DISTRO_SPECS ]; then
 				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2 | awk '{print $1}'
 			else
-				{ error "Unknown distribution"; return 1; }
+				{ error "*#Wm7tL4-UnknownDistribution-Bx3nP9#*"; return 1; }
 			fi
 			;;
 		*)
@@ -203,55 +203,55 @@ function CHECK_OS() {
 			elif [ -f /etc/DISTRO_SPECS ]; then
 				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
 			else
-				{ error "Unknown distribution"; return 1; }
+				{ error "*#Wm7tL4-UnknownDistribution-Bx3nP9#*"; return 1; }
 			fi
 			;;
 	esac
 }
 function CHECK_ROOT() {
 	if [ "$EUID" -ne 0 ] || [ "$(id -u)" -ne 0 ]; then
-		error "Please run this script as root user"
+		error "*#Yk4mN8-NotRootUser-Bw7tP3#*"
 		exit 1
 	fi
 }
 function CHECK_VIRT() {
 	if command -v systemd-detect-virt >/dev/null 2>&1; then
 		virt_type=$(systemd-detect-virt 2>/dev/null)
-		[ -z "$virt_type" ] && { error "Unable to detect virtualization environment"; return 1; }
+		[ -z "$virt_type" ] && { error "*#Vt8nP4-UnableToDetectVirt-Ky5mL9#*"; return 1; }
 		case "$virt_type" in
 			kvm) grep -qi "proxmox" /sys/class/dmi/id/product_name 2>/dev/null && text "Proxmox VE (KVM)" || text "KVM" ;;
 			microsoft) text "Microsoft Hyper-V" ;;
 			none)
 				if grep -q "container=lxc" /proc/1/environ 2>/dev/null; then
-					text "LXC container"
+					text "*#Zx6mL2-LXCContainer-Rw9nK5#*"
 				elif grep -qi "hypervisor" /proc/cpuinfo 2>/dev/null; then
-					text "Virtual machine (Unknown type)"
+					text "*#Yt4pM7-UnknownVM-Bk8vL3#*"
 				else
-					text "Not detected (possibly bare metal)"
+					text "*#Fn2kP5-NotDetected-Wm7tR4#*"
 				fi
 				;;
-			*) text "${virt_type:-Not detected (possibly bare metal)}" ;;
+			*) text "${virt_type:-*#Fn2kP5-NotDetected-Wm7tR4#*}" ;;
 		esac
 	elif [ -f /proc/cpuinfo ]; then
-		virt_type=$(grep -i "hypervisor" /proc/cpuinfo >/dev/null && text "VM" || text "none")
+		virt_type=$(grep -i "hypervisor" /proc/cpuinfo >/dev/null && text "*#Hk9nR2-VM-Lp5mT8#*" || text "none")
 	else
-		virt_type="Unknown"
+		virt_type="*#Dn6tM3-Unknown-Qw8kL5#*"
 	fi
 }
 function CLEAN() {
-	cd "$HOME" || { error "Failed to change directory to HOME"; return 1; }
+	cd "$HOME" || { error "*#Jm5tK8-FailedToChangeDir-Nx2vP7#*"; return 1; }
 	clear
 }
 function CPU_CACHE() {
-	[ ! -f /proc/cpuinfo ] && { error "Cannot access CPU information. /proc/cpuinfo not available"; return 1; }
+	[ ! -f /proc/cpuinfo ] && { error "*#Kw7nP5-CPUInfoNotAvailable-Ht3mL8#*"; return 1; }
 	cpu_cache=$(awk '/^cache size/ {sum+=$4; count++} END {print (count>0) ? sum/count : "N/A"}' /proc/cpuinfo)
-	[ "$cpu_cache" = "N/A" ] && { error "Unable to determine CPU cache size"; return 1; }
+	[ "$cpu_cache" = "N/A" ] && { error "*#Bx5tR9-UnableToDetermineCPUCache-Ym2vK4#*"; return 1; }
 	text "${cpu_cache} KB"
 }
 function CPU_FREQ() {
-	[ ! -f /proc/cpuinfo ] && { error "Cannot access CPU information. /proc/cpuinfo not available"; return 1; }
+	[ ! -f /proc/cpuinfo ] && { error "*#Kw7nP5-CPUInfoNotAvailable-Ht3mL8#*"; return 1; }
 	cpu_freq=$(awk '/^cpu MHz/ {sum+=$4; count++} END {print (count>0) ? sprintf("%.2f", sum/count/1000) : "N/A"}' /proc/cpuinfo)
-	[ "$cpu_freq" = "N/A" ] && { error "Unable to determine CPU frequency"; return 1; }
+	[ "$cpu_freq" = "N/A" ] && { error "*#Rw6tK9-UnableToDetermineCPUFreq-Ym4nL2#*"; return 1; }
 	text "${cpu_freq} GHz"
 }
 function CPU_MODEL() {
@@ -262,15 +262,15 @@ function CPU_MODEL() {
 	elif command -v sysctl &>/dev/null && sysctl -n machdep.cpu.brand_string &>/dev/null; then
 		sysctl -n machdep.cpu.brand_string
 	else
-		{ text "${CLR1}Unknown${CLR0}"; return 1; }
+		{ text "${CLR1}*#Dn6tM3-Unknown-Qw8kL5#*${CLR0}"; return 1; }
 	fi
 }
 function CPU_USAGE() {
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "Failed to read CPU statistics from /proc/stat"; return 1; }
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "*#Ht7mK4-FailedToReadCPUStats-Wx9nL5#*"; return 1; }
 	total1=$((user + nice + system + idle + iowait + irq + softirq))
 	idle1=$idle
 	sleep 0.3
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "Failed to read CPU statistics from /proc/stat"; return 1; }
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "*#Ht7mK4-FailedToReadCPUStats-Wx9nL5#*"; return 1; }
 	total2=$((user + nice + system + idle + iowait + irq + softirq))
 	idle2=$idle
 	total_diff=$((total2 - total1))
@@ -279,14 +279,14 @@ function CPU_USAGE() {
 	text "$usage%"
 }
 function CONVERT_SIZE() {
-	[ -z "$1" ] && { error "No size value provided for conversion"; return 2; }
+	[ -z "$1" ] && { error "*#Jk4mN8-NoSizeValueProvided-Ht6pL2#*"; return 2; }
 	size=$1
 	unit=${2:-iB}
 	unit_lower=$(FORMAT -aa "$unit")
 	if ! [[ "$size" =~ ^[+-]?[0-9]*\.?[0-9]+$ ]]; then
-		{ error "Invalid size value. Must be a numeric value"; return 2; }
+		{ error "*#Wx5vR7-InvalidSizeValue-Qn9tK3#*"; return 2; }
 	elif [[ "$size" =~ ^[-].*$ ]]; then
-		{ error "Size value cannot be negative"; return 2; }
+		{ error "*#Bm2kL6-NegativeSizeValue-Ys8wP4#*"; return 2; }
 	elif [[ "$size" =~ ^[+].*$ ]]; then
 		size=${size#+}
 	fi
@@ -299,7 +299,7 @@ function CONVERT_SIZE() {
 		pb|pib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "pb" ? 1000000000000000 : 1125899906842624)}') ;;
 		*) bytes=$size ;;
 	esac
-	[[ ! "$bytes" =~ ^[0-9]+\.?[0-9]*$ ]] && { error "Failed to convert size value"; return 1; }
+	[[ ! "$bytes" =~ ^[0-9]+\.?[0-9]*$ ]] && { error "*#Dn7tR4-FailedToConvertSize-Lm5kP9#*"; return 1; }
 	LC_NUMERIC=C awk -v bytes="$bytes" -v is_binary="$([[ $unit_lower =~ ^.*ib$ ]] && text 1 || text 0)" '
 	BEGIN {
 		base = is_binary ? 1024 : 1000
@@ -1221,7 +1221,7 @@ function TASK() {
 	command="$2"
 	ignore_error=${3:-false}
 	temp_file=$(mktemp)
-	text -ne "${message}... "
+	echo -ne "${message}... "
 	if eval "$command" > "$temp_file" 2>&1; then
 		text "${CLR2}Done${CLR0}"
 		ret=0
