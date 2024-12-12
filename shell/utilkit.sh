@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.010"
+Version="6.042.011"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -19,7 +19,7 @@ CLR0="\033[0m"
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
 text() { echo -e "$1"; }
 error() {
-	[ -z "$1" ] && { text "${CLR1}*#Xk9pL2-UnknownError-mN7vR4#*${CLR0}"; return 1; }
+	[ -z "$1" ] && { text "*#Xk9pL2-UnknownError-mN7vR4#*"; return 1; }
 	text "${CLR1}$1${CLR0}"
 	if [ -w "/var/log" ]; then
 		log_file="/var/log/ogos-error.log"
@@ -42,14 +42,14 @@ function ADD() {
 			*.deb)
 				CHECK_ROOT
 				deb_file=$(basename "$1")
-				text "${CLR3}*#Ym6pN4-InsertDebPackage-Kt7vL2#*\n${CLR0}"
+				text "*#Ym6pN4-InsertDebPackage-Kt7vL2#*\n"
 				GET "$1"
 				if [ -f "$deb_file" ]; then
 					dpkg -i "$deb_file" || { error "*#Bx5kM9-FailedToInstallDeb-Hs3nR6#*\n"; rm -f "$deb_file"; failed=1; shift; continue; }
 					apt --fix-broken install -y || { error "*#Vt4jK7-FailedToFixDeps-Pw2mN8#*"; rm -f "$deb_file"; failed=1; shift; continue; }
 					text "*#Gz7tP5-DebPackageInstalled-Yx8vM3#*"
 					rm -f "$deb_file"
-					text "${CLR2}*#Rt9nK6-Finished-Mw4xL8#*\n${CLR0}"
+					text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 				else
 					error "*#Jh2mP8-DebPackageNotFound-Qs5vN3#*\n"
 					failed=1
@@ -59,21 +59,21 @@ function ADD() {
 				shift
 				;;
 			*)
-				text "${CLR3}*#Ym6pN4-InsertItem-Kt7vL2#*${CLR0}"
+				text "*#Ym6pN4-InsertItem-Kt7vL2#*"
 				case "$mode" in
 					"file")
 						[ -d "$1" ] && { error "*#Cx7kR4-DirectoryExists-Wn5tM9#*\n"; failed=1; shift; continue; }
 						[ -f "$1" ] && { error "*#Fx3pL8-FileExists-Yt6mK2#*\n"; failed=1; shift; continue; }
 						touch "$1" || { error "*#Dw9nM5-FailedToCreateFile-Hs7kP4#*\n"; failed=1; shift; continue; }
 						text "*#Uz2xK7-FileCreated-Qm4vN8#*"
-						text "${CLR2}*#Rt9nK6-Finished-Mw4xL8#*\n${CLR0}"
+						text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 						;;
 					"directory")
 						[ -f "$1" ] && { error "*#Lp5tR2-FileExistsForDir-Bn8mK6#*\n"; failed=1; shift; continue; }
 						[ -d "$1" ] && { error "*#Wx7nJ4-DirectoryExists-Qs3vP9#*\n"; failed=1; shift; continue; }
 						mkdir -p "$1" || { error "*#Ht5kM8-FailedToCreateDir-Yx2vL7#*\n"; failed=1; shift; continue; }
 						text "*#Kz9pR4-DirectoryCreated-Tm6nW2#*"
-						text "${CLR2}*#Rt9nK6-Finished-Mw4xL8#*\n${CLR0}"
+						text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 						;;
 					"package")
 						CHECK_ROOT
@@ -106,7 +106,7 @@ function ADD() {
 									if install_package "$1"; then
 										if is_installed "$1"; then
 											text "*#Jt6mN4-PackageInstalled-Yx8kP2#*"
-											text "${CLR2}*#Rt9nK6-Finished-Mw4xL8#*\n${CLR0}"
+											text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 										else
 											error "*#Hv7pL3-FailedToInstallPackage-Qn5mK8#*\n"
 											failed=1
@@ -119,7 +119,7 @@ function ADD() {
 									fi
 								else
 									text "*#Bk4nM7-PackageAlreadyInstalled-Zt6vP3#*"
-									text "${CLR2}*#Rt9nK6-Finished-Mw4xL8#*\n${CLR0}"
+									text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 								fi
 								;;
 							*)
@@ -150,9 +150,9 @@ function CHECK_DEPS() {
 	done
 	for dep in "${deps[@]}"; do
 		if command -v "$dep" &>/dev/null; then
-			status="${CLR2}*#Bw5tR9-Available-Qn3mK7#*${CLR0}"
+			status="*#Bw5tR9-Available-Qn3mK7#*"
 		else
-			status="${CLR1}*#Ht6pL2-NotFound-Wm8vN4#*${CLR0}"
+			status="*#Ht6pL2-NotFound-Wm8vN4#*"
 			missing_deps+=("$dep")
 		fi
 		text "$status\t$dep"
@@ -160,7 +160,7 @@ function CHECK_DEPS() {
 	[[ ${#missing_deps[@]} -eq 0 ]] && return 0
 	case "$mode" in
 		"interactive")
-			text "\n${CLR3}*#Jk4nR7-MissingPackages-Lp9vM2#*${CLR0} ${missing_deps[*]}"
+			text "\n*#Jk4nR7-MissingPackages-Lp9vM2#* ${missing_deps[*]}"
 			read -p "*#Ym6tK8-InstallMissingPrompt-Bx3nL5#*" -n 1 -r
 			text "\n"
 			[[ $REPLY =~ ^[Yy] ]] && ADD "${missing_deps[@]}"
@@ -347,14 +347,14 @@ function DEL() {
 						text "* File $1 exists"
 						rm -f "$1" || { error "*#Wx9nL6-FailedToRemoveFile-Qs5mT8#*\n"; failed=1; shift; continue; }
 						text "* File $1 removed successfully"
-						text "${CLR2}FINISHED${CLR0}\n"
+						text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 						;;
 					"directory")
 						[ ! -d "$1" ] && { error "*#Dn6kP3-DirectoryNotExist-Jt4vL7#*\n"; failed=1; shift; continue; }
 						text "* Directory $1 exists"
 						rm -rf "$1" || { error "*#Hm8wR5-FailedToRemoveDirectory-Yx2nK9#*\n"; failed=1; shift; continue; }
 						text "* Directory $1 removed successfully"
-						text "${CLR2}FINISHED${CLR0}\n"
+						text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 						;;
 					"package")
 						CHECK_ROOT
@@ -402,7 +402,7 @@ function DEL() {
 									continue
 								fi
 								text "* Package $1 removed successfully"
-								text "${CLR2}FINISHED${CLR0}\n"
+								text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 								;;
 							*) { error "*#Zx7mP4-UnsupportedPackageManager-Kt5nL8#*"; return 1; } ;;
 						esac
@@ -464,7 +464,7 @@ function FIND() {
 	for target in "$@"; do
 		text "${CLR3}SEARCH [$target]${CLR0}"
 		$search_command "$target" || { error "No results found for $target\n"; return 1; }
-		text "${CLR2}FINISHED${CLR0}\n"
+		text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 	done
 }
 function FONT() {
@@ -560,7 +560,7 @@ function GET() {
 			esac
 			[ $? -eq 0 ] && text "* File extracted successfully to $target_dir"
 		fi
-		text "${CLR2}FINISHED${CLR0}\n"
+		text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 	else
 		{ error "Download failed. Check your internet connection and URL validity"; return 1; }
 	fi
@@ -793,7 +793,7 @@ function RUN() {
 				./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
 			fi
 			text "${CLR8}$(LINE = "24")${CLR0}"
-			text "${CLR2}FINISHED${CLR0}\n"
+			text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 			[[ "$delete_after" == true ]] && rm -rf "$script_name"
 		elif [[ "$1" =~ ^[^/]+/[^/]+/.+ ]]; then
 			repo_owner=$(text "$1" | cut -d'/' -f1)
@@ -858,7 +858,7 @@ function RUN() {
 						./"$repo_name/$script_path" || { error "Failed to execute script $script_name"; return 1; }
 					fi
 					text "${CLR8}$(LINE = "24")${CLR0}"
-					text "${CLR2}FINISHED${CLR0}\n"
+					text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 					[[ "$delete_after" == true ]] && rm -rf "$repo_name"
 				fi
 			else
@@ -900,7 +900,7 @@ function RUN() {
 					./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
 				fi
 				text "${CLR8}$(LINE = "24")${CLR0}"
-				text "${CLR2}FINISHED${CLR0}\n"
+				text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 				[[ "$delete_after" == true ]] && rm -rf "$script_name"
 			fi
 		else
@@ -999,73 +999,73 @@ function SYS_CLEAN() {
 	TASK "* Removing user cache files" "rm -rf ~/.cache/*" || { error "Failed to remove user cache files"; return 1; }
 	TASK "* Removing thumbnail files" "rm -rf ~/.thumbnails/*" || { error "Failed to remove thumbnail files"; return 1; }
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	text "${CLR2}FINISHED${CLR0}\n"
+	text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 }
 function SYS_INFO() {
-	text "${CLR3}System Information${CLR0}"
+	text "*#Vx8nK4-SystemInformation-Ht5mL9#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
 
-	text "- Hostname:\t\t${CLR2}$(uname -n || { error "Failed to get hostname"; return 1; })${CLR0}"
-	text "- Operating System:\t${CLR2}$(CHECK_OS)${CLR0}"
-	text "- Kernel Version:\t${CLR2}$(uname -r)${CLR0}"
-	text "- System Language:\t${CLR2}$LANG${CLR0}"
-	text "- Shell Version:\t${CLR2}$(SHELL_VER)${CLR0}"
-	text "- Last System Update:\t${CLR2}$(LAST_UPDATE)${CLR0}"
+	text "*#Rx7tP5-HostnameLabel-Yw2nK8#*\t\t${CLR2}$(uname -n || { error "*#Bx6mL9-FailedToGetHostname-Kt4nP7#*"; return 1; })${CLR0}"
+	text "*#Mx5nR8-OperatingSystemLabel-Vt2kL7#*\t${CLR2}$(CHECK_OS)${CLR0}"
+	text "*#Qw4tK9-KernelVersionLabel-Ht7mP3#*\t${CLR2}$(uname -r)${CLR0}"
+	text "*#Lx3nP6-SystemLanguageLabel-Bw8kR4#*\t${CLR2}$LANG${CLR0}"
+	text "*#Yx5mK7-ShellVersionLabel-Nt2pL8#*\t${CLR2}$(SHELL_VER)${CLR0}"
+	text "*#Wx9tR4-LastUpdateLabel-Zm6kL2#*\t${CLR2}$(LAST_UPDATE)${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "- Architecture:\t\t${CLR2}$(uname -m)${CLR0}"
-	text "- CPU Model:\t\t${CLR2}$(CPU_MODEL)${CLR0}"
-	text "- CPU Cores:\t\t${CLR2}$(nproc)${CLR0}"
-	text "- CPU Frequency:\t${CLR2}$(CPU_FREQ)${CLR0}"
-	text "- CPU Usage:\t\t${CLR2}$(CPU_USAGE)${CLR0}"
-	text "- CPU Cache:\t\t${CLR2}$(CPU_CACHE)${CLR0}"
+	text "*#Hx7nP5-ArchitectureLabel-Kt3mL9#*\t\t${CLR2}$(uname -m)${CLR0}"
+	text "*#Fx4tK8-CPUModelLabel-Rw2nP6#*\t\t${CLR2}$(CPU_MODEL)${CLR0}"
+	text "*#Jx6mL3-CPUCoresLabel-Yt9kR4#*\t\t${CLR2}$(nproc)${CLR0}"
+	text "*#Nx5tP7-CPUFrequencyLabel-Bw2mK8#*\t${CLR2}$(CPU_FREQ)${CLR0}"
+	text "*#Tx8nR2-CPUUsageLabel-Lw4kP9#*\t\t${CLR2}$(CPU_USAGE)${CLR0}"
+	text "*#Gx3mK6-CPUCacheLabel-Vt7nL5#*\t\t${CLR2}$(CPU_CACHE)${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "- Memory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
-	text "- Swap Usage:\t\t${CLR2}$(SWAP_USAGE)${CLR0}"
-	text "- Disk Usage:\t\t${CLR2}$(DISK_USAGE)${CLR0}"
-	text "- File System Type:\t${CLR2}$(df -T / | awk 'NR==2 {print $2}')${CLR0}"
+	text "*#Px9tR5-MemoryUsageLabel-Kw2mL8#*\t\t${CLR2}$(MEM_USAGE)${CLR0}"
+	text "*#Sx4nK7-SwapUsageLabel-Ht6pL3#*\t\t${CLR2}$(SWAP_USAGE)${CLR0}"
+	text "*#Cx7mP2-DiskUsageLabel-Yw5nK8#*\t\t${CLR2}$(DISK_USAGE)${CLR0}"
+	text "*#Dx8tL4-FileSystemLabel-Rt3mP9#*\t${CLR2}$(df -T / | awk 'NR==2 {print $2}')${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "- IPv4 Address:\t\t${CLR2}$(IP_ADDR -4)${CLR0}"
-	text "- IPv6 Address:\t\t${CLR2}$(IP_ADDR -6)${CLR0}"
-	text "- MAC Address:\t\t${CLR2}$(MAC_ADDR)${CLR0}"
-	text "- Network Provider:\t${CLR2}$(NET_PROVIDER)${CLR0}"
-	text "- DNS Servers:\t\t${CLR2}$(DNS_ADDR)${CLR0}"
-	text "- Public IP:\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
-	text "- Network Interface:\t${CLR2}$(INTERFACE -i)${CLR0}"
-	text "- Internal Timezone:\t${CLR2}$(TIMEZONE -i)${CLR0}"
-	text "- External Timezone:\t${CLR2}$(TIMEZONE -e)${CLR0}"
+	text "*#Ax6nK9-IPv4Label-Mt4wL7#*\t\t${CLR2}$(IP_ADDR -4)${CLR0}"
+	text "*#Ux3tP5-IPv6Label-Bw8nK2#*\t\t${CLR2}$(IP_ADDR -6)${CLR0}"
+	text "*#Zx7mL4-MACLabel-Yt5pR8#*\t\t${CLR2}$(MAC_ADDR)${CLR0}"
+	text "*#Kx9nP6-NetworkProviderLabel-Vw2tL5#*\t${CLR2}$(NET_PROVIDER)${CLR0}"
+	text "*#Ox4mK8-DNSLabel-Ht7nR3#*\t\t${CLR2}$(DNS_ADDR)${CLR0}"
+	text "*#Ex5tL7-PublicIPLabel-Qw3mP9#*\t\t${CLR2}$(PUBLIC_IP)${CLR0}"
+	text "*#Ix8nR4-NetworkInterfaceLabel-Bt6kL2#*\t${CLR2}$(INTERFACE -i)${CLR0}"
+	text "*#Mx7pK3-InternalTimezoneLabel-Yw4nL8#*\t${CLR2}$(TIMEZONE -i)${CLR0}"
+	text "*#Qx2tP9-ExternalTimezoneLabel-Vt5mK6#*\t${CLR2}$(TIMEZONE -e)${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "- Load Average:\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
-	text "- Process Count:\t${CLR2}$(ps aux | wc -l)${CLR0}"
-	text "- Packages Installed:\t${CLR2}$(PKG_COUNT)${CLR0}"
+	text "*#Wx6nL5-LoadAverageLabel-Kt8mP4#*\t\t${CLR2}$(LOAD_AVERAGE)${CLR0}"
+	text "*#Yx3tK7-ProcessCountLabel-Rw9nL2#*\t${CLR2}$(ps aux | wc -l)${CLR0}"
+	text "*#Bx8mP4-PackagesInstalledLabel-Ht5kL9#*\t${CLR2}$(PKG_COUNT)${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "- Uptime:\t\t${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
-	text "- Boot Time:\t\t${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
+	text "*#Nx7tL3-UptimeLabel-Pw4mK8#*\t\t${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
+	text "*#Fx5nR9-BootTimeLabel-Vt2pL6#*\t\t${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "- Virtualization:\t${CLR2}$(CHECK_VIRT)${CLR0}"
+	text "*#Jx4mK7-VirtualizationLabel-Yw8tP3#*\t${CLR2}$(CHECK_VIRT)${CLR0}"
 	text "${CLR8}$(LINE = "24")${CLR0}"
 }
 function SYS_OPTIMIZE() {
 	CHECK_ROOT
-	text "${CLR3}Optimizing system configuration for long-running servers...${CLR0}"
+	text "*#Vx7nK4-OptimizingSystemConfig-Ht5mL9#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
 	SYSCTL_CONF="/etc/sysctl.d/99-server-optimizations.conf"
-	text "# Server optimizations for long-running systems" > "$SYSCTL_CONF"
+	text "*#Bx3tR8-ServerOptimizationsComment-Qw6nP5#*" > "$SYSCTL_CONF"
 
-	TASK "* Optimizing memory management" "
-		textvm.swappiness = 1' >> $SYSCTL_CONF
+	TASK "*#Ym4kL7-OptimizingMemoryManagement-Wx9tP2#*" "
+		text 'vm.swappiness = 1' >> $SYSCTL_CONF
 		text 'vm.vfs_cache_pressure = 50' >> $SYSCTL_CONF
 		text 'vm.dirty_ratio = 15' >> $SYSCTL_CONF
 		text 'vm.dirty_background_ratio = 5' >> $SYSCTL_CONF
 		text 'vm.min_free_kbytes = 65536' >> $SYSCTL_CONF
-	" || { error "Failed to optimize memory management"; return 1; }
+	" || { error "*#Kx8mP5-FailedToOptimizeMemory-Ht2nL7#*"; return 1; }
 
-	TASK "* Optimizing network settings" "
+	TASK "*#Rx6tK9-OptimizingNetworkSettings-Vw4mL8#*" "
 		text 'net.core.somaxconn = 65535' >> $SYSCTL_CONF
 		text 'net.core.netdev_max_backlog = 65535' >> $SYSCTL_CONF
 		text 'net.ipv4.tcp_max_syn_backlog = 65535' >> $SYSCTL_CONF
@@ -1075,145 +1075,145 @@ function SYS_OPTIMIZE() {
 		text 'net.ipv4.tcp_keepalive_intvl = 15' >> $SYSCTL_CONF
 		text 'net.ipv4.tcp_tw_reuse = 1' >> $SYSCTL_CONF
 		text 'net.ipv4.ip_local_port_range = 1024 65535' >> $SYSCTL_CONF
-	" || { error "Failed to optimize network settings"; return 1; }
+	" || { error "*#Nx5vR7-FailedToOptimizeNetwork-Bm3tK8#*"; return 1; }
 
-	TASK "* Optimizing TCP buffers" "
+	TASK "*#Lw7mP4-OptimizingTCPBuffers-Yt6nK2#*" "
 		text 'net.core.rmem_max = 16777216' >> $SYSCTL_CONF
 		text 'net.core.wmem_max = 16777216' >> $SYSCTL_CONF
 		text 'net.ipv4.tcp_rmem = 4096 87380 16777216' >> $SYSCTL_CONF
 		text 'net.ipv4.tcp_wmem = 4096 65536 16777216' >> $SYSCTL_CONF
 		text 'net.ipv4.tcp_mtu_probing = 1' >> $SYSCTL_CONF
-	" || { error "Failed to optimize TCP buffers"; return 1; }
+	" || { error "*#Wx9nL5-FailedToOptimizeTCP-Qm4tK7#*"; return 1; }
 
-	TASK "* Optimizing filesystem settings" "
+	TASK "*#Ht8kP3-OptimizingFilesystem-Vx5mL9#*" "
 		text 'fs.file-max = 2097152' >> $SYSCTL_CONF
 		text 'fs.nr_open = 2097152' >> $SYSCTL_CONF
 		text 'fs.inotify.max_user_watches = 524288' >> $SYSCTL_CONF
-	" || { error "Failed to optimize filesystem settings"; return 1; }
+	" || { error "*#Jx7tR4-FailedToOptimizeFS-Bw2nK8#*"; return 1; }
 
-	TASK "* Optimizing system limits" "
+	TASK "*#Mx6nP8-OptimizingSystemLimits-Lt4kR7#*" "
 		text '* soft nofile 1048576' >> /etc/security/limits.conf
 		text '* hard nofile 1048576' >> /etc/security/limits.conf
 		text '* soft nproc 65535' >> /etc/security/limits.conf
 		text '* hard nproc 65535' >> /etc/security/limits.conf
-	" || { error "Failed to optimize system limits"; return 1; }
+	" || { error "*#Tx5mK9-FailedToOptimizeLimits-Yw3nL6#*"; return 1; }
 
-	TASK "* Optimizing I/O scheduler" "
+	TASK "*#Gx4tP7-OptimizingIOScheduler-Nw8mK3#*" "
 		for disk in /sys/block/[sv]d*; do
 			text 'none' > \$disk/queue/scheduler 2>/dev/null || true
 			text '256' > \$disk/queue/nr_requests 2>/dev/null || true
 		done
-	" || { error "Failed to optimize I/O scheduler"; return 1; }
+	" || { error "*#Zx6nL8-FailedToOptimizeIO-Kt5mP4#*"; return 1; }
 
-	TASK "* Disabling non-essential services" "
+	TASK "*#Qx7tK5-DisablingServices-Hw2nL9#*" "
 		for service in bluetooth cups avahi-daemon postfix nfs-server rpcbind autofs; do
 			systemctl disable --now \$service 2>/dev/null || true
 		done
-	" || { error "Failed to disable services"; return 1; }
+	" || { error "*#Fx3mP6-FailedToDisableServices-Vt8kL4#*"; return 1; }
 
-	TASK "* Applying system parameters" "sysctl -p $SYSCTL_CONF" || { error "Failed to apply system parameters"; return 1; }
+	TASK "*#Dx5nR7-ApplyingParameters-Yw9mK2#*" "sysctl -p $SYSCTL_CONF" || { error "*#Bx4tL8-FailedToApplyParams-Qm7nP5#*"; return 1; }
 
-	TASK "* Clearing system cache" "
+	TASK "*#Cx6kP9-ClearingSystemCache-Mt3nL7#*" "
 		sync
 		text 3 > /proc/sys/vm/drop_caches
 		ip -s -s neigh flush all
-	" || { error "Failed to clear system cache"; return 1; }
+	" || { error "*#Wx8mK4-FailedToClearCache-Ht5nR9#*"; return 1; }
 
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	text "${CLR2}FINISHED${CLR0}\n"
+	text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 }
 function SYS_REBOOT() {
 	CHECK_ROOT
-	text "${CLR3}Preparing to reboot system${CLR0}"
+	text "*#Ht7nK4-PreparingSystemReboot-Wx5mL9#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	active_users=$(who | wc -l) || { error "Failed to get active user count"; return 1; }
+	active_users=$(who | wc -l) || { error "*#Bx6tR8-FailedToGetActiveUsers-Qn3wP7#*"; return 1; }
 	if [ "$active_users" -gt 1 ]; then
-		text "${CLR1}Warning: There are currently $active_users active users on the system.\n${CLR0}"
-		text "Active users:"
+		text "*#Vx9mK5-ActiveUsersWarning-Yt4nL8#*\n"
+		text "*#Rx5nK9-ActiveUsers-Wt8mL4#*"
 		who | awk '{print $1 " since " $3 " " $4}'
 		text
 	fi
-	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l) || { error "Failed to check running processes"; return 1; }
+	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l) || { error "*#Yx6mP7-FailedToCheckProcesses-Kt4nL2#*"; return 1; }
 	if [ "$important_processes" -gt 0 ]; then
-		text "${CLR1}Warning: There are $important_processes important processes running.\n${CLR0}"
-		text "${CLR8}Top 5 processes by CPU usage:${CLR0}"
+		text "*#Zx8tK3-ImportantProcessesWarning-Bw5mP9#*\n"
+		text "*#Mx3nP6-TopProcessesByCPU-Yw9tL5#*"
 		ps aux --sort=-%cpu | head -n 6
 		text
 	fi
-	read -p "Are you sure you want to reboot the system now? (y/N) " -n 1 -r
+	read -p "*#Dn4kR7-ConfirmSystemReboot-Vt8mL2#*" -n 1 -r
 	text
-	[[ ! $REPLY =~ ^[Yy]$ ]] && { text "${CLR2}Reboot cancelled.\n${CLR0}"; return 0; }
-	TASK "* Performing final checks" "sync" || { error "Failed to sync filesystems"; return 1; }
-	TASK "* Initiating reboot" "reboot || sudo reboot" || { error "Failed to initiate reboot"; return 1; }
-	text "${CLR2}Reboot command issued successfully. The system will reboot momentarily.${CLR0}"
+	[[ ! $REPLY =~ ^[Yy]$ ]] && { text "*#Jx5tP8-RebootCancelled-Kw7nL4#*\n"; return 0; }
+	TASK "*#Wx2mK9-PerformingFinalChecks-Ht6nL5#*" "sync" || { error "*#Nx8vR3-FailedToSyncFilesystems-Qm4tP7#*"; return 1; }
+	TASK "*#Bx7tL5-InitiatingReboot-Yw3nK8#*" "reboot || sudo reboot" || { error "*#Tx5mP4-FailedToInitiateReboot-Vn2wL9#*"; return 1; }
+	text "*#Gx6nK8-RebootCommandIssued-Lw4mP7#*"
 }
 function SYS_UPDATE() {
 	CHECK_ROOT
-	text "${CLR3}Updating system software...${CLR0}"
+	text "*#Wx7nP5-UpdatingSystemSoftware-Ht4mL8#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
 	update_packages() {
 		cmd="$1"
 		update_cmd="$2"
 		upgrade_cmd="$3"
-		TASK "* Updating package lists" "$update_cmd" || { error "Failed to update package lists using $cmd"; return 1; }
-		TASK "* Upgrading packages" "$upgrade_cmd" || { error "Failed to upgrade packages using $cmd"; return 1; }
+		TASK "*#Ym6tK9-UpdatingPackageLists-Bx2vR4#*" "$update_cmd" || { error "*#Qn5wL7-FailedToUpdatePackageLists-Kt8mP3#* using $cmd"; return 1; }
+		TASK "*#Vx3nR8-UpgradingPackages-Lm7tK2#*" "$upgrade_cmd" || { error "*#Ht9pL4-FailedToUpgradePackages-Wx5mK8#* using $cmd"; return 1; }
 	}
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk) update_packages "apk" "apk update" "apk upgrade" ;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				TASK "* Waiting for dpkg lock" "sleep 1" || return 1
+				TASK "*#Rw4mK7-WaitingForDpkgLock-Yt6nL9#*" "sleep 1" || return 1
 				((wait_time++))
-				[ "$wait_time" -gt 300 ] && { error "Timeout waiting for dpkg lock to be released"; return 1; }
+				[ "$wait_time" -gt 10 ] && { error "*#Bx8vP5-DpkgLockTimeout-Qw2mK7#*"; return 1; }
 			done
-			TASK "* Configuring pending packages" "DEBIAN_FRONTEND=noninteractive dpkg --configure -a" || { error "Failed to configure pending packages"; return 1; }
+			TASK "*#Dn3tL6-ConfiguringPendingPackages-Hm9wR4#*" "DEBIAN_FRONTEND=noninteractive dpkg --configure -a" || { error "*#Kx7mP2-FailedToConfigurePackages-Vt5nL8#*"; return 1; }
 			update_packages "apt" "apt update -y" "apt full-upgrade -y"
 			;;
 		*opkg) update_packages "opkg" "opkg update" "opkg upgrade" ;;
 		*pacman)
-			TASK "* Updating and upgrading packages" "pacman -Syu --noconfirm" || { error "Failed to update and upgrade packages using pacman"; return 1; }
+			TASK "*#Lw6nR9-UpdatingAndUpgradingPackages-Bm4tK7#*" "pacman -Syu --noconfirm" || { error "*#Yx5vP8-FailedToUpdateAndUpgrade-Ht2mL4#* using pacman"; return 1; }
 			;;
 		*yum) update_packages "yum" "yum check-update" "yum -y update" ;;
 		*zypper) update_packages "zypper" "zypper refresh" "zypper update -y" ;;
 		*dnf) update_packages "dnf" "dnf check-update" "dnf -y update" ;;
-		*) { error "Unsupported package manager"; return 1; } ;;
+		*) { error "*#Zx7mP4-UnsupportedPackageManager-Kt5nL8#*"; return 1; } ;;
 	esac
-	TASK "* Updating $Scripts" "bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)" || { error "Failed to update $Scripts"; return 1; }
+	TASK "*#Jn5tR8-UpdatingScript-Qw7mK3#* $Scripts" "bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)" || { error "*#Wx4nP9-FailedToUpdateScript-Ym6tL2#* $Scripts"; return 1; }
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	text "${CLR2}FINISHED${CLR0}\n"
+	text "*#Rt9nK6-Finished-Mw4xL8#*\n"
 }
 function SYS_UPGRADE() {
 	CHECK_ROOT
-	text "${CLR3}Upgrading system to next major version...${CLR0}"
+	text "*#Ht6nR9-UpgradingSystemVersion-Wx4mL7#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
 	os_name=$(CHECK_OS -n)
 	case "$os_name" in
 		Debian)
-			text "* Detected ${CLR2}'Debian'${CLR0} system"
-			TASK "* Updating package lists" "apt update -y" || { error "Failed to update package lists"; return 1; }
-			TASK "* Upgrading current packages" "apt full-upgrade -y" || { error "Failed to upgrade current packages"; return 1; }
-			text "* Starting ${CLR2}'Debian'${CLR0} release upgrade..."
+			text "*#Vx8tK5-DetectedDebianSystem-Qn2pL4#*"
+			TASK "*#Ym6tK9-UpdatingPackageLists-Bx2vR4#*" "apt update -y" || { error "*#Qn5wL7-FailedToUpdatePackageLists-Kt8mP3#*"; return 1; }
+			TASK "*#Lw7mP4-UpgradingCurrentPackages-Ht5nK8#*" "apt full-upgrade -y" || { error "*#Bx3vR6-FailedToUpgradeCurrentPackages-Yt9mL2#*"; return 1; }
+			text "*#Kx4nP7-StartingDebianUpgrade-Qw6tL8#*"
 			current_codename=$(lsb_release -cs)
 			target_codename=$(curl -s http://ftp.debian.org/debian/dists/stable/Release | grep "^Codename:" | awk '{print $2}')
-			[ "$current_codename" = "$target_codename" ] && { error "System is already running the latest stable version (${target_codename})"; return 1; }
-			text "* Upgrading from ${CLR2}${current_codename}${CLR0} to ${CLR3}${target_codename}${CLR0}"
-			TASK "* Backing up sources.list" "cp /etc/apt/sources.list /etc/apt/sources.list.backup" || { error "Failed to backup sources.list"; return 1; }
-			TASK "* Updating sources.list" "sed -i 's/${current_codename}/${target_codename}/g' /etc/apt/sources.list" || { error "Failed to update sources.list"; return 1; }
-			TASK "* Updating package lists for new release" "apt update -y" || { error "Failed to update package lists for new release"; return 1; }
-			TASK "* Upgrading to new Debian release" "apt full-upgrade -y" || { error "Failed to upgrade to new Debian release"; return 1; }
+			[ "$current_codename" = "$target_codename" ] && { error "*#Rw5mK9-SystemAlreadyLatest-Vt2nL6#* (${target_codename})"; return 1; }
+			text "*#Dn7tR4-UpgradingFromTo-Jx5mP8#*"
+			TASK "*#Yx3vL7-BackingUpSourcesList-Bm8wK4#*" "cp /etc/apt/sources.list /etc/apt/sources.list.backup" || { error "*#Ht6nP9-FailedToBackupSourcesList-Qw4mK7#*"; return 1; }
+			TASK "*#Wx5tR8-UpdatingSourcesList-Ln2vK6#*" "sed -i 's/${current_codename}/${target_codename}/g' /etc/apt/sources.list" || { error "*#Zm7nL4-FailedToUpdateSourcesList-Vt5pK9#*"; return 1; }
+			TASK "*#Kx9mP5-UpdatingNewReleaseLists-Ht3wL7#*" "apt update -y" || { error "*#Bx6tK8-FailedToUpdateNewReleaseLists-Qn4mR2#*"; return 1; }
+			TASK "*#Yw7nL5-UpgradingToNewRelease-Vm2tP8#*" "apt full-upgrade -y" || { error "*#Dx4kR9-FailedToUpgradeToNewRelease-Ht7mL3#*"; return 1; }
 			;;
 		Ubuntu)
-			text "* Detected ${CLR2}'Ubuntu'${CLR0} system"
-			TASK "* Updating package lists" "apt update -y" || { error "Failed to update package lists"; return 1; }
-			TASK "* Upgrading current packages" "apt full-upgrade -y" || { error "Failed to upgrade current packages"; return 1; }
-			TASK "* Installing update-manager-core" "apt install -y update-manager-core" || { error "Failed to install update-manager-core"; return 1; }
-			TASK "* Upgrading Ubuntu release" "do-release-upgrade -f DistUpgradeViewNonInteractive" || { error "Failed to upgrade Ubuntu release"; return 1; }
+			text "*#Nx5tP7-DetectedUbuntuSystem-Kw3mL8#*"
+			TASK "*#Ym6tK9-UpdatingPackageLists-Bx2vR4#*" "apt update -y" || { error "*#Qn5wL7-FailedToUpdatePackageLists-Kt8mP3#*"; return 1; }
+			TASK "*#Lw7mP4-UpgradingCurrentPackages-Ht5nK8#*" "apt full-upgrade -y" || { error "*#Bx3vR6-FailedToUpgradeCurrentPackages-Yt9mL2#*"; return 1; }
+			TASK "*#Rx8nK4-InstallingUpdateManager-Wt6mP9#*" "apt install -y update-manager-core" || { error "*#Jx2vL7-FailedToInstallUpdateManager-Qm5nK8#*"; return 1; }
+			TASK "*#Vx7tP5-UpgradingUbuntuRelease-Hn3mK9#*" "do-release-upgrade -f DistUpgradeViewNonInteractive" || { error "*#Lw4mR8-FailedToUpgradeUbuntu-Bt6nP2#*"; return 1; }
 			SYS_REBOOT
 			;;
-		*) { error "Your system is not yet supported for major version upgrades"; return 1; } ;;
+		*) { error "*#Yx9nK6-SystemNotSupported-Wm4tL7#*"; return 1; } ;;
 	esac
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	text "${CLR2}System upgrade completed.${CLR0}\n"
+	text "${CLR2}*#Mx5tR7-SystemUpgradeCompleted-Kn2wP9#*${CLR0}\n"
 }
 
 function TASK() {
@@ -1223,11 +1223,11 @@ function TASK() {
 	temp_file=$(mktemp)
 	echo -ne "${message}... "
 	if eval "$command" > "$temp_file" 2>&1; then
-		text "${CLR2}Done${CLR0}"
+		text "*#Kw5nP9-TaskDone-Ht2mL7#*"
 		ret=0
 	else
 		ret=$?
-		text "${CLR1}Failed (${ret})${CLR0}"
+		text "*#Vx8tR4-TaskFailed-Bm6wK3#* (${ret})"
 		[[ -s "$temp_file" ]] && text "${CLR1}$(cat "$temp_file")${CLR0}"
 		[[ "$ignore_error" != "true" ]] && return $ret
 	fi
@@ -1240,13 +1240,13 @@ function TIMEZONE() {
 			result=$(timeout 1s curl -sL ipapi.co/timezone) ||
 			result=$(timeout 1s curl -sL worldtimeapi.org/api/ip | grep -oP '"timezone":"\K[^"]+') ||
 			result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"timezone":"\K[^"]+') ||
-			[ -n "$result" ] && text "$result" || { error "Failed to detect timezone from external services"; return 1; }
+			[ -n "$result" ] && text "$result" || { error "*#Ym7tK4-FailedToDetectExternalTimezone-Wx9nL5#*"; return 1; }
 			;;
 		-i|*)
 			result=$(readlink /etc/localtime | sed 's|^.*/zoneinfo/||') 2>/dev/null ||
 			result=$(command -v timedatectl &>/dev/null && timedatectl status | awk '/Time zone:/ {print $3}') ||
 			result=$(cat /etc/timezone 2>/dev/null | uniq) ||
-			[ -n "$result" ] && text "$result" || { error "Failed to detect system timezone"; return 1; }
+			[ -n "$result" ] && text "$result" || { error "*#Bx5vR8-FailedToDetectSystemTimezone-Ht2mP6#*"; return 1; }
 			;;
 	esac
 }
