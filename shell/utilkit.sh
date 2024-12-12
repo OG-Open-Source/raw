@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.007"
+Version="6.042.008"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -144,15 +144,15 @@ function CHECK_DEPS() {
 		case "$1" in
 			-i) mode="interactive" ;;
 			-a) mode="auto" ;;
-			*) error "Invalid option: $1"; return 1 ;;
+			*) error "*#Kp7mN4-InvalidOption-Yx2vL8#*"; return 1 ;;
 		esac
 		shift
 	done
 	for dep in "${deps[@]}"; do
 		if command -v "$dep" &>/dev/null; then
-			status="${CLR2}[Available]${CLR0}"
+			status="${CLR2}*#Bw5tR9-Available-Qn3mK7#*${CLR0}"
 		else
-			status="${CLR1}[Not Found]${CLR0}"
+			status="${CLR1}*#Ht6pL2-NotFound-Wm8vN4#*${CLR0}"
 			missing_deps+=("$dep")
 		fi
 		text "$status\t$dep"
@@ -160,8 +160,8 @@ function CHECK_DEPS() {
 	[[ ${#missing_deps[@]} -eq 0 ]] && return 0
 	case "$mode" in
 		"interactive")
-			text "\n${CLR3}Missing packages:${CLR0} ${missing_deps[*]}"
-			read -p "Do you want to install the missing packages? (y/N) " -n 1 -r
+			text "\n${CLR3}*#Jk4nR7-MissingPackages-Lp9vM2#*${CLR0} ${missing_deps[*]}"
+			read -p "*#Ym6tK8-InstallMissingPrompt-Bx3nL5#*" -n 1 -r
 			text "\n"
 			[[ $REPLY =~ ^[Yy] ]] && ADD "${missing_deps[@]}"
 			;;

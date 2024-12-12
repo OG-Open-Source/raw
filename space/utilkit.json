@@ -22,7 +22,12 @@
 		"Jt6mN4-PackageInstalled-Yx8kP2": "* Package $1 installed successfully",
 		"Hv7pL3-FailedToInstallPackage-Qn5mK8": "Failed to install $1 using $pkg_manager\n",
 		"Bk4nM7-PackageAlreadyInstalled-Zt6vP3": "* Package $1 is already installed",
-		"Wy5tN8-PackageManagerNotFound-Lk4vR7": "Package manager not found. Please install a supported package manager"
+		"Wy5tN8-PackageManagerNotFound-Lk4vR7": "Package manager not found. Please install a supported package manager",
+		"Kp7mN4-InvalidOption-Yx2vL8": "Invalid option: $1",
+		"Bw5tR9-Available-Qn3mK7": "[Available]",
+		"Ht6pL2-NotFound-Wm8vN4": "[Not Found]",
+		"Jk4nR7-MissingPackages-Lp9vM2": "Missing packages:",
+		"Ym6tK8-InstallMissingPrompt-Bx3nL5": "Do you want to install the missing packages? (y/N) "
 	},
 	"z1": {
 		"Xk9pL2-UnknownError-mN7vR4": "未知錯誤",
@@ -47,6 +52,11 @@
 		"Jt6mN4-PackageInstalled-Yx8kP2": "* 軟件包 $1 安裝成功",
 		"Hv7pL3-FailedToInstallPackage-Qn5mK8": "使用 $pkg_manager 安裝 $1 失敗",
 		"Bk4nM7-PackageAlreadyInstalled-Zt6vP3": "* 軟件包 $1 已經安裝",
-		"Wy5tN8-PackageManagerNotFound-Lk4vR7": "未找到包管理器。請安裝受支持的包管理器"
+		"Wy5tN8-PackageManagerNotFound-Lk4vR7": "未找到包管理器。請安裝受支持的包管理器",
+		"Kp7mN4-InvalidOption-Yx2vL8": "無效選項：$1",
+		"Bw5tR9-Available-Qn3mK7": "[已安裝]",
+		"Ht6pL2-NotFound-Wm8vN4": "[未安裝]",
+		"Jk4nR7-MissingPackages-Lp9vM2": "缺少的軟件包：",
+		"Ym6tK8-InstallMissingPrompt-Bx3nL5": "是否要安裝缺少的軟件包？(y/N) "
 	}
 }
