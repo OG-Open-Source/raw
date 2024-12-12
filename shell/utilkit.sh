@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.009"
+Version="6.042.010"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -123,7 +123,7 @@ function ADD() {
 								fi
 								;;
 							*)
-								error "*#Wy5tN8-PackageManagerNotFound-Lk4vR7#*\n"
+								error "*#Zx7mP4-UnsupportedPackageManager-Kt5nL8#*\n"
 								failed=1
 								shift; continue
 								;;
@@ -330,9 +330,9 @@ function COPYRIGHT() {
 }
 
 function DEL() {
-	[ $# -eq 0 ] && { error "No items specified for deletion. Please provide at least one item to delete"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "No file or directory path specified after -f or -d"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "No file or directory path specified after -f or -d"; return 2; }
+	[ $# -eq 0 ] && { error "*#Yt5mP8-NoItemsSpecified-Kw3nL7#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "*#Qw3nR7-NoPathSpecified-Lk8mX4#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "*#Qw3nR7-NoPathSpecified-Lk8mX4#*"; return 2; }
 	mode="package"
 	failed=0
 	while [ $# -gt 0 ]; do
@@ -343,16 +343,16 @@ function DEL() {
 				text "${CLR3}REMOVE $(FORMAT -AA "$mode") [$1]${CLR0}"
 				case "$mode" in
 					"file")
-						[ ! -f "$1" ] && { error "File $1 does not exist\n"; failed=1; shift; continue; }
+						[ ! -f "$1" ] && { error "*#Lm7tK4-FileNotExist-Pn2wR5#*\n"; failed=1; shift; continue; }
 						text "* File $1 exists"
-						rm -f "$1" || { error "Failed to remove file $1\n"; failed=1; shift; continue; }
+						rm -f "$1" || { error "*#Wx9nL6-FailedToRemoveFile-Qs5mT8#*\n"; failed=1; shift; continue; }
 						text "* File $1 removed successfully"
 						text "${CLR2}FINISHED${CLR0}\n"
 						;;
 					"directory")
-						[ ! -d "$1" ] && { error "Directory $1 does not exist\n"; failed=1; shift; continue; }
+						[ ! -d "$1" ] && { error "*#Dn6kP3-DirectoryNotExist-Jt4vL7#*\n"; failed=1; shift; continue; }
 						text "* Directory $1 exists"
-						rm -rf "$1" || { error "Failed to remove directory $1\n"; failed=1; shift; continue; }
+						rm -rf "$1" || { error "*#Hm8wR5-FailedToRemoveDirectory-Yx2nK9#*\n"; failed=1; shift; continue; }
 						text "* Directory $1 removed successfully"
 						text "${CLR2}FINISHED${CLR0}\n"
 						;;
@@ -383,20 +383,20 @@ function DEL() {
 									esac
 								}
 								if ! is_installed "$1"; then
-									error "Package $1 is not installed\n"
+									error "*#Pn8kR5-PackageNotInstalled-Wm3vL9#*\n"
 									failed=1
 									shift
 									continue
 								fi
 								text "* Package $1 is installed"
 								if ! remove_package "$1"; then
-									error "Failed to remove $1 using $pkg_manager\n"
+									error "*#Qn5tR2-FailedToRemovePackage-Bm9wK6#*\n"
 									failed=1
 									shift
 									continue
 								fi
 								if is_installed "$1"; then
-									error "Failed to remove $1 using $pkg_manager\n"
+									error "*#Qn5tR2-FailedToRemovePackage-Bm9wK6#*\n"
 									failed=1
 									shift
 									continue
@@ -404,7 +404,7 @@ function DEL() {
 								text "* Package $1 removed successfully"
 								text "${CLR2}FINISHED${CLR0}\n"
 								;;
-							*) { error "Unsupported package manager"; return 1; } ;;
+							*) { error "*#Zx7mP4-UnsupportedPackageManager-Kt5nL8#*"; return 1; } ;;
 						esac
 						;;
 				esac
@@ -415,13 +415,13 @@ function DEL() {
 	return $failed
 }
 function DISK_USAGE() {
-	used=$(df -B1 / | awk '/^\/dev/ {print $3}') || { error "Failed to get disk usage statistics"; return 1; }
-	total=$(df -B1 / | awk '/^\/dev/ {print $2}') || { error "Failed to get total disk space"; return 1; }
+	used=$(df -B1 / | awk '/^\/dev/ {print $3}') || { error "*#Ht5nK9-FailedToGetDiskStats-Wx7mL4#*"; return 1; }
+	total=$(df -B1 / | awk '/^\/dev/ {print $2}') || { error "*#Yt8pR2-FailedToGetTotalDisk-Bm3vK7#*"; return 1; }
 	percentage=$(df / | awk '/^\/dev/ {printf("%.2f"), $3/$2 * 100.0}')
 	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 function DNS_ADDR () {
-	[ ! -f /etc/resolv.conf ] && { error "DNS configuration file /etc/resolv.conf not found"; return 1; }
+	[ ! -f /etc/resolv.conf ] && { error "*#Rw6nK8-DNSConfigNotFound-Yt4mL9#*"; return 1; }
 	ipv4_servers=()
 	ipv6_servers=()
 	while read -r server; do
@@ -431,18 +431,18 @@ function DNS_ADDR () {
 			ipv6_servers+=("$server")
 		fi
 	done < <(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}')
-	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && { error "No DNS servers configured in /etc/resolv.conf"; return 1; }
+	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && { error "*#Bx5tP7-NoDNSServersConfigured-Hm2wL4#*"; return 1; }
 	case "$1" in
 		-4)
-			[ ${#ipv4_servers[@]} -eq 0 ] && { error "No IPv4 DNS servers found"; return 1; }
+			[ ${#ipv4_servers[@]} -eq 0 ] && { error "*#Vt7mR3-NoIPv4DNSServers-Kn9pL5#*"; return 1; }
 			text "${ipv4_servers[*]}"
 			;;
 		-6)
-			[ ${#ipv6_servers[@]} -eq 0 ] && { error "No IPv6 DNS servers found"; return 1; }
+			[ ${#ipv6_servers[@]} -eq 0 ] && { error "*#Qw8kL6-NoIPv6DNSServers-Dm4tR9#*"; return 1; }
 			text "${ipv6_servers[*]}"
 			;;
 		*)
-			[ ${#ipv4_servers[@]} -eq 0 -a ${#ipv6_servers[@]} -eq 0 ] && { error "No DNS servers found"; return 1; }
+			[ ${#ipv4_servers[@]} -eq 0 -a ${#ipv6_servers[@]} -eq 0 ] && { error "*#Jn3vK7-NoDNSServersFound-Wx5mP8#*"; return 1; }
 			text "${ipv4_servers[*]}   ${ipv6_servers[*]}"
 			;;
 	esac
