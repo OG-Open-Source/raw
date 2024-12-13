@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.014"
+Version="6.042.015"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -1250,10 +1250,4 @@ function TIMEZONE() {
 	esac
 }
 
-[ ! -f ~/$Scripts ] && bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)
-if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash"; then
-	crontab -l > $Scripts 2>/dev/null
-	echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash" >> $Scripts
-	crontab $Scripts
-	rm -f $Scripts
-fi
+[ ! -f ~/$Scripts ] && bash <(curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)
