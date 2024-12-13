@@ -86,9 +86,9 @@ else
 			[[ ! $REPLY =~ ^[Yy]$ ]] && { text "${CLR3}Download cancelled.${CLR0}"; exit; }
 		fi
 	fi
-	if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash"; then
-		crontab -l > utilkit 2>/dev/null
-		echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash" >> utilkit
+	if ! crontab -l | grep -F "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash"; then
+		crontab -l > utilkit
+		echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash -s -- $lang" >> utilkit
 		crontab utilkit
 		rm -f utilkit
 	fi
