@@ -3,7 +3,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="get_utilkit.sh"
-Version="2024.12.12"
+Version="2024.12.13"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -86,9 +86,9 @@ else
 			[[ ! $REPLY =~ ^[Yy]$ ]] && { text "${CLR3}Download cancelled.${CLR0}"; exit; }
 		fi
 	fi
-	if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/$Scripts | bash"; then
+	if ! crontab -l 2>/dev/null | grep -q "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash"; then
 		crontab -l > utilkit 2>/dev/null
-		echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/$Scripts | bash" >> utilkit
+		echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash" >> utilkit
 		crontab utilkit
 		rm -f utilkit
 	fi
