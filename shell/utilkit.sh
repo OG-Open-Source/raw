@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.013"
+Version="6.042.014"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -19,7 +19,7 @@ CLR0="\033[0m"
 [ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
 text() { echo -e "$1"; }
 error() {
-	[ -z "$1" ] && { text "*#Xk9pL2-UnknownError-mN7vR4#*"; return 1; }
+	[ -z "$1" ] && { text "*#Xk9pL2#*"; return 1; }
 	text "${CLR1}$1${CLR0}"
 	if [ -w "/var/log" ]; then
 		log_file="/var/log/ogos-error.log"
@@ -30,52 +30,53 @@ error() {
 }
 
 function ADD() {
-	[ $# -eq 0 ] && { error "*#Ht5mK8-NoItemsSpecified-Nj2vP9#*"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "*#Qw3nR7-NoPathSpecified-Lk8mX4#*"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "*#Qw3nR7-NoPathSpecified-Lk8mX4#*"; return 2; }
-	mode="package"
+	[ $# -eq 0 ] && { error "*#Ht5mK8#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "*#Qw3nR7#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "*#Qw3nR7#*"; return 2; }
+	mode="pkg"
 	failed=0
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			-f) mode="file"; shift; continue ;;
-			-d) mode="directory"; shift; continue ;;
+			-d) mode="dir"; shift; continue ;;
 			*.deb)
 				CHECK_ROOT
 				deb_file=$(basename "$1")
-				text "*#Ym6pN4-InsertDebPackage-Kt7vL2#*\n"
+				text "*#Ym6pN4#*\n"
 				GET "$1"
 				if [ -f "$deb_file" ]; then
-					dpkg -i "$deb_file" || { error "*#Bx5kM9-FailedToInstallDeb-Hs3nR6#*\n"; rm -f "$deb_file"; failed=1; shift; continue; }
-					apt --fix-broken install -y || { error "*#Vt4jK7-FailedToFixDeps-Pw2mN8#*"; rm -f "$deb_file"; failed=1; shift; continue; }
-					text "*#Gz7tP5-DebPackageInstalled-Yx8vM3#*"
+					dpkg -i "$deb_file" || { error "*#Bx5kM9#*\n"; rm -f "$deb_file"; failed=1; shift; continue; }
+					apt --fix-broken install -y || { error "*#Vt4jK7#*"; rm -f "$deb_file"; failed=1; shift; continue; }
+					text "*#Gz7tP5#*"
 					rm -f "$deb_file"
-					text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+					text "*#Rt9nK6#*\n"
 				else
-					error "*#Jh2mP8-DebPackageNotFound-Qs5vN3#*\n"
+					error "*#Jh2mP8#*\n"
 					failed=1
-					shift
-					continue
+					shift; continue
 				fi
 				shift
 				;;
 			*)
-				text "*#Ym6pN4-InsertItem-Kt7vL2#*"
 				case "$mode" in
 					"file")
-						[ -d "$1" ] && { error "*#Cx7kR4-DirectoryExists-Wn5tM9#*\n"; failed=1; shift; continue; }
-						[ -f "$1" ] && { error "*#Fx3pL8-FileExists-Yt6mK2#*\n"; failed=1; shift; continue; }
-						touch "$1" || { error "*#Dw9nM5-FailedToCreateFile-Hs7kP4#*\n"; failed=1; shift; continue; }
-						text "*#Uz2xK7-FileCreated-Qm4vN8#*"
-						text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+						text "*#Wn5tM9#*"
+						[ -d "$1" ] && { error "*#Cx7kR4#*\n"; failed=1; shift; continue; }
+						[ -f "$1" ] && { error "*#Fx3pL8#*\n"; failed=1; shift; continue; }
+						touch "$1" || { error "*#Dw9nM5#*\n"; failed=1; shift; continue; }
+						text "*#Uz2xK7#*"
+						text "*#Rt9nK6#*\n"
 						;;
-					"directory")
-						[ -f "$1" ] && { error "*#Lp5tR2-FileExistsForDir-Bn8mK6#*\n"; failed=1; shift; continue; }
-						[ -d "$1" ] && { error "*#Wx7nJ4-DirectoryExists-Qs3vP9#*\n"; failed=1; shift; continue; }
-						mkdir -p "$1" || { error "*#Ht5kM8-FailedToCreateDir-Yx2vL7#*\n"; failed=1; shift; continue; }
-						text "*#Kz9pR4-DirectoryCreated-Tm6nW2#*"
-						text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+					"dir")
+						text "*#Yt6mK2#*"
+						[ -f "$1" ] && { error "*#Lp5tR2#*\n"; failed=1; shift; continue; }
+						[ -d "$1" ] && { error "*#Wx7nJ4#*\n"; failed=1; shift; continue; }
+						mkdir -p "$1" || { error "*#Ht5kM8#*\n"; failed=1; shift; continue; }
+						text "*#Kz9pR4#*"
+						text "*#Rt9nK6#*\n"
 						;;
-					"package")
+					"pkg")
+						text "*#Kt7vL2#*"
 						CHECK_ROOT
 						pkg_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
 						pkg_manager=${pkg_manager##*/}
@@ -91,7 +92,7 @@ function ADD() {
 										zypper) zypper se -i -x "$1" &>/dev/null ;;
 									esac
 								}
-								install_package() {
+								install_pkg() {
 									case $pkg_manager in
 										apk) apk update && apk add "$1" ;;
 										apt) apt install -y "$1" ;;
@@ -102,28 +103,28 @@ function ADD() {
 									esac
 								}
 								if ! is_installed "$1"; then
-									text "*#Pn8kR5-PackageNotInstalled-Wm3vL9#*"
-									if install_package "$1"; then
+									text "*#Pn8kR5#*"
+									if install_pkg "$1"; then
 										if is_installed "$1"; then
-											text "*#Jt6mN4-PackageInstalled-Yx8kP2#*"
-											text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+											text "*#Jt6mN4#*"
+											text "*#Rt9nK6#*\n"
 										else
-											error "*#Hv7pL3-FailedToInstallPackage-Qn5mK8#*\n"
+											error "*#Hv7pL3#*\n"
 											failed=1
 											shift; continue
 										fi
 									else
-										error "*#Hv7pL3-FailedToInstallPackage-Qn5mK8#*\n"
+										error "*#Hv7pL3#*\n"
 										failed=1
 										shift; continue
 									fi
 								else
-									text "*#Bk4nM7-PackageAlreadyInstalled-Zt6vP3#*"
-									text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+									text "*#Bk4nM7#*"
+									text "*#Rt9nK6#*\n"
 								fi
 								;;
 							*)
-								error "*#Zx7mP4-UnsupportedPackageManager-Kt5nL8#*\n"
+								error "*#Zx7mP4#*\n"
 								failed=1
 								shift; continue
 								;;
@@ -144,15 +145,15 @@ function CHECK_DEPS() {
 		case "$1" in
 			-i) mode="interactive" ;;
 			-a) mode="auto" ;;
-			*) error "*#Kp7mN4-InvalidOption-Yx2vL8#*"; return 1 ;;
+			*) error "*#Kp7mN4#*"; return 1 ;;
 		esac
 		shift
 	done
 	for dep in "${deps[@]}"; do
 		if command -v "$dep" &>/dev/null; then
-			status="*#Bw5tR9-Available-Qn3mK7#*"
+			status="*#Bw5tR9#*"
 		else
-			status="*#Ht6pL2-NotFound-Wm8vN4#*"
+			status="*#Ht6pL2#*"
 			missing_deps+=("$dep")
 		fi
 		text "$status\t$dep"
@@ -160,8 +161,8 @@ function CHECK_DEPS() {
 	[[ ${#missing_deps[@]} -eq 0 ]] && return 0
 	case "$mode" in
 		"interactive")
-			text "\n*#Jk4nR7-MissingPackages-Lp9vM2#* ${missing_deps[*]}"
-			read -p "*#Ym6tK8-InstallMissingPrompt-Bx3nL5#*" -n 1 -r
+			text "\n*#Jk4nR7#* ${missing_deps[*]}"
+			read -p "*#Ym6tK8#*" -n 1 -r
 			text "\n"
 			[[ $REPLY =~ ^[Yy] ]] && ADD "${missing_deps[@]}"
 			;;
@@ -183,7 +184,7 @@ function CHECK_OS() {
 			elif [ -f /etc/alpine-release ]; then
 				cat /etc/alpine-release
 			else
-				{ error "*#Rn5kP8-UnknownDistroVersion-Yt2mL6#*"; return 1; }
+				{ error "*#Rn5kP8*"; return 1; }
 			fi
 			;;
 		-n)
@@ -193,7 +194,7 @@ function CHECK_OS() {
 			elif [ -f /etc/DISTRO_SPECS ]; then
 				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2 | awk '{print $1}'
 			else
-				{ error "*#Wm7tL4-UnknownDistribution-Bx3nP9#*"; return 1; }
+				{ error "*#Wm7tL4#*"; return 1; }
 			fi
 			;;
 		*)
@@ -203,55 +204,55 @@ function CHECK_OS() {
 			elif [ -f /etc/DISTRO_SPECS ]; then
 				grep -i "DISTRO_NAME" /etc/DISTRO_SPECS | cut -d'=' -f2
 			else
-				{ error "*#Wm7tL4-UnknownDistribution-Bx3nP9#*"; return 1; }
+				{ error "*#Wm7tL4#*"; return 1; }
 			fi
 			;;
 	esac
 }
 function CHECK_ROOT() {
 	if [ "$EUID" -ne 0 ] || [ "$(id -u)" -ne 0 ]; then
-		error "*#Yk4mN8-NotRootUser-Bw7tP3#*"
-		exit 1
+		error "*#Yk4mN8#*"
+		return 1
 	fi
 }
 function CHECK_VIRT() {
 	if command -v systemd-detect-virt >/dev/null 2>&1; then
 		virt_type=$(systemd-detect-virt 2>/dev/null)
-		[ -z "$virt_type" ] && { error "*#Vt8nP4-UnableToDetectVirt-Ky5mL9#*"; return 1; }
+		[ -z "$virt_type" ] && { error "*#Vt8nP4#*"; return 1; }
 		case "$virt_type" in
 			kvm) grep -qi "proxmox" /sys/class/dmi/id/product_name 2>/dev/null && text "Proxmox VE (KVM)" || text "KVM" ;;
 			microsoft) text "Microsoft Hyper-V" ;;
 			none)
 				if grep -q "container=lxc" /proc/1/environ 2>/dev/null; then
-					text "*#Zx6mL2-LXCContainer-Rw9nK5#*"
+					text "*#Zx6mL2#*"
 				elif grep -qi "hypervisor" /proc/cpuinfo 2>/dev/null; then
-					text "*#Yt4pM7-UnknownVM-Bk8vL3#*"
+					text "*#Yt4pM7#*"
 				else
-					text "*#Fn2kP5-NotDetected-Wm7tR4#*"
+					text "*#Fn2kP5#*"
 				fi
 				;;
-			*) text "${virt_type:-*#Fn2kP5-NotDetected-Wm7tR4#*}" ;;
+			*) text "${virt_type:-*#Fn2kP5#*}" ;;
 		esac
 	elif [ -f /proc/cpuinfo ]; then
-		virt_type=$(grep -i "hypervisor" /proc/cpuinfo >/dev/null && text "*#Hk9nR2-VM-Lp5mT8#*" || text "none")
+		virt_type=$(grep -i "hypervisor" /proc/cpuinfo >/dev/null && text "*#Hk9nR2#*" || text "*#Qw8kL5#*")
 	else
-		virt_type="*#Dn6tM3-Unknown-Qw8kL5#*"
+		virt_type="*#Dn6tM3#*"
 	fi
 }
 function CLEAN() {
-	cd "$HOME" || { error "*#Jm5tK8-FailedToChangeDir-Nx2vP7#*"; return 1; }
+	cd "$HOME" || { error "*#Jm5tK8#*"; return 1; }
 	clear
 }
 function CPU_CACHE() {
-	[ ! -f /proc/cpuinfo ] && { error "*#Kw7nP5-CPUInfoNotAvailable-Ht3mL8#*"; return 1; }
+	[ ! -f /proc/cpuinfo ] && { error "*#Kw7nP5#*"; return 1; }
 	cpu_cache=$(awk '/^cache size/ {sum+=$4; count++} END {print (count>0) ? sum/count : "N/A"}' /proc/cpuinfo)
-	[ "$cpu_cache" = "N/A" ] && { error "*#Bx5tR9-UnableToDetermineCPUCache-Ym2vK4#*"; return 1; }
+	[ "$cpu_cache" = "N/A" ] && { error "*#Bx5tR9#*"; return 1; }
 	text "${cpu_cache} KB"
 }
 function CPU_FREQ() {
-	[ ! -f /proc/cpuinfo ] && { error "*#Kw7nP5-CPUInfoNotAvailable-Ht3mL8#*"; return 1; }
+	[ ! -f /proc/cpuinfo ] && { error "*#Kw7nP5#*"; return 1; }
 	cpu_freq=$(awk '/^cpu MHz/ {sum+=$4; count++} END {print (count>0) ? sprintf("%.2f", sum/count/1000) : "N/A"}' /proc/cpuinfo)
-	[ "$cpu_freq" = "N/A" ] && { error "*#Rw6tK9-UnableToDetermineCPUFreq-Ym4nL2#*"; return 1; }
+	[ "$cpu_freq" = "N/A" ] && { error "*#Rw6tK9#*"; return 1; }
 	text "${cpu_freq} GHz"
 }
 function CPU_MODEL() {
@@ -262,15 +263,15 @@ function CPU_MODEL() {
 	elif command -v sysctl &>/dev/null && sysctl -n machdep.cpu.brand_string &>/dev/null; then
 		sysctl -n machdep.cpu.brand_string
 	else
-		{ text "${CLR1}*#Dn6tM3-Unknown-Qw8kL5#*${CLR0}"; return 1; }
+		{ text "${CLR1}*#Dn6tM3#*${CLR0}"; return 1; }
 	fi
 }
 function CPU_USAGE() {
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "*#Ht7mK4-FailedToReadCPUStats-Wx9nL5#*"; return 1; }
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "*#Ht7mK4#*"; return 1; }
 	total1=$((user + nice + system + idle + iowait + irq + softirq))
 	idle1=$idle
 	sleep 0.3
-	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "*#Ht7mK4-FailedToReadCPUStats-Wx9nL5#*"; return 1; }
+	read -r cpu user nice system idle iowait irq softirq <<< $(awk '/^cpu / {print $1,$2,$3,$4,$5,$6,$7,$8}' /proc/stat) || { error "*#Ht7mK4#*"; return 1; }
 	total2=$((user + nice + system + idle + iowait + irq + softirq))
 	idle2=$idle
 	total_diff=$((total2 - total1))
@@ -279,14 +280,14 @@ function CPU_USAGE() {
 	text "$usage%"
 }
 function CONVERT_SIZE() {
-	[ -z "$1" ] && { error "*#Jk4mN8-NoSizeValueProvided-Ht6pL2#*"; return 2; }
+	[ -z "$1" ] && { error "*#Jk4mN8#*"; return 2; }
 	size=$1
 	unit=${2:-iB}
 	unit_lower=$(FORMAT -aa "$unit")
 	if ! [[ "$size" =~ ^[+-]?[0-9]*\.?[0-9]+$ ]]; then
-		{ error "*#Wx5vR7-InvalidSizeValue-Qn9tK3#*"; return 2; }
+		{ error "*#Wx5vR7#*"; return 2; }
 	elif [[ "$size" =~ ^[-].*$ ]]; then
-		{ error "*#Bm2kL6-NegativeSizeValue-Ys8wP4#*"; return 2; }
+		{ error "*#Bm2kL6#*"; return 2; }
 	elif [[ "$size" =~ ^[+].*$ ]]; then
 		size=${size#+}
 	fi
@@ -299,7 +300,7 @@ function CONVERT_SIZE() {
 		pb|pib) bytes=$(LC_NUMERIC=C awk -v size="$size" -v unit="$unit_lower" 'BEGIN {printf "%.0f", size * (unit == "pb" ? 1000000000000000 : 1125899906842624)}') ;;
 		*) bytes=$size ;;
 	esac
-	[[ ! "$bytes" =~ ^[0-9]+\.?[0-9]*$ ]] && { error "*#Dn7tR4-FailedToConvertSize-Lm5kP9#*"; return 1; }
+	[[ ! "$bytes" =~ ^[0-9]+\.?[0-9]*$ ]] && { error "*#Dn7tR4#*"; return 1; }
 	LC_NUMERIC=C awk -v bytes="$bytes" -v is_binary="$([[ $unit_lower =~ ^.*ib$ ]] && text 1 || text 0)" '
 	BEGIN {
 		base = is_binary ? 1024 : 1000
@@ -330,33 +331,33 @@ function COPYRIGHT() {
 }
 
 function DEL() {
-	[ $# -eq 0 ] && { error "*#Yt5mP8-NoItemsSpecified-Kw3nL7#*"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "*#Qw3nR7-NoPathSpecified-Lk8mX4#*"; return 2; }
-	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "*#Qw3nR7-NoPathSpecified-Lk8mX4#*"; return 2; }
-	mode="package"
+	[ $# -eq 0 ] && { error "*#Yt5mP8#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ $# -eq 1 ] && { error "*#Qw3nR7#*"; return 2; }
+	[ "$1" = "-f" -o "$1" = "-d" ] && [ "$2" = "" ] && { error "*#Qw3nR7#*"; return 2; }
+	mode="pkg"
 	failed=0
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			-f) mode="file"; shift; continue ;;
-			-d) mode="directory"; shift; continue ;;
+			-d) mode="dir"; shift; continue ;;
 			*)
 				text "${CLR3}REMOVE $(FORMAT -AA "$mode") [$1]${CLR0}"
 				case "$mode" in
 					"file")
-						[ ! -f "$1" ] && { error "*#Lm7tK4-FileNotExist-Pn2wR5#*\n"; failed=1; shift; continue; }
+						[ ! -f "$1" ] && { error "*#Lm7tK4#*\n"; failed=1; shift; continue; }
 						text "* File $1 exists"
-						rm -f "$1" || { error "*#Wx9nL6-FailedToRemoveFile-Qs5mT8#*\n"; failed=1; shift; continue; }
+						rm -f "$1" || { error "*#Wx9nL6#*\n"; failed=1; shift; continue; }
 						text "* File $1 removed successfully"
-						text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+						text "*#Rt9nK6#*\n"
 						;;
-					"directory")
-						[ ! -d "$1" ] && { error "*#Dn6kP3-DirectoryNotExist-Jt4vL7#*\n"; failed=1; shift; continue; }
+					"dir")
+						[ ! -d "$1" ] && { error "*#Dn6kP3#*\n"; failed=1; shift; continue; }
 						text "* Directory $1 exists"
-						rm -rf "$1" || { error "*#Hm8wR5-FailedToRemoveDirectory-Yx2nK9#*\n"; failed=1; shift; continue; }
+						rm -rf "$1" || { error "*#Hm8wR5#*\n"; failed=1; shift; continue; }
 						text "* Directory $1 removed successfully"
-						text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+						text "*#Rt9nK6#*\n"
 						;;
-					"package")
+					"pkg")
 						CHECK_ROOT
 						pkg_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
 						pkg_manager=${pkg_manager##*/}
@@ -372,7 +373,7 @@ function DEL() {
 										zypper) zypper se -i -x "$1" &>/dev/null ;;
 									esac
 								}
-								remove_package() {
+								remove_pkg() {
 									case $pkg_manager in
 										apk) apk del "$1" ;;
 										apt) apt purge -y "$1" && apt autoremove -y ;;
@@ -383,28 +384,28 @@ function DEL() {
 									esac
 								}
 								if ! is_installed "$1"; then
-									error "*#Pn8kR5-PackageNotInstalled-Wm3vL9#*\n"
+									error "*#Pn8kR5#*\n"
 									failed=1
 									shift
 									continue
 								fi
 								text "* Package $1 is installed"
-								if ! remove_package "$1"; then
-									error "*#Qn5tR2-FailedToRemovePackage-Bm9wK6#*\n"
+								if ! remove_pkg "$1"; then
+									error "*#Qn5tR2#*\n"
 									failed=1
 									shift
 									continue
 								fi
 								if is_installed "$1"; then
-									error "*#Qn5tR2-FailedToRemovePackage-Bm9wK6#*\n"
+									error "*#Qn5tR2#*\n"
 									failed=1
 									shift
 									continue
 								fi
 								text "* Package $1 removed successfully"
-								text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+								text "*#Rt9nK6#*\n"
 								;;
-							*) { error "*#Zx7mP4-UnsupportedPackageManager-Kt5nL8#*"; return 1; } ;;
+							*) { error "*#Zx7mP4#*"; return 1; } ;;
 						esac
 						;;
 				esac
@@ -415,13 +416,13 @@ function DEL() {
 	return $failed
 }
 function DISK_USAGE() {
-	used=$(df -B1 / | awk '/^\/dev/ {print $3}') || { error "*#Ht5nK9-FailedToGetDiskStats-Wx7mL4#*"; return 1; }
-	total=$(df -B1 / | awk '/^\/dev/ {print $2}') || { error "*#Yt8pR2-FailedToGetTotalDisk-Bm3vK7#*"; return 1; }
+	used=$(df -B1 / | awk '/^\/dev/ {print $3}') || { error "*#Ht5nK9#*"; return 1; }
+	total=$(df -B1 / | awk '/^\/dev/ {print $2}') || { error "*#Yt8pR2#*"; return 1; }
 	percentage=$(df / | awk '/^\/dev/ {printf("%.2f"), $3/$2 * 100.0}')
 	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
 }
 function DNS_ADDR () {
-	[ ! -f /etc/resolv.conf ] && { error "*#Rw6nK8-DNSConfigNotFound-Yt4mL9#*"; return 1; }
+	[ ! -f /etc/resolv.conf ] && { error "*#Rw6nK8#*"; return 1; }
 	ipv4_servers=()
 	ipv6_servers=()
 	while read -r server; do
@@ -431,18 +432,18 @@ function DNS_ADDR () {
 			ipv6_servers+=("$server")
 		fi
 	done < <(grep -E '^nameserver' /etc/resolv.conf | awk '{print $2}')
-	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && { error "*#Bx5tP7-NoDNSServersConfigured-Hm2wL4#*"; return 1; }
+	[[ ${#ipv4_servers[@]} -eq 0 && ${#ipv6_servers[@]} -eq 0 ]] && { error "*#Bx5tP7#*"; return 1; }
 	case "$1" in
 		-4)
-			[ ${#ipv4_servers[@]} -eq 0 ] && { error "*#Vt7mR3-NoIPv4DNSServers-Kn9pL5#*"; return 1; }
+			[ ${#ipv4_servers[@]} -eq 0 ] && { error "*#Vt7mR3#*"; return 1; }
 			text "${ipv4_servers[*]}"
 			;;
 		-6)
-			[ ${#ipv6_servers[@]} -eq 0 ] && { error "*#Qw8kL6-NoIPv6DNSServers-Dm4tR9#*"; return 1; }
+			[ ${#ipv6_servers[@]} -eq 0 ] && { error "*#Qw8kL6#*"; return 1; }
 			text "${ipv6_servers[*]}"
 			;;
 		*)
-			[ ${#ipv4_servers[@]} -eq 0 -a ${#ipv6_servers[@]} -eq 0 ] && { error "*#Jn3vK7-NoDNSServersFound-Wx5mP8#*"; return 1; }
+			[ ${#ipv4_servers[@]} -eq 0 -a ${#ipv6_servers[@]} -eq 0 ] && { error "*#Jn3vK7#*"; return 1; }
 			text "${ipv4_servers[*]}   ${ipv6_servers[*]}"
 			;;
 	esac
@@ -450,8 +451,8 @@ function DNS_ADDR () {
 
 function FIND() {
 	[ $# -eq 0 ] && { error "No search terms provided. Please specify what to search for"; return 2; }
-	package_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
-	case ${package_manager##*/} in
+	pkg_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
+	case ${pkg_manager##*/} in
 		apk) search_command="apk search" ;;
 		apt) search_command="apt-cache search" ;;
 		opkg) search_command="opkg search" ;;
@@ -464,7 +465,7 @@ function FIND() {
 	for target in "$@"; do
 		text "${CLR3}SEARCH [$target]${CLR0}"
 		$search_command "$target" || { error "No results found for $target\n"; return 1; }
-		text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+		text "*#Rt9nK6#*\n"
 	done
 }
 function FONT() {
@@ -560,7 +561,7 @@ function GET() {
 			esac
 			[ $? -eq 0 ] && text "* File extracted successfully to $target_dir"
 		fi
-		text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+		text "*#Rt9nK6#*\n"
 	else
 		{ error "Download failed. Check your internet connection and URL validity"; return 1; }
 	fi
@@ -724,10 +725,10 @@ function PKG_COUNT() {
 		zypper) count_cmd="zypper se --installed-only" ;;
 		*) { error "Unable to count installed packages. Package manager not supported"; return 1; } ;;
 	esac
-	if ! package_count=$($count_cmd 2>/dev/null | wc -l) || [[ -z "$package_count" || "$package_count" -eq 0 ]]; then
+	if ! pkg_count=$($count_cmd 2>/dev/null | wc -l) || [[ -z "$pkg_count" || "$pkg_count" -eq 0 ]]; then
 		{ error "Failed to count packages for ${pkg_manager##*/}"; return 1; }
 	fi
-	text "$package_count"
+	text "$pkg_count"
 }
 function PROGRESS() {
 	num_cmds=${#cmds[@]}
@@ -793,7 +794,7 @@ function RUN() {
 				./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
 			fi
 			text "${CLR8}$(LINE = "24")${CLR0}"
-			text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+			text "*#Rt9nK6#*\n"
 			[[ "$delete_after" == true ]] && rm -rf "$script_name"
 		elif [[ "$1" =~ ^[^/]+/[^/]+/.+ ]]; then
 			repo_owner=$(text "$1" | cut -d'/' -f1)
@@ -858,7 +859,7 @@ function RUN() {
 						./"$repo_name/$script_path" || { error "Failed to execute script $script_name"; return 1; }
 					fi
 					text "${CLR8}$(LINE = "24")${CLR0}"
-					text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+					text "*#Rt9nK6#*\n"
 					[[ "$delete_after" == true ]] && rm -rf "$repo_name"
 				fi
 			else
@@ -900,7 +901,7 @@ function RUN() {
 					./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
 				fi
 				text "${CLR8}$(LINE = "24")${CLR0}"
-				text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+				text "*#Rt9nK6#*\n"
 				[[ "$delete_after" == true ]] && rm -rf "$script_name"
 			fi
 		else
@@ -999,73 +1000,73 @@ function SYS_CLEAN() {
 	TASK "* Removing user cache files" "rm -rf ~/.cache/*" || { error "Failed to remove user cache files"; return 1; }
 	TASK "* Removing thumbnail files" "rm -rf ~/.thumbnails/*" || { error "Failed to remove thumbnail files"; return 1; }
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+	text "*#Rt9nK6#*\n"
 }
 function SYS_INFO() {
-	text "*#Vx8nK4-SystemInformation-Ht5mL9#*"
+	text "*#Vx8nK4#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
 
-	text "*#Rx7tP5-HostnameLabel-Yw2nK8#*${CLR2}$(uname -n || { error "*#Bx6mL9-FailedToGetHostname-Kt4nP7#*"; return 1; })${CLR0}"
-	text "*#Mx5nR8-OperatingSystemLabel-Vt2kL7#*${CLR2}$(CHECK_OS)${CLR0}"
-	text "*#Qw4tK9-KernelVersionLabel-Ht7mP3#*${CLR2}$(uname -r)${CLR0}"
-	text "*#Lx3nP6-SystemLanguageLabel-Bw8kR4#*${CLR2}$LANG${CLR0}"
-	text "*#Yx5mK7-ShellVersionLabel-Nt2pL8#*${CLR2}$(SHELL_VER)${CLR0}"
-	text "*#Wx9tR4-LastUpdateLabel-Zm6kL2#*${CLR2}$(LAST_UPDATE)${CLR0}"
+	text "*#Rx7tP5#*${CLR2}$(uname -n || { error "*#Bx6mL9#*"; return 1; })${CLR0}"
+	text "*#Mx5nR8#*${CLR2}$(CHECK_OS)${CLR0}"
+	text "*#Qw4tK9#*${CLR2}$(uname -r)${CLR0}"
+	text "*#Lx3nP6#*${CLR2}$LANG${CLR0}"
+	text "*#Yx5mK7#*${CLR2}$(SHELL_VER)${CLR0}"
+	text "*#Wx9tR4#*${CLR2}$(LAST_UPDATE)${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "*#Hx7nP5-ArchitectureLabel-Kt3mL9#*${CLR2}$(uname -m)${CLR0}"
-	text "*#Fx4tK8-CPUModelLabel-Rw2nP6#*${CLR2}$(CPU_MODEL)${CLR0}"
-	text "*#Jx6mL3-CPUCoresLabel-Yt9kR4#*${CLR2}$(nproc)${CLR0}"
-	text "*#Nx5tP7-CPUFrequencyLabel-Bw2mK8#*${CLR2}$(CPU_FREQ)${CLR0}"
-	text "*#Tx8nR2-CPUUsageLabel-Lw4kP9#*${CLR2}$(CPU_USAGE)${CLR0}"
-	text "*#Gx3mK6-CPUCacheLabel-Vt7nL5#*${CLR2}$(CPU_CACHE)${CLR0}"
+	text "*#Hx7nP5#*${CLR2}$(uname -m)${CLR0}"
+	text "*#Fx4tK8#*${CLR2}$(CPU_MODEL)${CLR0}"
+	text "*#Jx6mL3#*${CLR2}$(nproc)${CLR0}"
+	text "*#Bw2mK8#*${CLR2}$(CPU_FREQ)${CLR0}"
+	text "*#Tx8nR2#*${CLR2}$(CPU_USAGE)${CLR0}"
+	text "*#Gx3mK6#*${CLR2}$(CPU_CACHE)${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "*#Px9tR5-MemoryUsageLabel-Kw2mL8#*${CLR2}$(MEM_USAGE)${CLR0}"
-	text "*#Sx4nK7-SwapUsageLabel-Ht6pL3#*${CLR2}$(SWAP_USAGE)${CLR0}"
-	text "*#Cx7mP2-DiskUsageLabel-Yw5nK8#*${CLR2}$(DISK_USAGE)${CLR0}"
-	text "*#Dx8tL4-FileSystemLabel-Rt3mP9#*${CLR2}$(df -T / | awk 'NR==2 {print $2}')${CLR0}"
+	text "*#Px9tR5#*${CLR2}$(MEM_USAGE)${CLR0}"
+	text "*#Sx4nK7#*${CLR2}$(SWAP_USAGE)${CLR0}"
+	text "*#Cx7mP2#*${CLR2}$(DISK_USAGE)${CLR0}"
+	text "*#Dx8tL4#*${CLR2}$(df -T / | awk 'NR==2 {print $2}')${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "*#Ax6nK9-IPv4Label-Mt4wL7#*${CLR2}$(IP_ADDR -4)${CLR0}"
-	text "*#Ux3tP5-IPv6Label-Bw8nK2#*${CLR2}$(IP_ADDR -6)${CLR0}"
-	text "*#Zx7mL4-MACLabel-Yt5pR8#*${CLR2}$(MAC_ADDR)${CLR0}"
-	text "*#Kx9nP6-NetworkProviderLabel-Vw2tL5#*${CLR2}$(NET_PROVIDER)${CLR0}"
-	text "*#Ox4mK8-DNSLabel-Ht7nR3#*${CLR2}$(DNS_ADDR)${CLR0}"
-	text "*#Ex5tL7-PublicIPLabel-Qw3mP9#*${CLR2}$(PUBLIC_IP)${CLR0}"
-	text "*#Ix8nR4-NetworkInterfaceLabel-Bt6kL2#*${CLR2}$(INTERFACE -i)${CLR0}"
-	text "*#Mx7pK3-InternalTimezoneLabel-Yw4nL8#*${CLR2}$(TIMEZONE -i)${CLR0}"
-	text "*#Qx2tP9-ExternalTimezoneLabel-Vt5mK6#*${CLR2}$(TIMEZONE -e)${CLR0}"
+	text "*#Ax6nK9#*${CLR2}$(IP_ADDR -4)${CLR0}"
+	text "*#Ux3tP5#*${CLR2}$(IP_ADDR -6)${CLR0}"
+	text "*#Zx7mL4#*${CLR2}$(MAC_ADDR)${CLR0}"
+	text "*#Kx9nP6#*${CLR2}$(NET_PROVIDER)${CLR0}"
+	text "*#Ox4mK8#*${CLR2}$(DNS_ADDR)${CLR0}"
+	text "*#Ex5tL7#*${CLR2}$(PUBLIC_IP)${CLR0}"
+	text "*#Ix8nR4#*${CLR2}$(INTERFACE -i)${CLR0}"
+	text "*#Mx7pK3#*${CLR2}$(TIMEZONE -i)${CLR0}"
+	text "*#Qx2tP9#*${CLR2}$(TIMEZONE -e)${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "*#Wx6nL5-LoadAverageLabel-Kt8mP4#*${CLR2}$(LOAD_AVERAGE)${CLR0}"
-	text "*#Yx3tK7-ProcessCountLabel-Rw9nL2#*${CLR2}$(ps aux | wc -l)${CLR0}"
-	text "*#Bx8mP4-PackagesInstalledLabel-Ht5kL9#*${CLR2}$(PKG_COUNT)${CLR0}"
+	text "*#Wx6nL5#*${CLR2}$(LOAD_AVERAGE)${CLR0}"
+	text "*#Yx3tK7#*${CLR2}$(ps aux | wc -l)${CLR0}"
+	text "*#Bx8mP4#*${CLR2}$(PKG_COUNT)${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "*#Nx7tL3-UptimeLabel-Pw4mK8#*${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
-	text "*#Fx5nR9-BootTimeLabel-Vt2pL6#*${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
+	text "*#Nx7tL3#*${CLR2}$(uptime -p | sed 's/up //')${CLR0}"
+	text "*#Fx5nR9#*${CLR2}$(who -b | awk '{print $3, $4}')${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 
-	text "*#Jx4mK7-VirtualizationLabel-Yw8tP3#*${CLR2}$(CHECK_VIRT)${CLR0}"
+	text "*#Jx4mK7#*${CLR2}$(CHECK_VIRT)${CLR0}"
 	text "${CLR8}$(LINE = "24")${CLR0}"
 }
 function SYS_OPTIMIZE() {
 	CHECK_ROOT
-	text "*#Vx7nK4-OptimizingSystemConfig-Ht5mL9#*"
+	text "*#Vx7nK4#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
 	SYSCTL_CONF="/etc/sysctl.d/99-server-optimizations.conf"
-	text "*#Bx3tR8-ServerOptimizationsComment-Qw6nP5#*" > "$SYSCTL_CONF"
+	text "*#Bx3tR8#*" > "$SYSCTL_CONF"
 
-	TASK "*#Ym4kL7-OptimizingMemoryManagement-Wx9tP2#*" "
+	TASK "*#Ym4kL7#*" "
 		text 'vm.swappiness = 1' >> $SYSCTL_CONF
 		text 'vm.vfs_cache_pressure = 50' >> $SYSCTL_CONF
 		text 'vm.dirty_ratio = 15' >> $SYSCTL_CONF
 		text 'vm.dirty_background_ratio = 5' >> $SYSCTL_CONF
 		text 'vm.min_free_kbytes = 65536' >> $SYSCTL_CONF
-	" || { error "*#Kx8mP5-FailedToOptimizeMemory-Ht2nL7#*"; return 1; }
+	" || { error "*#Kx8mP5#*"; return 1; }
 
-	TASK "*#Rx6tK9-OptimizingNetworkSettings-Vw4mL8#*" "
+	TASK "*#Rx6tK9#*" "
 		text 'net.core.somaxconn = 65535' >> $SYSCTL_CONF
 		text 'net.core.netdev_max_backlog = 65535' >> $SYSCTL_CONF
 		text 'net.ipv4.tcp_max_syn_backlog = 65535' >> $SYSCTL_CONF
@@ -1075,145 +1076,143 @@ function SYS_OPTIMIZE() {
 		text 'net.ipv4.tcp_keepalive_intvl = 15' >> $SYSCTL_CONF
 		text 'net.ipv4.tcp_tw_reuse = 1' >> $SYSCTL_CONF
 		text 'net.ipv4.ip_local_port_range = 1024 65535' >> $SYSCTL_CONF
-	" || { error "*#Nx5vR7-FailedToOptimizeNetwork-Bm3tK8#*"; return 1; }
+	" || { error "*#Nx5vR7#*"; return 1; }
 
-	TASK "*#Lw7mP4-OptimizingTCPBuffers-Yt6nK2#*" "
+	TASK "*#Yt6nK2#*" "
 		text 'net.core.rmem_max = 16777216' >> $SYSCTL_CONF
 		text 'net.core.wmem_max = 16777216' >> $SYSCTL_CONF
 		text 'net.ipv4.tcp_rmem = 4096 87380 16777216' >> $SYSCTL_CONF
 		text 'net.ipv4.tcp_wmem = 4096 65536 16777216' >> $SYSCTL_CONF
 		text 'net.ipv4.tcp_mtu_probing = 1' >> $SYSCTL_CONF
-	" || { error "*#Wx9nL5-FailedToOptimizeTCP-Qm4tK7#*"; return 1; }
+	" || { error "*#Wx9nL5#*"; return 1; }
 
-	TASK "*#Ht8kP3-OptimizingFilesystem-Vx5mL9#*" "
+	TASK "*#Ht8kP3#*" "
 		text 'fs.file-max = 2097152' >> $SYSCTL_CONF
 		text 'fs.nr_open = 2097152' >> $SYSCTL_CONF
 		text 'fs.inotify.max_user_watches = 524288' >> $SYSCTL_CONF
-	" || { error "*#Jx7tR4-FailedToOptimizeFS-Bw2nK8#*"; return 1; }
+	" || { error "*#Jx7tR4#*"; return 1; }
 
-	TASK "*#Mx6nP8-OptimizingSystemLimits-Lt4kR7#*" "
+	TASK "*#Mx6nP8#*" "
 		text '* soft nofile 1048576' >> /etc/security/limits.conf
 		text '* hard nofile 1048576' >> /etc/security/limits.conf
 		text '* soft nproc 65535' >> /etc/security/limits.conf
 		text '* hard nproc 65535' >> /etc/security/limits.conf
-	" || { error "*#Tx5mK9-FailedToOptimizeLimits-Yw3nL6#*"; return 1; }
+	" || { error "*#Tx5mK9#*"; return 1; }
 
-	TASK "*#Gx4tP7-OptimizingIOScheduler-Nw8mK3#*" "
+	TASK "*#Gx4tP7#*" "
 		for disk in /sys/block/[sv]d*; do
 			text 'none' > \$disk/queue/scheduler 2>/dev/null || true
 			text '256' > \$disk/queue/nr_requests 2>/dev/null || true
 		done
-	" || { error "*#Zx6nL8-FailedToOptimizeIO-Kt5mP4#*"; return 1; }
+	" || { error "*#Zx6nL8#*"; return 1; }
 
-	TASK "*#Qx7tK5-DisablingServices-Hw2nL9#*" "
+	TASK "*#Qx7tK5#*" "
 		for service in bluetooth cups avahi-daemon postfix nfs-server rpcbind autofs; do
 			systemctl disable --now \$service 2>/dev/null || true
 		done
-	" || { error "*#Fx3mP6-FailedToDisableServices-Vt8kL4#*"; return 1; }
+	" || { error "*#Fx3mP6#*"; return 1; }
 
-	TASK "*#Dx5nR7-ApplyingParameters-Yw9mK2#*" "sysctl -p $SYSCTL_CONF" || { error "*#Bx4tL8-FailedToApplyParams-Qm7nP5#*"; return 1; }
+	TASK "*#Dx5nR7#*" "sysctl -p $SYSCTL_CONF" || { error "*#Bx4tL8#*"; return 1; }
 
-	TASK "*#Cx6kP9-ClearingSystemCache-Mt3nL7#*" "
+	TASK "*#Cx6kP9#*" "
 		sync
 		text 3 > /proc/sys/vm/drop_caches
 		ip -s -s neigh flush all
-	" || { error "*#Wx8mK4-FailedToClearCache-Ht5nR9#*"; return 1; }
+	" || { error "*#Wx8mK4#*"; return 1; }
 
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+	text "*#Rt9nK6#*\n"
 }
 function SYS_REBOOT() {
 	CHECK_ROOT
-	text "*#Ht7nK4-PreparingSystemReboot-Wx5mL9#*"
+	text "*#Ht7nK4#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	active_users=$(who | wc -l) || { error "*#Bx6tR8-FailedToGetActiveUsers-Qn3wP7#*"; return 1; }
+	active_users=$(who | wc -l) || { error "*#Bx6tR8#*"; return 1; }
 	if [ "$active_users" -gt 1 ]; then
-		text "*#Vx9mK5-ActiveUsersWarning-Yt4nL8#*\n"
-		text "*#Rx5nK9-ActiveUsers-Wt8mL4#*"
+		text "*#Vx9mK5#*\n"
+		text "*#Rx5nK9#*"
 		who | awk '{print $1 " since " $3 " " $4}'
 		text
 	fi
-	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l) || { error "*#Yx6mP7-FailedToCheckProcesses-Kt4nL2#*"; return 1; }
+	important_processes=$(ps aux --no-headers | awk '$3 > 1.0 || $4 > 1.0' | wc -l) || { error "*#Yx6mP7#*"; return 1; }
 	if [ "$important_processes" -gt 0 ]; then
-		text "*#Zx8tK3-ImportantProcessesWarning-Bw5mP9#*\n"
-		text "*#Mx3nP6-TopProcessesByCPU-Yw9tL5#*"
+		text "*#Zx8tK3#*\n"
+		text "*#Mx3nP6#*"
 		ps aux --sort=-%cpu | head -n 6
 		text
 	fi
-	read -p "*#Dn4kR7-ConfirmSystemReboot-Vt8mL2#*" -n 1 -r
+	read -p "*#Dn4kR7#*" -n 1 -r
 	text
-	[[ ! $REPLY =~ ^[Yy]$ ]] && { text "*#Jx5tP8-RebootCancelled-Kw7nL4#*\n"; return 0; }
-	TASK "*#Wx2mK9-PerformingFinalChecks-Ht6nL5#*" "sync" || { error "*#Nx8vR3-FailedToSyncFilesystems-Qm4tP7#*"; return 1; }
-	TASK "*#Bx7tL5-InitiatingReboot-Yw3nK8#*" "reboot || sudo reboot" || { error "*#Tx5mP4-FailedToInitiateReboot-Vn2wL9#*"; return 1; }
-	text "*#Gx6nK8-RebootCommandIssued-Lw4mP7#*"
+	[[ ! $REPLY =~ ^[Yy]$ ]] && { text "*#Jx5tP8#*\n"; return 0; }
+	TASK "*#Wx2mK9#*" "sync" || { error "*#Nx8vR3#*"; return 1; }
+	TASK "*#Bx7tL5#*" "reboot || sudo reboot" || { error "*#Tx5mP4#*"; return 1; }
+	text "*#Gx6nK8#*"
 }
 function SYS_UPDATE() {
 	CHECK_ROOT
-	text "*#Wx7nP5-UpdatingSystemSoftware-Ht4mL8#*"
+	text "*#Wx7nP5#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	update_packages() {
+	update_pkgs() {
 		cmd="$1"
 		update_cmd="$2"
 		upgrade_cmd="$3"
-		TASK "*#Ym6tK9-UpdatingPackageLists-Bx2vR4#*" "$update_cmd" || { error "*#Qn5wL7-FailedToUpdatePackageLists-Kt8mP3#* using $cmd"; return 1; }
-		TASK "*#Vx3nR8-UpgradingPackages-Lm7tK2#*" "$upgrade_cmd" || { error "*#Ht9pL4-FailedToUpgradePackages-Wx5mK8#* using $cmd"; return 1; }
+		TASK "*#Ym6tK9#*" "$update_cmd" || { error "*#Qn5wL7#*"; return 1; }
+		TASK "*#Vx3nR8#*" "$upgrade_cmd" || { error "*#Ht9pL4#*"; return 1; }
 	}
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
-		*apk) update_packages "apk" "apk update" "apk upgrade" ;;
+		*apk) update_pkgs "apk" "apk update" "apk upgrade" ;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				TASK "*#Rw4mK7-WaitingForDpkgLock-Yt6nL9#*" "sleep 1" || return 1
+				TASK "*#Rw4mK7#*" "sleep 1" || return 1
 				((wait_time++))
-				[ "$wait_time" -gt 10 ] && { error "*#Bx8vP5-DpkgLockTimeout-Qw2mK7#*"; return 1; }
+				[ "$wait_time" -gt 10 ] && { error "*#Bx8vP5#*"; return 1; }
 			done
-			TASK "*#Dn3tL6-ConfiguringPendingPackages-Hm9wR4#*" "DEBIAN_FRONTEND=noninteractive dpkg --configure -a" || { error "*#Kx7mP2-FailedToConfigurePackages-Vt5nL8#*"; return 1; }
-			update_packages "apt" "apt update -y" "apt full-upgrade -y"
+			TASK "*#Dn3tL6#*" "DEBIAN_FRONTEND=noninteractive dpkg --configure -a" || { error "*#Kx7mP2#*"; return 1; }
+			update_pkgs "apt" "apt update -y" "apt full-upgrade -y"
 			;;
-		*opkg) update_packages "opkg" "opkg update" "opkg upgrade" ;;
-		*pacman)
-			TASK "*#Lw6nR9-UpdatingAndUpgradingPackages-Bm4tK7#*" "pacman -Syu --noconfirm" || { error "*#Yx5vP8-FailedToUpdateAndUpgrade-Ht2mL4#* using pacman"; return 1; }
-			;;
-		*yum) update_packages "yum" "yum check-update" "yum -y update" ;;
-		*zypper) update_packages "zypper" "zypper refresh" "zypper update -y" ;;
-		*dnf) update_packages "dnf" "dnf check-update" "dnf -y update" ;;
-		*) { error "*#Zx7mP4-UnsupportedPackageManager-Kt5nL8#*"; return 1; } ;;
+		*opkg) update_pkgs "opkg" "opkg update" "opkg upgrade" ;;
+		*pacman) TASK "*#Lw6nR9#*" "pacman -Syu --noconfirm" || { error "*#Yx5vP8#*"; return 1; } ;;
+		*yum) update_pkgs "yum" "yum check-update" "yum -y update" ;;
+		*zypper) update_pkgs "zypper" "zypper refresh" "zypper update -y" ;;
+		*dnf) update_pkgs "dnf" "dnf check-update" "dnf -y update" ;;
+		*) { error "*#Zx7mP4#*"; return 1; } ;;
 	esac
-	TASK "*#Jn5tR8-UpdatingScript-Qw7mK3#* $Scripts" "bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)" || { error "*#Wx4nP9-FailedToUpdateScript-Ym6tL2#* $Scripts"; return 1; }
+	TASK "*#Jn5tR8#*" "bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)" || { error "*#Wx4nP9#*"; return 1; }
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	text "*#Rt9nK6-Finished-Mw4xL8#*\n"
+	text "*#Rt9nK6#*\n"
 }
 function SYS_UPGRADE() {
 	CHECK_ROOT
-	text "*#Ht6nR9-UpgradingSystemVersion-Wx4mL7#*"
+	text "*#Ht6nR9#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
 	os_name=$(CHECK_OS -n)
 	case "$os_name" in
 		Debian)
-			text "*#Vx8tK5-DetectedDebianSystem-Qn2pL4#*"
-			TASK "*#Ym6tK9-UpdatingPackageLists-Bx2vR4#*" "apt update -y" || { error "*#Qn5wL7-FailedToUpdatePackageLists-Kt8mP3#*"; return 1; }
-			TASK "*#Lw7mP4-UpgradingCurrentPackages-Ht5nK8#*" "apt full-upgrade -y" || { error "*#Bx3vR6-FailedToUpgradeCurrentPackages-Yt9mL2#*"; return 1; }
-			text "*#Kx4nP7-StartingDebianUpgrade-Qw6tL8#*"
+			text "*#Vx8tK5#*"
+			TASK "*#Ym6tK9#*" "apt update -y" || { error "*#An8zR7#*"; return 1; }
+			TASK "*#Lw7mP4#*" "apt full-upgrade -y" || { error "*#Bx3vR6#*"; return 1; }
+			text "*#Kx4nP7#*"
 			current_codename=$(lsb_release -cs)
 			target_codename=$(curl -s http://ftp.debian.org/debian/dists/stable/Release | grep "^Codename:" | awk '{print $2}')
-			[ "$current_codename" = "$target_codename" ] && { error "*#Rw5mK9-SystemAlreadyLatest-Vt2nL6#* (${target_codename})"; return 1; }
-			text "*#Dn7tR4-UpgradingFromTo-Jx5mP8#*"
-			TASK "*#Yx3vL7-BackingUpSourcesList-Bm8wK4#*" "cp /etc/apt/sources.list /etc/apt/sources.list.backup" || { error "*#Ht6nP9-FailedToBackupSourcesList-Qw4mK7#*"; return 1; }
-			TASK "*#Wx5tR8-UpdatingSourcesList-Ln2vK6#*" "sed -i 's/${current_codename}/${target_codename}/g' /etc/apt/sources.list" || { error "*#Zm7nL4-FailedToUpdateSourcesList-Vt5pK9#*"; return 1; }
-			TASK "*#Kx9mP5-UpdatingNewReleaseLists-Ht3wL7#*" "apt update -y" || { error "*#Bx6tK8-FailedToUpdateNewReleaseLists-Qn4mR2#*"; return 1; }
-			TASK "*#Yw7nL5-UpgradingToNewRelease-Vm2tP8#*" "apt full-upgrade -y" || { error "*#Dx4kR9-FailedToUpgradeToNewRelease-Ht7mL3#*"; return 1; }
+			[ "$current_codename" = "$target_codename" ] && { error "*#Rw5mK9#* (${target_codename})"; return 1; }
+			text "*#Jx5mP8#*"
+			TASK "*#Yx3vL7#*" "cp /etc/apt/sources.list /etc/apt/sources.list.backup" || { error "*#Ht6nP9#*"; return 1; }
+			TASK "*#Wx5tR8#*" "sed -i 's/${current_codename}/${target_codename}/g' /etc/apt/sources.list" || { error "*#Zm7nL4#*"; return 1; }
+			TASK "*#Kx9mP5#*" "apt update -y" || { error "*#Bx6tK8#*"; return 1; }
+			TASK "*#Yw7nL5#*" "apt full-upgrade -y" || { error "*#Dx4kR9#*"; return 1; }
 			;;
 		Ubuntu)
-			text "*#Nx5tP7-DetectedUbuntuSystem-Kw3mL8#*"
-			TASK "*#Ym6tK9-UpdatingPackageLists-Bx2vR4#*" "apt update -y" || { error "*#Qn5wL7-FailedToUpdatePackageLists-Kt8mP3#*"; return 1; }
-			TASK "*#Lw7mP4-UpgradingCurrentPackages-Ht5nK8#*" "apt full-upgrade -y" || { error "*#Bx3vR6-FailedToUpgradeCurrentPackages-Yt9mL2#*"; return 1; }
-			TASK "*#Rx8nK4-InstallingUpdateManager-Wt6mP9#*" "apt install -y update-manager-core" || { error "*#Jx2vL7-FailedToInstallUpdateManager-Qm5nK8#*"; return 1; }
-			TASK "*#Vx7tP5-UpgradingUbuntuRelease-Hn3mK9#*" "do-release-upgrade -f DistUpgradeViewNonInteractive" || { error "*#Lw4mR8-FailedToUpgradeUbuntu-Bt6nP2#*"; return 1; }
+			text "*#Nx5tP7#*"
+			TASK "*#Ym6tK9#*" "apt update -y" || { error "*#An8zR7#*"; return 1; }
+			TASK "*#Lw7mP4#*" "apt full-upgrade -y" || { error "*#Bx3vR6#*"; return 1; }
+			TASK "*#Rx8nK4#*" "apt install -y update-manager-core" || { error "*#Jx2vL7#*"; return 1; }
+			TASK "*#Vx7tP5#*" "do-release-upgrade -f DistUpgradeViewNonInteractive" || { error "*#Lw4mR8#*"; return 1; }
 			SYS_REBOOT
 			;;
-		*) { error "*#Yx9nK6-SystemNotSupported-Wm4tL7#*"; return 1; } ;;
+		*) { error "*#Yx9nK6#*"; return 1; } ;;
 	esac
 	text "${CLR8}$(LINE = "24")${CLR0}"
-	text "${CLR2}*#Mx5tR7-SystemUpgradeCompleted-Kn2wP9#*${CLR0}\n"
+	text "*#Mx5tR7#*\n"
 }
 
 function TASK() {
@@ -1223,11 +1222,11 @@ function TASK() {
 	temp_file=$(mktemp)
 	echo -ne "${message}... "
 	if eval "$command" > "$temp_file" 2>&1; then
-		text "*#Kw5nP9-TaskDone-Ht2mL7#*"
+		text "*#Kw5nP9#*"
 		ret=0
 	else
 		ret=$?
-		text "*#Vx8tR4-TaskFailed-Bm6wK3#* (${ret})"
+		text "*#Vx8tR4#* (${ret})"
 		[[ -s "$temp_file" ]] && text "${CLR1}$(cat "$temp_file")${CLR0}"
 		[[ "$ignore_error" != "true" ]] && return $ret
 	fi
@@ -1240,13 +1239,13 @@ function TIMEZONE() {
 			result=$(timeout 1s curl -sL ipapi.co/timezone) ||
 			result=$(timeout 1s curl -sL worldtimeapi.org/api/ip | grep -oP '"timezone":"\K[^"]+') ||
 			result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"timezone":"\K[^"]+') ||
-			[ -n "$result" ] && text "$result" || { error "*#Ym7tK4-FailedToDetectExternalTimezone-Wx9nL5#*"; return 1; }
+			[ -n "$result" ] && text "$result" || { error "*#Ym7tK4#*"; return 1; }
 			;;
 		-i|*)
 			result=$(readlink /etc/localtime | sed 's|^.*/zoneinfo/||') 2>/dev/null ||
 			result=$(command -v timedatectl &>/dev/null && timedatectl status | awk '/Time zone:/ {print $3}') ||
 			result=$(cat /etc/timezone 2>/dev/null | uniq) ||
-			[ -n "$result" ] && text "$result" || { error "*#Bx5vR8-FailedToDetectSystemTimezone-Ht2mP6#*"; return 1; }
+			[ -n "$result" ] && text "$result" || { error "*#Bx5vR8#*"; return 1; }
 			;;
 	esac
 }
