@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.015"
+Version="6.042.016"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -1249,5 +1249,3 @@ function TIMEZONE() {
 			;;
 	esac
 }
-
-[ ! -f ~/$Scripts ] && bash <(curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)
