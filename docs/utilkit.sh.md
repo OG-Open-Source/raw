@@ -55,13 +55,8 @@ utilkit.sh 是一個全面的 Shell 函數庫，專為系統管理員和開發�
 > 使用前請確保系統已安裝所需的基本工具。
 
 ```bash
-# 直接下載
-curl -sSLO "https://raw.ogtt.tk/shell/utilkit.sh"
-chmod +x utilkit.sh
-source utilkit.sh
-
-# 或使用安裝腳本
-bash <(curl -sL "https://raw.ogtt.tk/shell/update-utilkit.sh")
+#使用安裝腳本
+[ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/get_utilkit.sh) && source ~/utilkit.sh
 ```
 
 ## 使用方法
