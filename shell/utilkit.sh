@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.016"
+Version="6.042.017"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -783,8 +783,8 @@ function RUN() {
 			done
 			text "${CLR3}Downloading and executing script [${script_name}] from URL${CLR0}"
 			TASK "* Downloading script" "
-				curl -sSLf \"$url\" -o \"$script_name\" || { error \"Failed to download script $script_name\"; return 1; }
-				chmod +x \"$script_name\" || { error \"Failed to set execute permission for $script_name\"; return 1; }
+				curl -sSLf "$url" -o "$script_name" || { error "Failed to download script $script_name"; return 1; }
+				chmod +x "$script_name" || { error "Failed to set execute permission for $script_name"; return 1; }
 			"
 			text "${CLR8}$(LINE = "24")${CLR0}"
 			if [[ "$1" == "--" ]]; then
@@ -818,39 +818,26 @@ function RUN() {
 				[[ -d "$repo_name" ]] && { error "Directory $repo_name already exists"; return 1; }
 				temp_dir=$(mktemp -d)
 				if [[ "$branch" != "main" ]]; then
-					TASK "* Cloning from branch $branch" "
-						git clone --branch $branch https://github.com/${repo_owner}/${repo_name}.git \"$temp_dir\"
-					"
+					TASK "* Cloning from branch $branch" "git clone --branch $branch https://github.com/${repo_owner}/${repo_name}.git "$temp_dir""
 					if [ $? -ne 0 ]; then
 						rm -rf "$temp_dir"
 						{ error "Failed to clone repository from $branch branch"; return 1; }
 					fi
 				else
-					TASK "* Checking main branch" "
-						git clone --branch main https://github.com/${repo_owner}/${repo_name}.git \"$temp_dir\"
-					" true
+					TASK "* Checking main branch" "git clone --branch main https://github.com/${repo_owner}/${repo_name}.git "$temp_dir"" true
 					if [ $? -ne 0 ]; then
-						TASK "* Trying master branch" "
-							git clone --branch master https://github.com/${repo_owner}/${repo_name}.git \"$temp_dir\"
-						"
+						TASK "* Trying master branch" "git clone --branch master https://github.com/${repo_owner}/${repo_name}.git "$temp_dir""
 						if [ $? -ne 0 ]; then
 							rm -rf "$temp_dir"
 							{ error "Failed to clone repository from either main or master branch"; return 1; }
 						fi
 					fi
 				fi
-				TASK "* Creating target directory" "
-					mkdir -p \"$repo_name\" &&
-					cp -r \"$temp_dir\"/* \"$repo_name\"/
-				"
-				TASK "* Cleaning up temporary files" "
-					rm -rf \"$temp_dir\"
-				"
+				TASK "* Creating target directory" "ADD -d "$repo_name" && cp -r "$temp_dir"/* "$repo_name"/"
+				TASK "* Cleaning up temporary files" "rm -rf "$temp_dir""
 				text "* Repository cloned to directory: ${CLR2}$repo_name${CLR0}"
 				if [[ -f "$repo_name/$script_path" ]]; then
-					TASK "* Setting execute permissions" "
-						chmod +x \"$repo_name/$script_path\"
-					"
+					TASK "* Setting execute permissions" "chmod +x "$repo_name/$script_path""
 					text "${CLR8}$(LINE = "24")${CLR0}"
 					if [[ "$1" == "--" ]]; then
 						shift
@@ -866,32 +853,22 @@ function RUN() {
 				text "${CLR3}Downloading and executing script [${script_name}] from ${repo_owner}/${repo_name}${CLR0}"
 				github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
 				if [[ "$branch" != "main" ]]; then
-					TASK "* Checking $branch branch" "
-						curl -sLf \"$github_url\" >/dev/null
-					"
-					if [ $? -ne 0 ]; then
-						error "Script not found in $branch branch"
-						return 1
-					fi
+					TASK "* Checking $branch branch" "curl -sLf "$github_url" >/dev/null"
+					[ $? -ne 0 ] && { error "Script not found in $branch branch"; return 1; }
 				else
-					TASK "* Checking main branch" "
-						curl -sLf \"$github_url\" >/dev/null
-					" true
+					TASK "* Checking main branch" "curl -sLf "$github_url" >/dev/null" true
 					if [ $? -ne 0 ]; then
 						TASK "* Checking master branch" "
-							branch=\"master\"
-							github_url=\"https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/master/${script_path}\"
-							curl -sLf \"$github_url\" >/dev/null
+							branch="master"
+							github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/master/${script_path}"
+							curl -sLf "$github_url" >/dev/null
 						"
-						if [ $? -ne 0 ]; then
-							error "Script not found in either main or master branch"
-							return 1
-						fi
+						[ $? -ne 0 ] && { error "Script not found in either main or master branch"; return 1; }
 					fi
 				fi
 				TASK "* Downloading script" "
-					GET \"$github_url\" &>/dev/null || { error \"Failed to download script $script_name\"; return 1; }
-					chmod +x \"$script_name\" || { error \"Failed to set execute permission for $script_name\"; return 1; }
+					GET "$github_url" &>/dev/null || { error "Failed to download script $script_name"; return 1; }
+					chmod +x "$script_name" || { error "Failed to set execute permission for $script_name"; return 1; }
 				"
 				text "${CLR8}$(LINE = "24")${CLR0}"
 				if [[ "$1" == "--" ]]; then
