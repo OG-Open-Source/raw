@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.017"
+Version="6.042.018"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -212,7 +212,7 @@ function CHECK_OS() {
 function CHECK_ROOT() {
 	if [ "$EUID" -ne 0 ] || [ "$(id -u)" -ne 0 ]; then
 		error "*#Yk4mN8#*"
-		return 1
+		exit 1
 	fi
 }
 function CHECK_VIRT() {
