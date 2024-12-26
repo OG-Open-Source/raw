@@ -101,11 +101,11 @@ source utilkit.sh
   - `-n`：只顯示發行版名稱
   - 無參數：顯示完整作業系統資訊
 - 示例：
-  ```bash
-  CHECK_OS        # 輸出：Ubuntu 22.04 LTS
-  CHECK_OS -v     # 輸出：22.04
-  CHECK_OS -n     # 輸出：Ubuntu
-  ```
+	```bash
+	CHECK_OS        # 輸出：Ubuntu 22.04 LTS
+	CHECK_OS -v     # 輸出：22.04
+	CHECK_OS -n     # 輸出：Ubuntu
+	```
 
 #### CHECK_ROOT
 - 功能：檢查是否具有 root 權限
@@ -231,25 +231,25 @@ source utilkit.sh
 - 功能：下載檔案
 - 用法：`GET <URL> [-r 新檔名] [-x] [目標目錄]`
 - 參數：
-  - `-r`：指定新檔名（可選）
-  - `-x`：下載後自動解壓縮（可選）
-  - 目標目錄：指定下載位置（可選，預設為當前目錄）
+	- `-r`：指定新檔名（可選）
+	- `-x`：下載後自動解壓縮（可選）
+	- 目標目錄：指定下載位置（可選，預設為當前目錄）
 - 支援的壓縮格式：
-  - tar.gz, tgz
-  - tar
-  - tar.bz2, tbz2
-  - tar.xz, txz
-  - zip
-  - 7z
-  - rar
-  - zst
+	- tar.gz, tgz
+	- tar
+	- tar.bz2, tbz2
+	- tar.xz, txz
+	- zip
+	- 7z
+	- rar
+	- zst
 - 示例：
-  ```bash
-  GET https://example.com/file.txt                      # 下載到當前目錄
-  GET https://example.com/file.txt downloads            # 下載到指定目錄
-  GET https://example.com/file.txt -r new.txt downloads # 下載並重命名
-  GET https://example.com/archive.tar.gz -x             # 下載並自動解壓縮
-  ```
+	```bash
+	GET https://example.com/file.txt                      # 下載到當前目錄
+	GET https://example.com/file.txt downloads            # 下載到指定目錄
+	GET https://example.com/file.txt -r new.txt downloads # 下載並重命名
+	GET https://example.com/archive.tar.gz -x             # 下載並自動解壓縮
+	```
 
 {:.note}
 > 自動解壓縮功能需要系統安裝對應的解壓縮工具。
@@ -503,9 +503,6 @@ CLR7="\033[0;37m"    # 白色
 CLR8="\033[0;96m"    # 亮青色
 CLR9="\033[0;97m"    # 亮白色
 CLR0="\033[0m"       # 重置
-
-# 代理設置
-cf_proxy="https://proxy.ogtt.tk/"
 ```
 
 {:.tip}
