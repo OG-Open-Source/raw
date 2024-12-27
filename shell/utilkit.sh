@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.021"
+Version="6.042.022"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -277,7 +277,7 @@ function CPU_USAGE() {
 	total_diff=$((total2 - total1))
 	idle_diff=$((idle2 - idle1))
 	usage=$(( 100 * (total_diff - idle_diff) / total_diff ))
-	text "$usage%"
+	text "$usage"
 }
 function CONVERT_SIZE() {
 	[ -z "$1" ] && { error "*#Jk4mN8#*"; return 2; }
@@ -419,7 +419,12 @@ function DISK_USAGE() {
 	used=$(df -B1 / | awk '/^\/dev/ {print $3}') || { error "*#Ht5nK9#*"; return 1; }
 	total=$(df -B1 / | awk '/^\/dev/ {print $2}') || { error "*#Yt8pR2#*"; return 1; }
 	percentage=$(df / | awk '/^\/dev/ {printf("%.2f"), $3/$2 * 100.0}')
-	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
+	case "$1" in
+		-u) text "$used" ;;
+		-t) text "$total" ;;
+		-p) text "$percentage" ;;
+		*) text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)" ;;
+	esac
 }
 function DNS_ADDR () {
 	[ ! -f /etc/resolv.conf ] && { error "*#Rw6nK8#*"; return 1; }
@@ -700,7 +705,12 @@ function MEM_USAGE() {
 	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}') || { error "*#Zt6nR4#*"; return 1; }
 	total=$(free -b | awk '/^Mem:/ {print $2}') || total=$(grep MemTotal /proc/meminfo | awk '{print $2*1024}')
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}') || percentage=$(awk '/^MemTotal:/ {total=$2} /^MemAvailable:/ {available=$2} END {printf("%.2f", (total-available)/total * 100.0)}' /proc/meminfo)
-	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
+	case "$1" in
+		-u) text "$used" ;;
+		-t) text "$total" ;;
+		-p) text "$percentage" ;;
+		*) text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)" ;;
+	esac
 }
 
 function NET_PROVIDER() {
@@ -908,7 +918,12 @@ function SWAP_USAGE() {
 	used=$(free -b | awk '/^Swap:/ {printf "%.0f", $3}')
 	total=$(free -b | awk '/^Swap:/ {printf "%.0f", $2}')
 	percentage=$(free | awk '/^Swap:/ {if($2>0) printf("%.2f"), $3/$2 * 100.0; else print "0.00"}')
-	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
+	case "$1" in
+		-u) text "$used" ;;
+		-t) text "$total" ;;
+		-p) text "$percentage" ;;
+		*) text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)" ;;
+	esac
 }
 function SYS_CLEAN() {
 	CHECK_ROOT
@@ -991,7 +1006,7 @@ function SYS_INFO() {
 	text "*#Fx4tK8#*${CLR2}$(CPU_MODEL)${CLR0}"
 	text "*#Jx6mL3#*${CLR2}$(nproc)${CLR0}"
 	text "*#Bw2mK8#*${CLR2}$(CPU_FREQ)${CLR0}"
-	text "*#Tx8nR2#*${CLR2}$(CPU_USAGE)${CLR0}"
+	text "*#Tx8nR2#*${CLR2}$(CPU_USAGE)%${CLR0}"
 	text "*#Gx3mK6#*${CLR2}$(CPU_CACHE)${CLR0}"
 	text "${CLR8}$(LINE - "32")${CLR0}"
 

@@ -159,7 +159,7 @@ source utilkit.sh
 #### CPU_USAGE
 - 功能：顯示 CPU 使用率
 - 用法：`CPU_USAGE`
-- 輸出：以百分比顯示當前 CPU 使用率
+- 輸出：以百分比值顯示當前 CPU 使用率
 
 #### DEL
 - 功能：刪除檔案或移除套件
@@ -177,7 +177,11 @@ source utilkit.sh
 
 #### DISK_USAGE
 - 功能：顯示硬碟使用情況
-- 用法：`DISK_USAGE`
+- 用法：`DISK_USAGE [-u/-t/-p]`
+- 參數：
+	- `-u`：只顯示已用空間
+	- `-t`：只顯示總空間
+	- `-p`：只顯示使用率百分比值
 - 輸出：顯示已用空間/總空間和使用率百分比
 
 #### DNS_ADDR
@@ -320,7 +324,11 @@ source utilkit.sh
 
 #### MEM_USAGE
 - 功能：顯示記憶體使用情況
-- 用法：`MEM_USAGE`
+- 用法：`MEM_USAGE [-u/-t/-p]`
+- 參數：
+	- `-u`：只顯示已用空間
+	- `-t`：只顯示總空間
+	- `-p`：只顯示使用率百分比值
 - 輸出：顯示已用/總量和使用率百分比
 
 #### NET_PROVIDER
@@ -382,7 +390,11 @@ source utilkit.sh
 
 #### SWAP_USAGE
 - 功能：顯示交換分區使用情況
-- 用法：`SWAP_USAGE`
+- 用法：`SWAP_USAGE [-u/-t/-p]`
+- 參數：
+	- `-u`：只顯示已用空間
+	- `-t`：只顯示總空間
+	- `-p`：只顯示使用率百分比值
 - 輸出：顯示已用/總量和使用率百分比
 
 #### SYS_CLEAN
