@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.019"
+Version="6.042.020"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -707,7 +707,7 @@ function NET_PROVIDER() {
 	result=$(timeout 1s curl -sL ipinfo.io | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	result=$(timeout 1s curl -sL ipwhois.app/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
 	result=$(timeout 1s curl -sL ip-api.com/json | grep -oP '"org"\s*:\s*"\K[^"]+') ||
-	[ -n "$result" ] && text "$result" || { error "Unable to detect network provider. Check your internet connection"; return 1; }
+	[ -n "$result" ] && text "$result" || { error "*#Nt7mK5#*"; return 1; }
 }
 
 function PKG_COUNT() {
@@ -719,16 +719,16 @@ function PKG_COUNT() {
 		pacman) count_cmd="pacman -Q" ;;
 		yum|dnf) count_cmd="rpm -qa" ;;
 		zypper) count_cmd="zypper se --installed-only" ;;
-		*) { error "Unable to count installed packages. Package manager not supported"; return 1; } ;;
+		*) { error "*#Nt8mK5#*"; return 1; } ;;
 	esac
 	if ! pkg_count=$($count_cmd 2>/dev/null | wc -l) || [[ -z "$pkg_count" || "$pkg_count" -eq 0 ]]; then
-		{ error "Failed to count packages for ${pkg_manager##*/}"; return 1; }
+		{ error "*#Ht7nR6#*"; return 1; }
 	fi
 	text "$pkg_count"
 }
 function PROGRESS() {
 	num_cmds=${#cmds[@]}
-	term_width=$(tput cols) || { error "Failed to get terminal width"; return 1; }
+	term_width=$(tput cols) || { error "*#Nt6mR8#*"; return 1; }
 	bar_width=$((term_width - 23))
 	stty -echo
 	trap '' SIGINT SIGQUIT SIGTSTP
@@ -740,7 +740,7 @@ function PROGRESS() {
 			text "\n$output"
 			stty echo
 			trap - SIGINT SIGQUIT SIGTSTP
-			{ error "Command execution failed: ${cmds[$i]}"; return 1; }
+			{ error "*#Ht8mK4#*"; return 1; }
 		fi
 	done
 	printf "\r\033[30;42mProgress: [100%%]\033[0m [%s]" "$(printf "%${bar_width}s" | tr ' ' '#')"
@@ -750,7 +750,7 @@ function PROGRESS() {
 }
 function PUBLIC_IP() {
 	ip=$(timeout 5s curl -sL https://ifconfig.me)
-	[ -n "$ip" ] && text "$ip" || { error "Unable to detect public IP address. Check your internet connection"; return 1; }
+	[ -n "$ip" ] && text "$ip" || { error "*#Xt7nK6#*"; return 1; }
 }
 
 function RUN() {
@@ -764,7 +764,7 @@ function RUN() {
 		[[ ${#COMPREPLY[@]} -eq 0 ]] && COMPREPLY=( $(compgen -c -- "$cur") )
 	}
 	complete -F _run_completions RUN
-	[ $# -eq 0 ] && { error "No command specified"; return 2; }
+	[ $# -eq 0 ] && { error "*#Nt6mK9#*"; return 2; }
 	if [[ "$1" == *"/"* ]]; then
 		if [[ "$1" =~ ^https?:// ]]; then
 			url="$1"
@@ -777,17 +777,17 @@ function RUN() {
 					*) break ;;
 				esac
 			done
-			text "${CLR3}Downloading and executing script [${script_name}] from URL${CLR0}"
-			TASK "* Downloading script" "
-				curl -sSLf "$url" -o "$script_name" || { error "Failed to download script $script_name"; return 1; }
-				chmod +x "$script_name" || { error "Failed to set execute permission for $script_name"; return 1; }
+			text "*#Xt9nK5#*"
+			TASK "*#Ht9mL5#*" "
+				curl -sSLf "$url" -o "$script_name" || { error "*#Ht7mK5#*"; return 1; }
+				chmod +x "$script_name" || { error "*#Kt8nR4#*"; return 1; }
 			"
 			text "${CLR8}$(LINE = "24")${CLR0}"
 			if [[ "$1" == "--" ]]; then
 				shift
-				./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
+				./"$script_name" "$@" || { error "*#Mt9nL5#*"; return 1; }
 			else
-				./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
+				./"$script_name" || { error "*#Mt9nL5#*"; return 1; }
 			fi
 			text "${CLR8}$(LINE = "24")${CLR0}"
 			text "*#Rt9nK6#*\n"
@@ -803,75 +803,75 @@ function RUN() {
 			shift
 			while [[ $# -gt 0 && "$1" == -* ]]; do
 				case "$1" in
-					-b) [[ -z "$2" || "$2" == -* ]] && { error "Branch name required after -b"; return 2; }; branch="$2"; shift 2 ;;
+					-b) [[ -z "$2" || "$2" == -* ]] && { error "*#Pt5mK8#*"; return 2; }; branch="$2"; shift 2 ;;
 					-r) download_repo=true; shift ;;
 					-d) delete_after=true; shift ;;
 					*) break ;;
 				esac
 			done
 			if [[ "$download_repo" == true ]]; then
-				text "${CLR3}Cloning repository ${repo_owner}/${repo_name}${CLR0}"
-				[[ -d "$repo_name" ]] && { error "Directory $repo_name already exists"; return 1; }
+				text "*#Vt9nK4#*"
+				[[ -d "$repo_name" ]] && { error "*#Qt7nR6#*"; return 1; }
 				temp_dir=$(mktemp -d)
 				if [[ "$branch" != "main" ]]; then
-					TASK "* Cloning from branch $branch" "git clone --branch $branch https://github.com/${repo_owner}/${repo_name}.git "$temp_dir""
+					TASK "*#At9kM8#*" "git clone --branch $branch https://github.com/${repo_owner}/${repo_name}.git "$temp_dir""
 					if [ $? -ne 0 ]; then
 						rm -rf "$temp_dir"
-						{ error "Failed to clone repository from $branch branch"; return 1; }
+						{ error "*#Rt8mK7#*"; return 1; }
 					fi
 				else
-					TASK "* Checking main branch" "git clone --branch main https://github.com/${repo_owner}/${repo_name}.git "$temp_dir"" true
+					TASK "*#Wt8mR5#*" "git clone --branch main https://github.com/${repo_owner}/${repo_name}.git "$temp_dir"" true
 					if [ $? -ne 0 ]; then
-						TASK "* Trying master branch" "git clone --branch master https://github.com/${repo_owner}/${repo_name}.git "$temp_dir""
+						TASK "*#Bt9nP9#*" "git clone --branch master https://github.com/${repo_owner}/${repo_name}.git "$temp_dir""
 						if [ $? -ne 0 ]; then
 							rm -rf "$temp_dir"
-							{ error "Failed to clone repository from either main or master branch"; return 1; }
+							{ error "*#St9nL4#*"; return 1; }
 						fi
 					fi
 				fi
-				TASK "* Creating target directory" "ADD -d "$repo_name" && cp -r "$temp_dir"/* "$repo_name"/"
-				TASK "* Cleaning up temporary files" "rm -rf "$temp_dir""
-				text "* Repository cloned to directory: ${CLR2}$repo_name${CLR0}"
+				TASK "*#Ct9mK0#*" "ADD -d "$repo_name" && cp -r "$temp_dir"/* "$repo_name"/"
+				TASK "*#Dt9pL1#*" "rm -rf "$temp_dir""
+				text "*#Yt9mR6#*"
 				if [[ -f "$repo_name/$script_path" ]]; then
-					TASK "* Setting execute permissions" "chmod +x "$repo_name/$script_path""
+					TASK "*#Et9nR2#*" "chmod +x "$repo_name/$script_path""
 					text "${CLR8}$(LINE = "24")${CLR0}"
 					if [[ "$1" == "--" ]]; then
 						shift
-						./"$repo_name/$script_path" "$@" || { error "Failed to execute script $script_name"; return 1; }
+						./"$repo_name/$script_path" "$@" || { error "*#Mt9nL5#*"; return 1; }
 					else
-						./"$repo_name/$script_path" || { error "Failed to execute script $script_name"; return 1; }
+						./"$repo_name/$script_path" || { error "*#Mt9nL5#*"; return 1; }
 					fi
 					text "${CLR8}$(LINE = "24")${CLR0}"
 					text "*#Rt9nK6#*\n"
 					[[ "$delete_after" == true ]] && rm -rf "$repo_name"
 				fi
 			else
-				text "${CLR3}Downloading and executing script [${script_name}] from ${repo_owner}/${repo_name}${CLR0}"
+				text "*#Zt9pL7#*"
 				github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/${branch}/${script_path}"
 				if [[ "$branch" != "main" ]]; then
-					TASK "* Checking $branch branch" "curl -sLf "$github_url" >/dev/null"
-					[ $? -ne 0 ] && { error "Script not found in $branch branch"; return 1; }
+					TASK "*#Ft9kM3#*" "curl -sLf "$github_url" >/dev/null"
+					[ $? -ne 0 ] && { error "*#Tt6nK5#*"; return 1; }
 				else
-					TASK "* Checking main branch" "curl -sLf "$github_url" >/dev/null" true
+					TASK "*#Wt8mR5#*" "curl -sLf "$github_url" >/dev/null" true
 					if [ $? -ne 0 ]; then
-						TASK "* Checking master branch" "
+						TASK "*#Gt9pN4#*" "
 							branch="master"
 							github_url="https://raw.githubusercontent.com/${repo_owner}/${repo_name}/refs/heads/master/${script_path}"
 							curl -sLf "$github_url" >/dev/null
 						"
-						[ $? -ne 0 ] && { error "Script not found in either main or master branch"; return 1; }
+						[ $? -ne 0 ] && { error "*#Ut7mR8#*"; return 1; }
 					fi
 				fi
 				TASK "* Downloading script" "
-					GET "$github_url" &>/dev/null || { error "Failed to download script $script_name"; return 1; }
-					chmod +x "$script_name" || { error "Failed to set execute permission for $script_name"; return 1; }
+					GET "$github_url" &>/dev/null || { error "*#Ht7mK5#*"; return 1; }
+					chmod +x "$script_name" || { error "*#Kt8nR4#*"; return 1; }
 				"
 				text "${CLR8}$(LINE = "24")${CLR0}"
 				if [[ "$1" == "--" ]]; then
 					shift
-					./"$script_name" "$@" || { error "Failed to execute script $script_name"; return 1; }
+					./"$script_name" "$@" || { error "*#Mt9nL5#*"; return 1; }
 				else
-					./"$script_name" || { error "Failed to execute script $script_name"; return 1; }
+					./"$script_name" || { error "*#Mt9nL5#*"; return 1; }
 				fi
 				text "${CLR8}$(LINE = "24")${CLR0}"
 				text "*#Rt9nK6#*\n"
@@ -882,10 +882,10 @@ function RUN() {
 			script_path="$1"
 			if [[ "$2" == "--" ]]; then
 				shift 2
-				"$script_path" "$@" || { error "Failed to execute script $script_name"; return 1; }
+				"$script_path" "$@" || { error "*#Mt9nL5#*"; return 1; }
 			else
 				shift
-				"$script_path" "$@" || { error "Failed to execute script $script_name"; return 1; }
+				"$script_path" "$@" || { error "*#Mt9nL5#*"; return 1; }
 			fi
 		fi
 	else
@@ -901,7 +901,7 @@ function SHELL_VER() {
 	elif [ -n "${ZSH_VERSION-}" ]; then
 		text "Zsh ${ZSH_VERSION}"
 	else
-		{ error "Unsupported shell"; return 1; }
+		{ error "*#Zt8nK5#*"; return 1; }
 	fi
 }
 function SWAP_USAGE() {
@@ -912,66 +912,66 @@ function SWAP_USAGE() {
 }
 function SYS_CLEAN() {
 	CHECK_ROOT
-	text "${CLR3}Performing system cleanup...${CLR0}"
+	text "*#Xt8nK5#*"
 	text "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 		*apk)
-			TASK "* Cleaning APK cache" "apk cache clean" || { error "Failed to clean APK cache"; return 1; }
-			TASK "* Removing temporary files" "rm -rf /tmp/* /var/cache/apk/*" || { error "Failed to remove temporary files"; return 1; }
-			TASK "* Fixing APK packages" "apk fix" || { error "Failed to fix APK packages"; return 1; }
+			TASK "*#Nt9mK4#*" "apk cache clean" || { error "*#Wt5nR7#*"; return 1; }
+			TASK "*#Mt8pL5#*" "rm -rf /tmp/* /var/cache/apk/*" || { error "*#Ht6mK8#*"; return 1; }
+			TASK "*#Kt7nR8#*" "apk fix" || { error "*#Nt7pL4#*"; return 1; }
 			;;
 		*apt)
 			while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-				TASK "* Waiting for dpkg lock" "sleep 1" || return 1
+				TASK "*#Jt6mK9#*" "sleep 1" || return 1
 				((wait_time++))
-				[ "$wait_time" -gt 300 ] && { error "Timeout waiting for dpkg lock to be released"; return 1; }
+				[ "$wait_time" -gt 300 ] && { error "*#Bx8vP5#*"; return 1; }
 			done
-			TASK "* Configuring pending packages" "DEBIAN_FRONTEND=noninteractive dpkg --configure -a" || { error "Failed to configure pending packages"; return 1; }
-			TASK "* Autoremoving packages" "apt autoremove --purge -y" || { error "Failed to autoremove packages"; return 1; }
-			TASK "* Cleaning APT cache" "apt clean -y" || { error "Failed to clean APT cache"; return 1; }
-			TASK "* Autocleaning APT cache" "apt autoclean -y" || { error "Failed to autoclean APT cache"; return 1; }
+			TASK "*#Ht5nL7#*" "DEBIAN_FRONTEND=noninteractive dpkg --configure -a" || { error "*#Kt7mR5#*"; return 1; }
+			TASK "*#Gt4mK8#*" "apt autoremove --purge -y" || { error "*#Mt6nK8#*"; return 1; }
+			TASK "*#Ft3nL9#*" "apt clean -y" || { error "*#Pt7nR4#*"; return 1; }
+			TASK "*#Et2mK7#*" "apt autoclean -y" || { error "*#Qt8mK5#*"; return 1; }
 			;;
 		*opkg)
-			TASK "* Removing temporary files" "rm -rf /tmp/*" || { error "Failed to remove temporary files"; return 1; }
-			TASK "* Updating OPKG" "opkg update" || { error "Failed to update OPKG"; return 1; }
-			TASK "* Cleaning OPKG cache" "opkg clean" || { error "Failed to clean OPKG cache"; return 1; }
+			TASK "*#Mt8pL5#*" "rm -rf /tmp/*" || { error "*#Ht6mK8#*"; return 1; }
+			TASK "*#Dt1nL8#*" "opkg update" || { error "*#Rt7nK4#*"; return 1; }
+			TASK "*#Ct0mK6#*" "opkg clean" || { error "*#St6mL5#*"; return 1; }
 			;;
 		*pacman)
-			TASK "* Updating and upgrading packages" "pacman -Syu --noconfirm" || { error "Failed to update and upgrade packages using pacman"; return 1; }
-			TASK "* Cleaning pacman cache" "pacman -Sc --noconfirm" || { error "Failed to clean pacman cache"; return 1; }
-			TASK "* Cleaning all pacman cache" "pacman -Scc --noconfirm" || { error "Failed to clean all pacman cache"; return 1; }
+			TASK "*#Bt9nL5#*" "pacman -Syu --noconfirm" || { error "*#Tt7nR6#*"; return 1; }
+			TASK "*#At8mK4#*" "pacman -Sc --noconfirm" || { error "*#Ut8mK4#*"; return 1; }
+			TASK "*#Zt7nL3#*" "pacman -Scc --noconfirm" || { error "*#Vt7nL5#*"; return 1; }
 			;;
 		*yum)
-			TASK "* Autoremoving packages" "yum autoremove -y" || { error "Failed to autoremove packages"; return 1; }
-			TASK "* Cleaning YUM cache" "yum clean all" || { error "Failed to clean YUM cache"; return 1; }
-			TASK "* Making YUM cache" "yum makecache" || { error "Failed to make YUM cache"; return 1; }
+			TASK "*#Gt4mK8#*" "yum autoremove -y" || { error "*#Mt6nK8#*"; return 1; }
+			TASK "*#Yt8aK2#*" "yum clean all" || { error "*#Wt8nR4#*"; return 1; }
+			TASK "*#Xt5nL1#*" "yum makecache" || { error "*#Xt7mK5#*"; return 1; }
 			;;
 		*zypper)
-			TASK "* Cleaning Zypper cache" "zypper clean --all" || { error "Failed to clean Zypper cache"; return 1; }
-			TASK "* Refreshing Zypper repositories" "zypper refresh" || { error "Failed to refresh Zypper repositories"; return 1; }
+			TASK "*#Wt4mK0#*" "zypper clean --all" || { error "*#Yt6nR7#*"; return 1; }
+			TASK "*#Vt3nL9#*" "zypper refresh" || { error "*#Zt8mK4#*"; return 1; }
 			;;
 		*dnf)
-			TASK "* Autoremoving packages" "dnf autoremove -y" || { error "Failed to autoremove packages"; return 1; }
-			TASK "* Cleaning DNF cache" "dnf clean all" || { error "Failed to clean DNF cache"; return 1; }
-			TASK "* Making DNF cache" "dnf makecache" || { error "Failed to make DNF cache"; return 1; }
+			TASK "*#Gt4mK8#*" "dnf autoremove -y" || { error "*#Mt6nK8#*"; return 1; }
+			TASK "*#Ut2mK8#*" "dnf clean all" || { error "*#At7nR5#*"; return 1; }
+			TASK "*#Tt1nL7#*" "dnf makecache" || { error "*#Bt8mK4#*"; return 1; }
 			;;
-		*) { error "Unsupported package manager. Skipping system-specific cleanup"; return 1; } ;;
+		*) { error "*#Ct7nR5#*"; return 1; } ;;
 	esac
 	if command -v journalctl &>/dev/null; then
-		TASK "* Rotating and vacuuming journalctl logs" "journalctl --rotate --vacuum-time=1d --vacuum-size=500M" || { error "Failed to rotate and vacuum journalctl logs"; return 1; }
+		TASK "*#St0mK6#*" "journalctl --rotate --vacuum-time=1d --vacuum-size=500M" || { error "*#Dt6nK7#*"; return 1; }
 	fi
-	TASK "* Removing temporary files" "rm -rf /tmp/*" || { error "Failed to remove temporary files"; return 1; }
+	TASK "*#Mt8pL5#*" "rm -rf /tmp/*" || { error "*#Ht6mK8#*"; return 1; }
 	for cmd in docker npm pip; do
 		if command -v "$cmd" &>/dev/null; then
 			case "$cmd" in
-				docker) TASK "* Cleaning Docker system" "docker system prune -af" || { error "Failed to clean Docker system"; return 1; } ;;
-				npm) TASK "* Cleaning NPM cache" "npm cache clean --force" || { error "Failed to clean NPM cache"; return 1; } ;;
-				pip) TASK "* Purging PIP cache" "pip cache purge" || { error "Failed to purge PIP cache"; return 1; } ;;
+				docker) TASK "*#Rt9nL5#*" "docker system prune -af" || { error "*#Et7nR4#*"; return 1; } ;;
+				npm) TASK "*#Qt8mK4#*" "npm cache clean --force" || { error "*#Ft8mK5#*"; return 1; } ;;
+				pip) TASK "*#Pt7nL3#*" "pip cache purge" || { error "*#Gt7nL6#*"; return 1; } ;;
 			esac
 		fi
 	done
-	TASK "* Removing user cache files" "rm -rf ~/.cache/*" || { error "Failed to remove user cache files"; return 1; }
-	TASK "* Removing thumbnail files" "rm -rf ~/.thumbnails/*" || { error "Failed to remove thumbnail files"; return 1; }
+	TASK "*#Ot6mK2#*" "rm -rf ~/.cache/*" || { error "*#Ht8nR4#*"; return 1; }
+	TASK "*#Nt5nL1#*" "rm -rf ~/.thumbnails/*" || { error "*#It7mK5#*"; return 1; }
 	text "${CLR8}$(LINE = "24")${CLR0}"
 	text "*#Rt9nK6#*\n"
 }
