@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.018"
+Version="6.042.019"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -450,7 +450,7 @@ function DNS_ADDR () {
 }
 
 function FIND() {
-	[ $# -eq 0 ] && { error "No search terms provided. Please specify what to search for"; return 2; }
+	[ $# -eq 0 ] && { error "*#Zt5kP8#*"; return 2; }
 	pkg_manager=$(command -v apk apt opkg pacman yum zypper dnf | head -n1)
 	case ${pkg_manager##*/} in
 		apk) search_command="apk search" ;;
@@ -460,11 +460,11 @@ function FIND() {
 		yum) search_command="yum search" ;;
 		zypper) search_command="zypper search" ;;
 		dnf) search_command="dnf search" ;;
-		*) { error "Package manager not found or unsupported"; return 1; } ;;
+		*) { error "*#Bx9nK5#*"; return 1; } ;;
 	esac
 	for target in "$@"; do
-		text "${CLR3}SEARCH [$target]${CLR0}"
-		$search_command "$target" || { error "No results found for $target\n"; return 1; }
+		text "*#Hk7mP4#*"
+		$search_command "$target" || { error "*#Jt6nR3#*\n"; return 1; }
 		text "*#Rt9nK6#*\n"
 	done
 }
@@ -501,8 +501,8 @@ function FORMAT() {
 	option="$1"
 	value="$2"
 	result=""
-	[ -z "$value" ] && { error "No value provided for formatting"; return 2; }
-	[ -z "$option" ] && { error "No formatting option provided"; return 2; }
+	[ -z "$value" ] && { error "*#Yt7nK4#*"; return 2; }
+	[ -z "$option" ] && { error "*#Bk8mR5#*"; return 2; }
 	case "$option" in
 		-AA) result=$(text "$value" | tr '[:lower:]' '[:upper:]') ;;
 		-aa) result=$(text "$value" | tr '[:upper:]' '[:lower:]') ;;
@@ -521,54 +521,54 @@ function GET() {
 		case "$1" in
 			-x) extract=true; shift ;;
 			-r)
-				[ -z "$2" ] || [[ "$2" == -* ]] && { error "No filename specified after -r option\n"; return 2; }
+				[ -z "$2" ] || [[ "$2" == -* ]] && { error "*#Kp8nR4#*"; return 2; }
 				rename_file="$2"
 				shift 2
 				;;
-			-*) { error "Invalid option: $1\n"; return 2; } ;;
+			-*) { error "*#Wx5mL9#*"; return 2; } ;;
 			*) [ -z "$url" ] && url="$1" || target_dir="$1"; shift ;;
 		esac
 	done
-	[ -z "$url" ] && { error "No URL specified. Please provide a URL to download"; return 2; }
+	[ -z "$url" ] && { error "*#Yt6nR8#*"; return 2; }
 	[[ "$url" =~ ^(http|https|ftp):// ]] || url="https://$url"
 	output_file="${url##*/}"
 	[ -z "$output_file" ] && output_file="index.html"
-	[ "$target_dir" != "." ] && { mkdir -p "$target_dir" || { error "Failed to create directory $target_dir\n"; return 1; }; }
+	[ "$target_dir" != "." ] && { mkdir -p "$target_dir" || { error "*#Hx7mK5#*"; return 1; }; }
 	[ -n "$rename_file" ] && output_file="$rename_file"
 	output_path="$target_dir/$output_file"
 	url=$(text "$url" | sed -E 's#([^:])/+#\1/#g; s#^(https?|ftp):/+#\1://#')
-	text "${CLR3}DOWNLOAD [$url]${CLR0}"
+	text "*#Bw4nP7#*"
 	file_size=$(curl -sI "$url" | grep -i content-length | awk '{print $2}' | tr -d '\r')
 	size_limit="26214400"
 	if [ -n "$file_size" ] && [ "$file_size" -gt "$size_limit" ]; then
-		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_path" || { error "Failed to download file using wget\n"; return 1; }
+		wget --no-check-certificate --timeout=5 --tries=2 "$url" -O "$output_path" || { error "*#Vt5kR8#*"; return 1; }
 	else
-		curl --location --insecure --connect-timeout 5 --retry 2 "$url" -o "$output_path" || { error "Failed to download file using curl\n"; return 1; }
+		curl --location --insecure --connect-timeout 5 --retry 2 "$url" -o "$output_path" || { error "*#Mx6nL4#*"; return 1; }
 	fi
 	if [ -f "$output_path" ]; then
-		text "* File downloaded successfully to $output_path"
+		text "*#Jt7mP5#*"
 		if [ "$extract" = true ]; then
 			case "$output_file" in
-				*.tar.gz|*.tgz) tar -xzf "$output_path" -C "$target_dir" || { error "Failed to extract tar.gz file\n"; return 1; } ;;
-				*.tar) tar -xf "$output_path" -C "$target_dir" || { error "Failed to extract tar file\n"; return 1; } ;;
-				*.tar.bz2|*.tbz2) tar -xjf "$output_path" -C "$target_dir" || { error "Failed to extract tar.bz2 file\n"; return 1; } ;;
-				*.tar.xz|*.txz) tar -xJf "$output_path" -C "$target_dir" || { error "Failed to extract tar.xz file\n"; return 1; } ;;
-				*.zip) unzip "$output_path" -d "$target_dir" || { error "Failed to extract zip file\n"; return 1; } ;;
-				*.7z) 7z x "$output_path" -o"$target_dir" || { error "Failed to extract 7z file\n"; return 1; } ;;
-				*.rar) unrar x "$output_path" "$target_dir" || { error "Failed to extract rar file\n"; return 1; } ;;
-				*.zst) zstd -d "$output_path" -o "$target_dir" || { error "Failed to extract zst file\n"; return 1; } ;;
-				*) text "* File format not recognized for auto-extraction" ;;
+				*.tar.gz|*.tgz) tar -xzf "$output_path" -C "$target_dir" || { error "*#Nx5kR7#*"; return 1; } ;;
+				*.tar) tar -xf "$output_path" -C "$target_dir" || { error "*#Qw6mL8#*"; return 1; } ;;
+				*.tar.bz2|*.tbz2) tar -xjf "$output_path" -C "$target_dir" || { error "*#Yx3nP6#*"; return 1; } ;;
+				*.tar.xz|*.txz) tar -xJf "$output_path" -C "$target_dir" || { error "*#Zx8kM4#*"; return 1; } ;;
+				*.zip) unzip "$output_path" -d "$target_dir" || { error "*#Lw5nR9#*"; return 1; } ;;
+				*.7z) 7z x "$output_path" -o"$target_dir" || { error "*#Px7mK3#*"; return 1; } ;;
+				*.rar) unrar x "$output_path" "$target_dir" || { error "*#Tx4nL6#*"; return 1; } ;;
+				*.zst) zstd -d "$output_path" -o "$target_dir" || { error "*#Gx9kP5#*"; return 1; } ;;
+				*) text "*#Wx6mR8#*" ;;
 			esac
-			[ $? -eq 0 ] && text "* File extracted successfully to $target_dir"
+			[ $? -eq 0 ] && text "*#Cx5nL7#*"
 		fi
 		text "*#Rt9nK6#*\n"
 	else
-		{ error "Download failed. Check your internet connection and URL validity"; return 1; }
+		{ error "*#Bx7mP4#*"; return 1; }
 	fi
 }
 
 function INPUT() {
-	read -e -p "$1" "$2" || { error "Failed to read user input"; return 1; }
+	read -e -p "$1" "$2" || { error "*#Nt6mK8#*"; return 1; }
 }
 function INTERFACE() {
 	interface=""
@@ -580,7 +580,7 @@ function INTERFACE() {
 		sed 's/\s//g' | \
 		grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' | \
 		sort -n
-	) || { error "Failed to get network interfaces from /proc/net/dev"; return 1; }
+	) || { error "*#Xt7nK5#*"; return 1; }
 	i=1
 	while read -r interface_item; do
 		[ -n "$interface_item" ] && interfaces[$i]="$interface_item"
@@ -631,12 +631,12 @@ function INTERFACE() {
 				TX_BYTES) text "$tx_bytes" ;;
 				TX_PACKETS) text "$tx_packets" ;;
 				TX_DROP) text "$tx_drop" ;;
-				-i) text "$interface: RX: $(CONVERT_SIZE $rx_bytes), TX: $(CONVERT_SIZE $tx_bytes)" ;;
+				-i) text "*#Yt8nK4#*" ;;
 				"") text "$interface" ;;
-				*) { error "Invalid parameter: $1. Valid parameters are: RX_BYTES, RX_PACKETS, RX_DROP, TX_BYTES, TX_PACKETS, TX_DROP, -i"; return 2; } ;;
+				*) { error "*#Wx7mP5#*"; return 2; } ;;
 			esac
 		else
-			{ error "No stats found for interface: $interface"; return 1; }
+			{ error "*#Jt5nR8#*"; return 1; }
 		fi
 	done
 }
@@ -647,17 +647,17 @@ function IP_ADDR() {
 			ipv4_addr=$(timeout 1s dig +short -4 myip.opendns.com @resolver1.opendns.com 2>/dev/null) ||
 			ipv4_addr=$(timeout 1s curl -sL ipv4.ip.sb 2>/dev/null) ||
 			ipv4_addr=$(timeout 1s wget -qO- -4 ifconfig.me 2>/dev/null) ||
-			[ -n "$ipv4_addr" ] && text "$ipv4_addr" || { error "Failed to retrieve IPv4 address. Check your internet connection"; return 1; }
+			[ -n "$ipv4_addr" ] && text "$ipv4_addr" || { error "*#Kt6nR9#*"; return 1; }
 			;;
 		-6)
 			ipv6_addr=$(timeout 1s curl -sL ipv6.ip.sb 2>/dev/null) ||
 			ipv6_addr=$(timeout 1s wget -qO- -6 ifconfig.me 2>/dev/null) ||
-			[ -n "$ipv6_addr" ] && text "$ipv6_addr" || { error "Failed to retrieve IPv6 address. Check your internet connection"; return 1; }
+			[ -n "$ipv6_addr" ] && text "$ipv6_addr" || { error "*#Mx5nK7#*"; return 1; }
 			;;
 		*)
 			ipv4_addr=$(IP_ADDR -4)
 			ipv6_addr=$(IP_ADDR -6)
-			[ -z "$ipv4_addr$ipv6_addr" ] && { error "Failed to retrieve IP addresses"; return 1; }
+			[ -z "$ipv4_addr$ipv6_addr" ] && { error "*#Px7mR4#*"; return 1; }
 			[ -n "$ipv4_addr" ] && text "IPv4: $ipv4_addr"
 			[ -n "$ipv6_addr" ] && text "IPv6: $ipv6_addr"
 			return
@@ -673,18 +673,18 @@ function LAST_UPDATE() {
 	elif command -v rpm &>/dev/null; then
 		last_update=$(rpm -qa --last | head -n 1 | awk '{print $3, $4, $5, $6, $7}')
 	fi
-	[ -z "$last_update" ] && { error "Unable to determine last system update time. Update logs not found"; return 1; } || text "$last_update"
+	[ -z "$last_update" ] && { error "*#Ht7nR5#*"; return 1; } || text "$last_update"
 }
 function LINE() {
 	char="${1:--}"
 	length="${2:-80}"
-	printf '%*s\n' "$length" | tr ' ' "$char" || { error "Failed to print line"; return 1; }
+	printf '%*s\n' "$length" | tr ' ' "$char" || { error "*#Lt8nK6#*"; return 1; }
 }
 function LOAD_AVERAGE() {
 	if [ ! -f /proc/loadavg ]; then
-		load_data=$(uptime | sed 's/.*load average: //' | sed 's/,//g') || { error "Failed to get load average from uptime command"; return 1; }
+		load_data=$(uptime | sed 's/.*load average: //' | sed 's/,//g') || { error "*#Nt5kR8#*"; return 1; }
 	else
-		read -r one_min five_min fifteen_min _ _ < /proc/loadavg || { error "Failed to read load average from /proc/loadavg"; return 1; }
+		read -r one_min five_min fifteen_min _ _ < /proc/loadavg || { error "*#Ht6mL9#*"; return 1; }
 	fi
 	[[ $one_min =~ ^[0-9.]+$ ]] || one_min=0
 	[[ $five_min =~ ^[0-9.]+$ ]] || five_min=0
@@ -694,18 +694,14 @@ function LOAD_AVERAGE() {
 
 function MAC_ADDR() {
 	mac_address=$(ip link show | awk '/ether/ {print $2; exit}')
-	if [[ -n "$mac_address" ]]; then
-		text "$mac_address"
-	else
-		{ error "Unable to retrieve MAC address. Network interface not found"; return 1; }
-	fi
+	[[ -n "$mac_address" ]] && text "$mac_address" || { error "*#Wt7nK4#*"; return 1; }
 }
 function MEM_USAGE() {
-	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}') || { error "Failed to get memory usage statistics"; return 1; }
+	used=$(free -b | awk '/^Mem:/ {print $3}') || used=$(vmstat -s | grep 'used memory' | awk '{print $1*1024}') || { error "*#Zt6nR4#*"; return 1; }
 	total=$(free -b | awk '/^Mem:/ {print $2}') || total=$(grep MemTotal /proc/meminfo | awk '{print $2*1024}')
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}') || percentage=$(awk '/^MemTotal:/ {total=$2} /^MemAvailable:/ {available=$2} END {printf("%.2f", (total-available)/total * 100.0)}' /proc/meminfo)
 	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
-}
+} 
 
 function NET_PROVIDER() {
 	result=$(timeout 1s curl -sL ipinfo.io | grep -oP '"org"\s*:\s*"\K[^"]+') ||
