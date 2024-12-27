@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.020"
+Version="6.042.021"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -184,7 +184,7 @@ function CHECK_OS() {
 			elif [ -f /etc/alpine-release ]; then
 				cat /etc/alpine-release
 			else
-				{ error "*#Rn5kP8*"; return 1; }
+				{ error "*#Rn5kP8#*"; return 1; }
 			fi
 			;;
 		-n)
@@ -701,7 +701,7 @@ function MEM_USAGE() {
 	total=$(free -b | awk '/^Mem:/ {print $2}') || total=$(grep MemTotal /proc/meminfo | awk '{print $2*1024}')
 	percentage=$(free | awk '/^Mem:/ {printf("%.2f"), $3/$2 * 100.0}') || percentage=$(awk '/^MemTotal:/ {total=$2} /^MemAvailable:/ {available=$2} END {printf("%.2f", (total-available)/total * 100.0)}' /proc/meminfo)
 	text "$(CONVERT_SIZE "$used") / $(CONVERT_SIZE "$total") ($percentage%)"
-} 
+}
 
 function NET_PROVIDER() {
 	result=$(timeout 1s curl -sL ipinfo.io | grep -oP '"org"\s*:\s*"\K[^"]+') ||
