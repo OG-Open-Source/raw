@@ -7,23 +7,21 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 > [raw/](.)<br>
 >  > [docs/](docs/)<br>
 >  >  > [apmd.cmd.md](docs/apmd.cmd.md)<br>
->  >  > [cf-proxy.js.md](docs/cf-proxy.js.md)<br>
->  >  > [gtxt.sh.md](docs/gtxt.sh.md)<br>
+>  >  > [cf_proxy.js.md](docs/cf_proxy.js.md)<br>
 >  >  > [netreinstall.sh.md](docs/netreinstall.sh.md)<br>
 >  >  > [utilkit.sh.md](docs/utilkit.sh.md)<br>
 >
 >  > [shell/](shell/)<br>
 >  >  > [dd.sh](shell/dd.sh)<br>
+>  >  > [get_utilkit.sh](shell/get_utilkit.sh)<br>
 >  >  > [netreinstall.sh](shell/netreinstall.sh)<br>
->  >  > [update-utilkit.sh](shell/update-utilkit.sh)<br>
 >  >  > [utilkit.sh](shell/utilkit.sh)<br>
 >
 >  > [space/](space/)<br>
 >  >  > [apmd.cmd](space/apmd.cmd)<br>
->  >  > [gtxt.sh](space/gtxt.sh)<br>
->
->  > [worker/](worker/)<br>
->  >  > [cf-proxy.js](worker/cf-proxy.js)<br>
+>  >  > [generate_text.sh](space/generate_text.sh)<br>
+>  >  > [pi_benchmark.sh](space/pi_benchmark.sh)<br>
+>  >  > [utilkit.json](space/utilkit.json)<br>
 >
 >  > [README.md](README.md)<br>
 
