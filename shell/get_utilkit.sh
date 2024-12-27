@@ -3,7 +3,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="get_utilkit.sh"
-Version="2024.12.13"
+Version="2024.12.27"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -61,7 +61,9 @@ apply_translations() {
 }
 
 if [ -f ~/utilkit.sh ]; then
+	text "${CLR2}Update utilkit.sh${CLR0}"
 	curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh -o utilkit.sh &>/dev/null
+	text "${CLR2}Apply translations${CLR0}"
 	apply_translations
 else
 	version=$(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh | grep -oP 'Version="\K[^"]+')
