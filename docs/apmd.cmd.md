@@ -92,16 +92,16 @@ apmd.cmd "." -d "node_modules" -f "./local.txt docs/secret.md"
 
 ```markdown
 > [docs/](.)<br>
->  > [image/](image/)<br>
->  >  > [diagram.png](image/diagram.png)<br>
->  >  > [style.css](image/style.css)<br>
->  >  > [README.md](image/README.md)<br>
+> > [image/](image/)<br>
+> > > [diagram.png](image/diagram.png)<br>
+> > > [style.css](image/style.css)<br>
+> > > [README.md](image/README.md)<br>
 >
->  > [scripts/](scripts/)<br>
->  >  > [main.js](scripts/main.js)<br>
+> > [scripts/](scripts/)<br>
+> > > [main.js](scripts/main.js)<br>
 >
->  > [index.md](index.md)<br>
->  > [README.md](README.md)<br>
+> > [index.md](index.md)<br>
+> > [README.md](README.md)<br>
 ```
 
 ## 配置
@@ -113,20 +113,20 @@ apmd.cmd "." -d "node_modules" -f "./local.txt docs/secret.md"
 
 ## 常見問題
 
-**Q：如何隱藏特定目錄下的所有檔案？**<br>
+**Q：如何隱藏特定目錄下的所有檔案？**  
 A：使用 `-d` 參數直接隱藏整個目錄即可。例如：`apmd.cmd "." -d "private_folder"`
 
-**Q：如何只隱藏某個目錄下的特定檔案？**<br>
+**Q：如何只隱藏某個目錄下的特定檔案？**  
 A：使用 `-f` 參數並指定完整路徑。例如：`apmd.cmd "." -f "docs/secret.txt"`
 
-**Q：為什麼某些檔案沒有顯示在輸出中？**<br>
+**Q：為什麼某些檔案沒有顯示在輸出中？**  
 A：檔案可能被以下規則隱藏：
 
 - 以 `.` 開頭的隱藏檔案
 - 通過 `-d` 或 `-f` 參數指定的檔案
 - 超過 2 層深度的檔案
 
-**Q：為什麼某些檔案未顯示？**<br>
+**Q：為什麼某些檔案未顯示？**  
 A：可能原因：
 
 - 檔案位於第 3 層以上目錄

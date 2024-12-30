@@ -73,7 +73,7 @@ for /f "tokens=*" %%D in ('dir /b /a:d "!current_dir!" 2^>nul ^| findstr /v "^\.
         if not "!first_item!"=="1" (
             echo ^>
         )
-        echo ^>  ^> [%%D/](%%D/^)^<br^>
+        echo ^> ^> [%%D/](%%D/^)^<br^>
 
         :: Process files in subdirectory
         pushd "!current_dir!\%%D"
@@ -98,13 +98,13 @@ for /f "tokens=*" %%D in ('dir /b /a:d "!current_dir!" 2^>nul ^| findstr /v "^\.
             )
             if not defined skip_file (
                 if not "%%F"=="README.md" (
-                    echo ^>  ^>  ^> [%%F](%%D/%%F^)^<br^>
+                    echo ^> ^> ^> [%%F](%%D/%%F^)^<br^>
                 )
             )
         )
         :: Process README.md last (if exists)
         if exist "README.md" (
-            echo ^>  ^>  ^> [README.md](%%D/README.md^)^<br^>
+            echo ^> ^> ^> [README.md](%%D/README.md^)^<br^>
         )
         popd
         set "first_item=0"
@@ -140,9 +140,9 @@ for /f "tokens=*" %%F in ('dir /b /a:-d 2^>nul ^| findstr /v "^\..*"') do (
                 set "has_files=1"
             )
             if "!CURRENT_DIR_NAME!"=="%DIR_NAME%" (
-                echo ^>  ^> [%%F](%%F^)^<br^>
+                echo ^> ^> [%%F](%%F^)^<br^>
             ) else (
-                echo ^>  ^> [%%F](!CURRENT_DIR_NAME!/%%F^)^<br^>
+                echo ^> ^> [%%F](!CURRENT_DIR_NAME!/%%F^)^<br^>
             )
         )
     )
@@ -154,9 +154,9 @@ if exist "README.md" (
         if not "!first_item!"=="1" echo ^>
     )
     if "!CURRENT_DIR_NAME!"=="%DIR_NAME%" (
-        echo ^>  ^> [README.md](README.md^)^<br^>
+        echo ^> ^> [README.md](README.md^)^<br^>
     ) else (
-        echo ^>  ^> [README.md](!CURRENT_DIR_NAME!/README.md^)^<br^>
+        echo ^> ^> [README.md](!CURRENT_DIR_NAME!/README.md^)^<br^>
     )
 )
 popd
