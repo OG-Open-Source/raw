@@ -21,8 +21,8 @@ fi
 start_time=$(date +%s.%N)
 
 # 生成隨機文字，使用更有效率的方式
-< /dev/urandom LC_ALL=C tr -dc 'a-zA-Z0-9' | head -c $word_count > "$output_file"
-echo >> "$output_file"
+LC_ALL=C tr </dev/urandom -dc 'a-zA-Z0-9' | head -c $word_count >"$output_file"
+echo >>"$output_file"
 
 # 記錄結束時間並計算執行時間
 end_time=$(date +%s.%N)

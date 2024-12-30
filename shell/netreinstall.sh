@@ -89,93 +89,325 @@ VER=""
 
 while [[ $# -ge 1 ]]; do
 	case $1 in
-		-debian) shift; Relese="Debian"; tmpDIST="$1"; shift ;;
-		-ubuntu) shift; ddMode="1"; finalDIST="$1"; targetRelese="Ubuntu"; shift ;;
-		-kali) shift; Relese="Kali"; tmpDIST="$1"; shift ;;
-		-centos) shift; Relese="CentOS"; tmpDIST="$1"; shift ;;
-		-rocky) shift; Relese="RockyLinux"; tmpDIST="$1"; shift ;;
-		-alma) shift; Relese="AlmaLinux"; tmpDIST="$1"; shift ;;
-		-fedora) shift; Relese="Fedora"; tmpDIST="$1"; shift ;;
-		-alpine) shift; Relese="AlpineLinux"; tmpDIST="$1"; shift ;;
-		-windows) shift; ddMode="1"; finalDIST="$1"; targetRelese="Windows"; shift ;;
-		-architecture) shift; tmpVER="$1"; shift ;;
-		-lang) shift; targetLang="$1"; shift ;;
-		-dd) shift; ddMode="1"; tmpURL="$1"; shift ;;
-		-mirror) shift; isMirror="1"; tmpMirror="$1"; shift ;;
-		-rdp) shift; setRDP="1"; WinRemote="$1"; shift ;;
-		-raid) shift; setRaid="$1"; shift ;;
-		-setdisk) shift; setDisk="$1"; shift ;;
-		-swap) shift; setSwap="$1"; shift ;;
-		-partition) shift; partitionTable="$1"; shift ;;
-		-filesystem) shift; setFileSystem="$1"; shift ;;
-		-timezone) shift; TimeZone="$1"; shift ;;
-		-cmd) shift; setCMD="$1"; shift ;;
-		-console) shift; setConsole="$1"; shift ;;
-		-firmware) shift; IncFirmware="1"; shift ;;
-		-pwd) shift; tmpWORD="$1"; shift ;;
-		-hostname) shift; tmpHostName="$1"; shift ;;
-		-port) shift; sshPORT="$1"; shift ;;
-		--networkstack) shift; setIpStack="$1"; shift ;;
-		--ip-addr) shift; ipAddr="$1"; shift ;;
-		--ip-mask) shift; ipMask="$1"; shift ;;
-		--ip-gate) shift; ipGate="$1"; shift ;;
-		--ip-dns) shift; ipDNS="$1"; shift ;;
-		--ip-set) shift; ipAddr="$1"; ipMask="$2"; ipGate="$3"; shift 3 ;;
-		--ip6-addr) shift; ip6Addr="$1"; shift ;;
-		--ip6-mask) shift; ip6Mask="$1"; shift ;;
-		--ip6-gate) shift; ip6Gate="$1"; shift ;;
-		--ip6-dns) shift; ip6DNS="$1"; shift ;;
-		--ip6-set) shift; ip6Addr="$1"; ip6Mask="$2"; ip6Gate="$3"; shift 3 ;;
-		--network) shift; tmpDHCP="$1"; shift ;;
-		--adapter) shift; interfaceSelect="$1"; shift ;;
-		--netdevice-unite) shift; setInterfaceName="1" ;;
-		--autoplugadapter) shift; autoPlugAdapter="$1"; shift ;;
-		--loader) shift; loaderMode="1"; shift ;;
-		--motd) shift; setMotd="1"; shift ;;
-		--fail2ban) setFail2ban="1"; shift ;;
-		--kejilion) setKejilion="1"; shift ;;
-		--setdns) shift; setDns="1" ;;
-		--cloudkernel) shift; setCloudKernel="$1"; shift ;;
-		--cloudimage) shift; useCloudImage="1" ;;
-		--filetype) shift; setFileType="$1"; shift ;;
-		--setipv6) shift; tmpSetIPv6="$1"; shift ;;
-		--bbr) shift; enableBBR="1"; shift ;;
-		--allbymyself) shift; setAutoConfig="0"; shift ;;
-		--nomemcheck) shift; setMemCheck="0"; shift ;;
-		--netbootxyz) shift; setNetbootXyz="1"; shift ;;
-		--reboot) shift; setAutoReboot="1" ;;
-		*)
-			[[ "$1" != "error" ]] && echo -e "\nInvaild option: "$1"\n"
-			echo -e "${CLR2}Usage:${CLR0}\n\tbash $(basename $0) [OPTIONS]\n"
-			echo -e "${CLR3}Options:${CLR0}"
-			echo -e "\t${CLR8}-debian${CLR0}\t\t[10/11/12]\t\tSpecify Debian distribution (${CLR2}'12'${CLR0} is the stable version)"
-			echo -e "\t${CLR8}-ubuntu${CLR0}\t\t[20.04/22.04/24.04]\tSpecify Ubuntu distribution (${CLR2}'24.04'${CLR0} is the stable version)"
-			echo -e "\t${CLR8}-kali${CLR0}\t\t[rolling/dev]\t\tSpecify Kali Linux distribution (${CLR2}'rolling'${CLR0} is the stable version)"
-			echo -e "\t${CLR8}-centos${CLR0}\t\t[7/8/9]\t\t\tSpecify CentOS distribution (${CLR2}'9'${CLR0} is the stable version)"
-			echo -e "\t${CLR8}-rocky${CLR0}\t\t[8/9]\t\t\tSpecify Rocky Linux distribution (${CLR2}'9'${CLR0} is the stable version)"
-			echo -e "\t${CLR8}-alma${CLR0}\t\t[8.10/9.4]\t\tSpecify AlmaLinux distribution (${CLR2}'9.4'${CLR0} is the stable version)"
-			echo -e "\t${CLR8}-fedora${CLR0}\t\t[39/40]\t\t\tSpecify Fedora Linux distribution (${CLR2}'40'${CLR0} is the stable version)"
-			echo -e "\t${CLR8}-alpine${CLR0}\t\t[3.16~3.20/edge]\tSpecify Alpine Linux distribution (${CLR2}'edge'${CLR0} is the stable version)"
-			echo -e "\t${CLR8}-windows${CLR0}\t[DIST]\t\t\tSpecify Microsoft Windows distribution"
-			echo -e "\t${CLR8}-architecture${CLR0}\t[32/i386|64/amd64|arm/arm64]"
-			echo -e "\t${CLR8}-mirror${CLR0}\t\t[URL]\t\t\tSpecify mirror URL for reinstall distribution"
-			echo -e "\t${CLR8}-lang${CLR0}\t\t[LANG]\t\t\tNot for Linux, specify language for Windows"
-			echo -e "\t${CLR8}-dd${CLR0}\t\t[URL]\t\t\tSpecify an installation package to reinstall"
-			echo -e "\t${CLR8}-hostname${CLR0}\t[HOSTNAME]"
-			echo -e "\t${CLR8}-pwd${CLR0}\t\t[PASSWORD]"
-			echo -e "\t${CLR8}-port${CLR0}\t\t[SSH-PORT]"
-			echo -e "\t${CLR8}--ip-addr${CLR0}\t[123.456.789.012] / --ip-mask [24-32] / --ip-gate [123.456.789.012]"
-			echo -e "\t${CLR8}--ip-set${CLR0}\t[123.456.789.012] [24-32] [123.456.789.1]"
-			echo -e "\t${CLR8}--ip6-addr${CLR0}\t[1234:5678:90ab:cdef:1234:5678:90ab:cdef] / --ip6-mask [1-128] / --ip6-gate [1234:5678:90ab:cdef:1234:5678:90ab:cdef]"
-			echo -e "\t${CLR8}--ip6-set${CLR0}\t[1234:5678:90ab:cdef:1234:5678:90ab:cdef] [1-128] [1234:5678:90ab:cdef:1234:5678:90ab:cdef]"
-			echo -e "\t${CLR8}--setipv6${CLR0}\tAuto set IPv6 address"
-			echo -e "\t${CLR8}--bbr${CLR0}\t\tEnable BBR congestion control algorithm"
-			echo -e "\t${CLR8}--fail2ban${CLR0}\tInstall and configure fail2ban"
-			echo -e "\t${CLR8}--kejilion${CLR0}\tInstall and configure Kejilion.sh"
-			echo -e "\t${CLR8}--reboot${CLR0}\tAuto reboot after preparation"
-			echo -e "\n${CLR6}LAST UPDATE: 2024/12/01${CLR0}"
-			exit 1
-			;;
+	-debian)
+		shift
+		Relese="Debian"
+		tmpDIST="$1"
+		shift
+		;;
+	-ubuntu)
+		shift
+		ddMode="1"
+		finalDIST="$1"
+		targetRelese="Ubuntu"
+		shift
+		;;
+	-kali)
+		shift
+		Relese="Kali"
+		tmpDIST="$1"
+		shift
+		;;
+	-centos)
+		shift
+		Relese="CentOS"
+		tmpDIST="$1"
+		shift
+		;;
+	-rocky)
+		shift
+		Relese="RockyLinux"
+		tmpDIST="$1"
+		shift
+		;;
+	-alma)
+		shift
+		Relese="AlmaLinux"
+		tmpDIST="$1"
+		shift
+		;;
+	-fedora)
+		shift
+		Relese="Fedora"
+		tmpDIST="$1"
+		shift
+		;;
+	-alpine)
+		shift
+		Relese="AlpineLinux"
+		tmpDIST="$1"
+		shift
+		;;
+	-windows)
+		shift
+		ddMode="1"
+		finalDIST="$1"
+		targetRelese="Windows"
+		shift
+		;;
+	-architecture)
+		shift
+		tmpVER="$1"
+		shift
+		;;
+	-lang)
+		shift
+		targetLang="$1"
+		shift
+		;;
+	-dd)
+		shift
+		ddMode="1"
+		tmpURL="$1"
+		shift
+		;;
+	-mirror)
+		shift
+		isMirror="1"
+		tmpMirror="$1"
+		shift
+		;;
+	-rdp)
+		shift
+		setRDP="1"
+		WinRemote="$1"
+		shift
+		;;
+	-raid)
+		shift
+		setRaid="$1"
+		shift
+		;;
+	-setdisk)
+		shift
+		setDisk="$1"
+		shift
+		;;
+	-swap)
+		shift
+		setSwap="$1"
+		shift
+		;;
+	-partition)
+		shift
+		partitionTable="$1"
+		shift
+		;;
+	-filesystem)
+		shift
+		setFileSystem="$1"
+		shift
+		;;
+	-timezone)
+		shift
+		TimeZone="$1"
+		shift
+		;;
+	-cmd)
+		shift
+		setCMD="$1"
+		shift
+		;;
+	-console)
+		shift
+		setConsole="$1"
+		shift
+		;;
+	-firmware)
+		shift
+		IncFirmware="1"
+		shift
+		;;
+	-pwd)
+		shift
+		tmpWORD="$1"
+		shift
+		;;
+	-hostname)
+		shift
+		tmpHostName="$1"
+		shift
+		;;
+	-port)
+		shift
+		sshPORT="$1"
+		shift
+		;;
+	--networkstack)
+		shift
+		setIpStack="$1"
+		shift
+		;;
+	--ip-addr)
+		shift
+		ipAddr="$1"
+		shift
+		;;
+	--ip-mask)
+		shift
+		ipMask="$1"
+		shift
+		;;
+	--ip-gate)
+		shift
+		ipGate="$1"
+		shift
+		;;
+	--ip-dns)
+		shift
+		ipDNS="$1"
+		shift
+		;;
+	--ip-set)
+		shift
+		ipAddr="$1"
+		ipMask="$2"
+		ipGate="$3"
+		shift 3
+		;;
+	--ip6-addr)
+		shift
+		ip6Addr="$1"
+		shift
+		;;
+	--ip6-mask)
+		shift
+		ip6Mask="$1"
+		shift
+		;;
+	--ip6-gate)
+		shift
+		ip6Gate="$1"
+		shift
+		;;
+	--ip6-dns)
+		shift
+		ip6DNS="$1"
+		shift
+		;;
+	--ip6-set)
+		shift
+		ip6Addr="$1"
+		ip6Mask="$2"
+		ip6Gate="$3"
+		shift 3
+		;;
+	--network)
+		shift
+		tmpDHCP="$1"
+		shift
+		;;
+	--adapter)
+		shift
+		interfaceSelect="$1"
+		shift
+		;;
+	--netdevice-unite)
+		shift
+		setInterfaceName="1"
+		;;
+	--autoplugadapter)
+		shift
+		autoPlugAdapter="$1"
+		shift
+		;;
+	--loader)
+		shift
+		loaderMode="1"
+		shift
+		;;
+	--motd)
+		shift
+		setMotd="1"
+		shift
+		;;
+	--fail2ban)
+		setFail2ban="1"
+		shift
+		;;
+	--kejilion)
+		setKejilion="1"
+		shift
+		;;
+	--setdns)
+		shift
+		setDns="1"
+		;;
+	--cloudkernel)
+		shift
+		setCloudKernel="$1"
+		shift
+		;;
+	--cloudimage)
+		shift
+		useCloudImage="1"
+		;;
+	--filetype)
+		shift
+		setFileType="$1"
+		shift
+		;;
+	--setipv6)
+		shift
+		tmpSetIPv6="$1"
+		shift
+		;;
+	--bbr)
+		shift
+		enableBBR="1"
+		shift
+		;;
+	--allbymyself)
+		shift
+		setAutoConfig="0"
+		shift
+		;;
+	--nomemcheck)
+		shift
+		setMemCheck="0"
+		shift
+		;;
+	--netbootxyz)
+		shift
+		setNetbootXyz="1"
+		shift
+		;;
+	--reboot)
+		shift
+		setAutoReboot="1"
+		;;
+	*)
+		[[ "$1" != "error" ]] && echo -e "\nInvaild option: "$1"\n"
+		echo -e "${CLR2}Usage:${CLR0}\n\tbash $(basename $0) [OPTIONS]\n"
+		echo -e "${CLR3}Options:${CLR0}"
+		echo -e "\t${CLR8}-debian${CLR0}\t\t[10/11/12]\t\tSpecify Debian distribution (${CLR2}'12'${CLR0} is the stable version)"
+		echo -e "\t${CLR8}-ubuntu${CLR0}\t\t[20.04/22.04/24.04]\tSpecify Ubuntu distribution (${CLR2}'24.04'${CLR0} is the stable version)"
+		echo -e "\t${CLR8}-kali${CLR0}\t\t[rolling/dev]\t\tSpecify Kali Linux distribution (${CLR2}'rolling'${CLR0} is the stable version)"
+		echo -e "\t${CLR8}-centos${CLR0}\t\t[7/8/9]\t\t\tSpecify CentOS distribution (${CLR2}'9'${CLR0} is the stable version)"
+		echo -e "\t${CLR8}-rocky${CLR0}\t\t[8/9]\t\t\tSpecify Rocky Linux distribution (${CLR2}'9'${CLR0} is the stable version)"
+		echo -e "\t${CLR8}-alma${CLR0}\t\t[8.10/9.4]\t\tSpecify AlmaLinux distribution (${CLR2}'9.4'${CLR0} is the stable version)"
+		echo -e "\t${CLR8}-fedora${CLR0}\t\t[39/40]\t\t\tSpecify Fedora Linux distribution (${CLR2}'40'${CLR0} is the stable version)"
+		echo -e "\t${CLR8}-alpine${CLR0}\t\t[3.16~3.20/edge]\tSpecify Alpine Linux distribution (${CLR2}'edge'${CLR0} is the stable version)"
+		echo -e "\t${CLR8}-windows${CLR0}\t[DIST]\t\t\tSpecify Microsoft Windows distribution"
+		echo -e "\t${CLR8}-architecture${CLR0}\t[32/i386|64/amd64|arm/arm64]"
+		echo -e "\t${CLR8}-mirror${CLR0}\t\t[URL]\t\t\tSpecify mirror URL for reinstall distribution"
+		echo -e "\t${CLR8}-lang${CLR0}\t\t[LANG]\t\t\tNot for Linux, specify language for Windows"
+		echo -e "\t${CLR8}-dd${CLR0}\t\t[URL]\t\t\tSpecify an installation package to reinstall"
+		echo -e "\t${CLR8}-hostname${CLR0}\t[HOSTNAME]"
+		echo -e "\t${CLR8}-pwd${CLR0}\t\t[PASSWORD]"
+		echo -e "\t${CLR8}-port${CLR0}\t\t[SSH-PORT]"
+		echo -e "\t${CLR8}--ip-addr${CLR0}\t[123.456.789.012] / --ip-mask [24-32] / --ip-gate [123.456.789.012]"
+		echo -e "\t${CLR8}--ip-set${CLR0}\t[123.456.789.012] [24-32] [123.456.789.1]"
+		echo -e "\t${CLR8}--ip6-addr${CLR0}\t[1234:5678:90ab:cdef:1234:5678:90ab:cdef] / --ip6-mask [1-128] / --ip6-gate [1234:5678:90ab:cdef:1234:5678:90ab:cdef]"
+		echo -e "\t${CLR8}--ip6-set${CLR0}\t[1234:5678:90ab:cdef:1234:5678:90ab:cdef] [1-128] [1234:5678:90ab:cdef:1234:5678:90ab:cdef]"
+		echo -e "\t${CLR8}--setipv6${CLR0}\tAuto set IPv6 address"
+		echo -e "\t${CLR8}--bbr${CLR0}\t\tEnable BBR congestion control algorithm"
+		echo -e "\t${CLR8}--fail2ban${CLR0}\tInstall and configure fail2ban"
+		echo -e "\t${CLR8}--kejilion${CLR0}\tInstall and configure Kejilion.sh"
+		echo -e "\t${CLR8}--reboot${CLR0}\tAuto reboot after preparation"
+		echo -e "\n${CLR6}LAST UPDATE: 2024/12/01${CLR0}"
+		exit 1
+		;;
 	esac
 done
 
@@ -249,7 +481,7 @@ selectMirror() {
 		)
 	fi
 	[[ "$New" =~ ^https?:// ]] && MirrorBackup[$Relese]="${New%*/} ${MirrorBackup[$Relese]}"
-	IFS=' ' read -ra mirrors <<< "${MirrorBackup[$Relese]}"
+	IFS=' ' read -ra mirrors <<<"${MirrorBackup[$Relese]}"
 	for mirror in "${mirrors[@]}"; do
 		Current="$mirror"
 		[ -n "$Current" ] || continue
@@ -1035,13 +1267,13 @@ checkVER() {
 	ArchName=$(uname -m)
 	[[ -z "$ArchName" ]] && ArchName=$(echo $(hostnamectl status | grep "Architecture" | cut -d':' -f 2))
 	case $ArchName in
-		arm64) VER="arm64" ;;
-		aarch64) VER="aarch64" ;;
-		x86 | i386 | i686) VER="i386" ;;
-		x86_64) VER="x86_64" ;;
-		x86-64) VER="x86-64" ;;
-		amd64) VER="amd64" ;;
-		*) VER="" ;;
+	arm64) VER="arm64" ;;
+	aarch64) VER="aarch64" ;;
+	x86 | i386 | i686) VER="i386" ;;
+	x86_64) VER="x86_64" ;;
+	x86-64) VER="x86-64" ;;
+	amd64) VER="amd64" ;;
+	*) VER="" ;;
 	esac
 	if [[ "$linux_release" == 'debian' ]] || [[ "$linux_release" == 'ubuntu' ]] || [[ "$linux_release" == 'kali' ]]; then
 		if [[ "$VER" == "x86_64" ]] || [[ "$VER" == "x86-64" ]]; then
@@ -2478,7 +2710,6 @@ if [[ "$SpikCheckDIST" == '0' ]]; then
 	}
 	echo -e "${CLR2}Success${CLR0}"
 fi
-
 
 echo -e "\nMemory Usage:\t\t${CLR2}$(MEM_USAGE)${CLR0}"
 echo -e "Swap Usage:\t\t${CLR2}$(SWAP_USAGE)${CLR0}"

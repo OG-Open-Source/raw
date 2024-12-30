@@ -3,9 +3,9 @@
 # [ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/update-utilkit.sh) && source ~/utilkit.sh
 
 # 設定預設值
-DEFAULT_DURATION=10    # 預設執行時間（秒）
-DEFAULT_SCALE=1000  # 預設精確度
-DEFAULT_THREADS=$(nproc)  # 預設使用所有可用 CPU 核心
+DEFAULT_DURATION=10      # 預設執行時間（秒）
+DEFAULT_SCALE=1000       # 預設精確度
+DEFAULT_THREADS=$(nproc) # 預設使用所有可用 CPU 核心
 
 # 顯示使用方法
 show_usage() {
@@ -24,11 +24,11 @@ THREADS=$DEFAULT_THREADS
 
 while getopts "t:s:p:h" opt; do
     case $opt in
-        t) DURATION=$OPTARG ;;
-        s) SCALE=$OPTARG ;;
-        p) THREADS=$OPTARG ;;
-        h) show_usage ;;
-        ?) show_usage ;;
+    t) DURATION=$OPTARG ;;
+    s) SCALE=$OPTARG ;;
+    p) THREADS=$OPTARG ;;
+    h) show_usage ;;
+    ?) show_usage ;;
     esac
 done
 
@@ -44,18 +44,18 @@ CONTROL_FILE="$TEMP_DIR/running"
 RESULT_FILE="$TEMP_DIR/final_result"
 
 # 初始化控制檔案
-echo "1" > "$CONTROL_FILE"
+echo "1" >"$CONTROL_FILE"
 
 # 確保清理所有資源和進程
 cleanup() {
     # 先標記停止
-    echo "0" > "$CONTROL_FILE"
-    
+    echo "0" >"$CONTROL_FILE"
+
     # 等待所有背景進程完成
     for pid in ${pids[@]}; do
         wait $pid 2>/dev/null
     done
-    
+
     # 最後清理資源
     rm -rf "$TEMP_DIR"
 }
@@ -78,28 +78,28 @@ start_time=$(date +%s.%N)
 declare -a pids=()
 
 # 啟動多個背景進程
-for ((i=1; i<=THREADS; i++)); do
+for ((i = 1; i <= THREADS; i++)); do
     {
         iterations=0
         last_result=""
-        
+
         while [ -f "$CONTROL_FILE" ] && [ "$(cat $CONTROL_FILE 2>/dev/null)" = "1" ]; do
             # 計算並保存結果
             last_result=$(calculate_pi $SCALE)
             iterations=$((iterations + 1))
-            
+
             # 定期保存進度（每10次迭代）
             if [ $((iterations % 10)) -eq 0 ]; then
-                echo "$iterations" > "$TEMP_DIR/count_$i"
-                echo "$last_result" > "$TEMP_DIR/result_$i"
+                echo "$iterations" >"$TEMP_DIR/count_$i"
+                echo "$last_result" >"$TEMP_DIR/result_$i"
             fi
         done
-        
+
         # 最終保存結果
-        echo "$iterations" > "$TEMP_DIR/count_$i"
-        echo "$last_result" > "$TEMP_DIR/result_$i"
+        echo "$iterations" >"$TEMP_DIR/count_$i"
+        echo "$last_result" >"$TEMP_DIR/result_$i"
     } &>/dev/null &
-    
+
     # 保存進程 ID
     pids+=($!)
 done
@@ -107,7 +107,7 @@ done
 # 設定定時器（靜默執行）
 (
     sleep $DURATION
-    echo "0" > "$CONTROL_FILE"
+    echo "0" >"$CONTROL_FILE"
 ) &>/dev/null &
 timer_pid=$!
 
@@ -128,11 +128,11 @@ total_time=$(echo "$end_time - $start_time" | bc)
 total_iterations=0
 last_result=""
 
-for ((i=1; i<=THREADS; i++)); do
+for ((i = 1; i <= THREADS; i++)); do
     if [ -f "$TEMP_DIR/count_$i" ]; then
         count=$(cat "$TEMP_DIR/count_$i" 2>/dev/null || echo "0")
         total_iterations=$((total_iterations + count))
-        
+
         # 保存最後一個有效結果
         if [ -f "$TEMP_DIR/result_$i" ]; then
             last_result=$(cat "$TEMP_DIR/result_$i")
@@ -153,7 +153,7 @@ if [ -n "$last_result" ]; then
 else
     echo "無法取得計算結果"
 fi
-echo  # 新增一個空行
+echo # 新增一個空行
 
 # 系統資訊收集
 echo -e "\n\n系統資訊："
@@ -172,7 +172,7 @@ echo "L2 快取：$(getconf LEVEL2_CACHE_SIZE 2>/dev/null || echo "無法取得"
 echo "L3 快取：$(getconf LEVEL3_CACHE_SIZE 2>/dev/null || echo "無法取得") bytes"
 
 # 如果有 GPU，顯示 GPU 資訊
-if command -v nvidia-smi &> /dev/null; then
+if command -v nvidia-smi &>/dev/null; then
     echo -e "\nGPU 資訊："
     nvidia-smi --query-gpu=name,temperature.gpu,utilization.gpu,memory.used,memory.total --format=csv,noheader
 fi
