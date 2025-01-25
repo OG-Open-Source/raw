@@ -13,14 +13,14 @@ else
 		if [[ $word_count =~ ^[0-9]+$ ]] && [ $word_count -gt 0 ]; then
 			break
 		fi
-		echo "輸入無效，請輸入數字。"
+		echo "輸入無效,請輸入數字."
 	done
 fi
 
 # 記錄開始時間
 start_time=$(date +%s.%N)
 
-# 生成隨機文字，使用更有效率的方式
+# 生成隨機文字,使用更有效率的方式
 LC_ALL=C tr </dev/urandom -dc 'a-zA-Z0-9' | head -c $word_count >"$output_file"
 echo >>"$output_file"
 
@@ -33,9 +33,9 @@ formatted_time=$(printf "%.4f" $execution_time)
 
 # 確認檔案是否成功生成
 if [ -f "$output_file" ]; then
-	echo "已成功生成 $word_count 字的隨機文字到檔案 $output_file 中。"
+	echo "已成功生成 $word_count 字的隨機文字到檔案 $output_file 中."
 	echo "執行時間: ${formatted_time} 秒"
 else
-	echo "檔案生成失敗。"
+	echo "檔案生成失敗."
 	exit 1
 fi

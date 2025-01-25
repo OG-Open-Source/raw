@@ -3,17 +3,17 @@
 # [ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/update-utilkit.sh) && source ~/utilkit.sh
 
 # 設定預設值
-DEFAULT_DURATION=10      # 預設執行時間（秒）
+DEFAULT_DURATION=10      # 預設執行時間(秒)
 DEFAULT_SCALE=1000       # 預設精確度
 DEFAULT_THREADS=$(nproc) # 預設使用所有可用 CPU 核心
 
 # 顯示使用方法
 show_usage() {
-    echo "用法：$0 [-t 執行時間] [-s 精確度] [-p 執行緒數]"
-    echo "選項："
-    echo "  -t：執行時間（秒），預設為 ${DEFAULT_DURATION} 秒"
-    echo "  -s：計算精確度，預設為 ${DEFAULT_SCALE} 位"
-    echo "  -p：並行執行緒數，預設為 ${DEFAULT_THREADS} 個"
+    echo "用法:$0 [-t 執行時間] [-s 精確度] [-p 執行緒數]"
+    echo "選項:"
+    echo "  -t:執行時間(秒),預設為 ${DEFAULT_DURATION} 秒"
+    echo "  -s:計算精確度,預設為 ${DEFAULT_SCALE} 位"
+    echo "  -p:並行執行緒數,預設為 ${DEFAULT_THREADS} 個"
     exit 1
 }
 
@@ -65,9 +65,9 @@ trap cleanup EXIT INT TERM
 
 # 主要執行邏輯
 echo "開始進行圓周率多核心計算效能測試"
-echo "執行時間：${DURATION} 秒"
-echo "計算精確度：${SCALE} 位"
-echo "執行緒數：${THREADS}"
+echo "執行時間:${DURATION} 秒"
+echo "計算精確度:${SCALE} 位"
+echo "執行緒數:${THREADS}"
 echo "----------------------------"
 
 # 重定向標準錯誤輸出
@@ -88,7 +88,7 @@ for ((i = 1; i <= THREADS; i++)); do
             last_result=$(calculate_pi $SCALE)
             iterations=$((iterations + 1))
 
-            # 定期保存進度（每10次迭代）
+            # 定期保存進度(每10次迭代)
             if [ $((iterations % 10)) -eq 0 ]; then
                 echo "$iterations" >"$TEMP_DIR/count_$i"
                 echo "$last_result" >"$TEMP_DIR/result_$i"
@@ -104,7 +104,7 @@ for ((i = 1; i <= THREADS; i++)); do
     pids+=($!)
 done
 
-# 設定定時器（靜默執行）
+# 設定定時器(靜默執行)
 (
     sleep $DURATION
     echo "0" >"$CONTROL_FILE"
@@ -141,14 +141,14 @@ for ((i = 1; i <= THREADS; i++)); do
 done
 
 # 輸出結果
-echo -e "\n測試結果："
-echo "總執行次數：$total_iterations"
+echo -e "\n測試結果:"
+echo "總執行次數:$total_iterations"
 iterations_per_second=$(echo "scale=2; $total_iterations / $total_time" | bc)
-echo "每秒執行次數：$iterations_per_second"
-echo "實際執行時間：$total_time 秒"
-echo -n "最後計算的圓周率值："
+echo "每秒執行次數:$iterations_per_second"
+echo "實際執行時間:$total_time 秒"
+echo -n "最後計算的圓周率值:"
 if [ -n "$last_result" ]; then
-    # 移除所有反斜線和換行符號，以單行顯示
+    # 移除所有反斜線和換行符號,以單行顯示
     echo "$last_result" | tr -d '\\\n'
 else
     echo "無法取得計算結果"
@@ -156,23 +156,23 @@ fi
 echo # 新增一個空行
 
 # 系統資訊收集
-echo -e "\n\n系統資訊："
-echo "CPU 型號：$(CPU_MODEL)"
-echo "CPU 核心數：$(nproc)"
-echo "CPU 目前頻率：$(CPU_FREQ)"
-echo "CPU 負載：$(LOAD_AVERAGE)"
-echo "記憶體使用率：$(MEM_USAGE)"
-echo "作業系統：$(CHECK_OS)"
+echo -e "\n\n系統資訊:"
+echo "CPU 型號:$(CPU_MODEL)"
+echo "CPU 核心數:$(nproc)"
+echo "CPU 目前頻率:$(CPU_FREQ)"
+echo "CPU 負載:$(LOAD_AVERAGE)"
+echo "記憶體使用率:$(MEM_USAGE)"
+echo "作業系統:$(CHECK_OS)"
 
 # 顯示 CPU 快取大小
-echo -e "\nCPU 快取資訊："
-echo "L1d 快取：$(getconf LEVEL1_DCACHE_SIZE 2>/dev/null || echo "無法取得") bytes"
-echo "L1i 快取：$(getconf LEVEL1_ICACHE_SIZE 2>/dev/null || echo "無法取得") bytes"
-echo "L2 快取：$(getconf LEVEL2_CACHE_SIZE 2>/dev/null || echo "無法取得") bytes"
-echo "L3 快取：$(getconf LEVEL3_CACHE_SIZE 2>/dev/null || echo "無法取得") bytes"
+echo -e "\nCPU 快取資訊:"
+echo "L1d 快取:$(getconf LEVEL1_DCACHE_SIZE 2>/dev/null || echo "無法取得") bytes"
+echo "L1i 快取:$(getconf LEVEL1_ICACHE_SIZE 2>/dev/null || echo "無法取得") bytes"
+echo "L2 快取:$(getconf LEVEL2_CACHE_SIZE 2>/dev/null || echo "無法取得") bytes"
+echo "L3 快取:$(getconf LEVEL3_CACHE_SIZE 2>/dev/null || echo "無法取得") bytes"
 
-# 如果有 GPU，顯示 GPU 資訊
+# 如果有 GPU,顯示 GPU 資訊
 if command -v nvidia-smi &>/dev/null; then
-    echo -e "\nGPU 資訊："
+    echo -e "\nGPU 資訊:"
     nvidia-smi --query-gpu=name,temperature.gpu,utilization.gpu,memory.used,memory.total --format=csv,noheader
 fi
