@@ -4,25 +4,26 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 
 ## Repository Structure
 
-> [raw/](.)
-> > [docs/](docs/)
-> > > [apmd.cmd.md](docs/apmd.cmd.md)  
-> > > [netreinstall.sh.md](docs/netreinstall.sh.md)  
-> > > [utilkit.sh.md](docs/utilkit.sh.md)  
+> [raw/](.)<br>
+> > [docs/](docs/)<br>
+> > > [apmd.cmd.md](docs/apmd.cmd.md)<br>
+> > > [netreinstall.sh.md](docs/netreinstall.sh.md)<br>
+> > > [sdcl.md](docs/sdcl.md)<br>
+> > > [utilkit.sh.md](docs/utilkit.sh.md)<br>
 >
-> > [shell/](shell/)  
-> > > [dd.sh](shell/dd.sh)  
-> > > [get_utilkit.sh](shell/get_utilkit.sh)  
-> > > [netreinstall.sh](shell/netreinstall.sh)  
-> > > [utilkit.sh](shell/utilkit.sh)  
+> > [shell/](shell/)<br>
+> > > [dd.sh](shell/dd.sh)<br>
+> > > [get_utilkit.sh](shell/get_utilkit.sh)<br>
+> > > [netreinstall.sh](shell/netreinstall.sh)<br>
+> > > [utilkit.sh](shell/utilkit.sh)<br>
 >
-> > [space/](space/)  
-> > > [apmd.cmd](space/apmd.cmd)  
-> > > [generate_text.sh](space/generate_text.sh)  
-> > > [pi_benchmark.sh](space/pi_benchmark.sh)  
-> > > [utilkit.json](space/utilkit.json)  
+> > [space/](space/)<br>
+> > > [apmd.cmd](space/apmd.cmd)<br>
+> > > [generate_text.sh](space/generate_text.sh)<br>
+> > > [pi_benchmark.sh](space/pi_benchmark.sh)<br>
+> > > [utilkit.json](space/utilkit.json)<br>
 >
-> > [README.md](README.md)  
+> > [README.md](README.md)<br>
 
 ## Usage
 
