@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.024.230"
+Version="6.042.025.231"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -1222,8 +1222,8 @@ function RUN() {
 						}
 					fi
 				fi
-				TASK "* Downloading script" "
-					GET "$github_url" &>/dev/null || { error "*#Ht7mK5#*"; return 1; }
+				TASK "*#Ht9mL5#*" "
+					curl -sSLf "$github_url" -o "$script_name" || { error "*#Ht7mK5#*"; return 1; }
 					chmod +x "$script_name" || { error "*#Kt8nR4#*"; return 1; }
 				"
 				text "${CLR8}$(LINE = "24")${CLR0}"
