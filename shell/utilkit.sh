@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.023"
+Version="6.042.024.230"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -16,7 +16,7 @@ CLR8="\033[0;96m"
 CLR9="\033[0;97m"
 CLR0="\033[0m"
 
-[ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
+[ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="" || cf_proxy=""
 text() { echo -e "$1"; }
 error() {
 	[ -z "$1" ] && {
@@ -447,7 +447,7 @@ function CONVERT_SIZE() {
 }
 function COPYRIGHT() {
 	text "$Scripts $Version"
-	text "Copyright (C) 2024 $Authors."
+	text "Copyright (C) $(date +%Y) $Authors."
 }
 
 function DEL() {

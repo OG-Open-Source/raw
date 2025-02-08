@@ -20,7 +20,6 @@ CLR0="\033[0m"
 location=$(curl -s ipinfo.io/country)
 cf_proxy=""
 if [ "$location" = "CN" ]; then
-	cf_proxy="https://proxy.ogtt.tk/"
 	dis_lang="zh"
 elif [ "$location" = "TW" ]; then
 	dis_lang="z1"
