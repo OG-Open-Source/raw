@@ -6,7 +6,7 @@
 ## Blog: https://moeclub.org
 ## Written By MoeClub.org
 
-[ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/update-utilkit.sh) && source ~/utilkit.sh
+[ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/get_utilkit.sh) && source ~/utilkit.sh
 
 tmpVER=''
 tmpDIST=''
@@ -630,15 +630,15 @@ d-i clock-setup/ntp boolean false
 
 d-i preseed/early_command string anna-install libfuse2-udeb fuse-udeb ntfs-3g-udeb libcrypto1.1-udeb libpcre2-8-0-udeb libssl1.1-udeb libuuid1-udeb zlib1g-udeb wget-udeb
 d-i partman/early_command string [[ -n "\$(blkid -t TYPE='vfat' -o device)" ]] && umount "\$(blkid -t TYPE='vfat' -o device)"; \
-debconf-set partman-auto/disk "\$(list-devices disk |head -n1)"; \
-wget -qO- '$DDURL' |gunzip -dc |/bin/dd of=\$(list-devices disk |head -n1); \
-mount.ntfs-3g \$(list-devices partition |head -n1) /mnt; \
-cd '/mnt/ProgramData/Microsoft/Windows/Start Menu/Programs'; \
-cd Start* || cd start*; \
-cp -f '/net.bat' './net.bat'; \
-/sbin/reboot; \
-umount /media || true; \
-
+	debconf-set partman-auto/disk "\$(list-devices disk |head -n1)"; \
+	wget -qO- '$DDURL' |gunzip -dc |/bin/dd of=\$(list-devices disk |head -n1); \
+	mount.ntfs-3g \$(list-devices partition |head -n1) /mnt; \
+	cd '/mnt/ProgramData/Microsoft/Windows/Start Menu/Programs'; \
+	cd Start* || cd start*; \
+	cp -f '/net.bat' './net.bat'; \
+	/sbin/reboot; \
+	umount /media || true; \
+	
 d-i partman-partitioning/confirm_write_new_label boolean true
 d-i partman/mount_style select uuid
 d-i partman/choose_partition select finish
@@ -670,22 +670,22 @@ d-i debian-installer/exit/reboot boolean true
 
 
 d-i preseed/late_command string	\
-sed -ri 's/^#?Port.*/Port ${sshPORT}/g' /target/etc/ssh/sshd_config; \
-sed -ri 's/^#?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config; \
-sed -ri 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config; \
-echo '@reboot root cat /etc/run.sh 2>/dev/null |base64 -d >/tmp/run.sh; rm -rf /etc/run.sh; sed -i /^@reboot/d /etc/crontab; bash /tmp/run.sh' >>/target/etc/crontab; \
-
+	sed -ri 's/^#?Port.*/Port ${sshPORT}/g' /target/etc/ssh/sshd_config; \
+	sed -ri 's/^#?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config; \
+	sed -ri 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config; \
+	echo '@reboot root cat /etc/run.sh 2>/dev/null |base64 -d >/tmp/run.sh; rm -rf /etc/run.sh; sed -i /^@reboot/d /etc/crontab; bash /tmp/run.sh' >>/target/etc/crontab; \
+	
 
 echo '' >>/target/etc/crontab; \
-
+	
 
 echo '${setCMD}' >/target/etc/run.sh; \
-in-target apt update -y; \
-in-target apt install -y curl file gawk jq openssl sudo tar unzip wget xz-utils; \
-in-target mkdir -p /root; \
-in-target curl -sS -o /root/utilkit.sh https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh; \
-in-target curl -sS -o /usr/local/bin/k https://kejilion.pro/kejilion.sh; \
-in-target chmod +x /usr/local/bin/k
+	in-target apt update -y; \
+	in-target apt install -y curl file gawk jq openssl sudo tar unzip wget xz-utils; \
+	in-target mkdir -p /root; \
+	in-target curl -sS -o /root/utilkit.sh https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh; \
+	in-target curl -sS -o /usr/local/bin/k https://kejilion.pro/kejilion.sh; \
+	in-target chmod +x /usr/local/bin/k
 EOF
 
 	if [[ "$loaderMode" != "0" ]] && [[ "$setNet" == '0' ]]; then

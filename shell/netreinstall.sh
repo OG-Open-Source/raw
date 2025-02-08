@@ -19,8 +19,7 @@
 # Modified By OGATA Open-Source
 # Github: https://github.com/OG-Open-Source
 
-[ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="https://proxy.ogtt.tk/" || cf_proxy=""
-[ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh) && source ~/utilkit.sh
+[ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/get_utilkit.sh) && source ~/utilkit.sh
 
 Scripts="netreinstall.sh"
 Version="2024.12.10"
@@ -2410,19 +2409,19 @@ d-i clock-setup/ntp-server string ntp.nict.jp
 ### Get harddisk name and Windows DD installation set up
 d-i preseed/early_command string ${ddWindowsEarlyCommandsOfAnna}
 d-i partman/early_command string \
-	lvremove --select all -ff -y; \
-	vgremove --select all -ff -y; \
-	pvremove /dev/* -ff -y; \
-	[[ -n "\$(blkid -t TYPE='vfat' -o device)" ]] && umount "\$(blkid -t TYPE='vfat' -o device)"; \
-	${PartmanEarlyCommand} \
-	wget -qO- '$DDURL' | $DEC_CMD | /bin/dd of=\$(list-devices disk | grep ${IncDisk} | head -n 1); \
-	/bin/ntfs-3g \$(list-devices partition | grep ${IncDisk} | head -n 1) /mnt; \
-	cd '/mnt/ProgramData/Microsoft/Windows/Start Menu/Programs'; \
-	cd Start* || cd start*; \
-	cp -f '/net.bat' './net.bat'; \
-	/sbin/reboot; \
-	umount /media || true; \
-
+							lvremove --select all -ff -y; \
+							vgremove --select all -ff -y; \
+							pvremove /dev/* -ff -y; \
+							[[ -n "\$(blkid -t TYPE='vfat' -o device)" ]] && umount "\$(blkid -t TYPE='vfat' -o device)"; \
+							${PartmanEarlyCommand} \
+							wget -qO- '$DDURL' | $DEC_CMD | /bin/dd of=\$(list-devices disk | grep ${IncDisk} | head -n 1); \
+							/bin/ntfs-3g \$(list-devices partition | grep ${IncDisk} | head -n 1) /mnt; \
+							cd '/mnt/ProgramData/Microsoft/Windows/Start Menu/Programs'; \
+							cd Start* || cd start*; \
+							cp -f '/net.bat' './net.bat'; \
+							/sbin/reboot; \
+							umount /media || true; \
+						
 ### Partitioning
 d-i partman-lvm/device_remove_lvm boolean true
 d-i partman-lvm/device_remove_lvm_span boolean true
@@ -2463,14 +2462,14 @@ d-i debian-installer/exit/reboot boolean true
 
 ### Write preseed
 d-i preseed/late_command string	\
-sed -ri 's/^#?Port.*/Port ${sshPORT}/g' /target/etc/ssh/sshd_config; \
-sed -ri 's/^#?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config; \
-sed -ri 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config; \
-echo '@reboot root cat /etc/run.sh 2>/dev/null |base64 -d >/tmp/run.sh; rm -rf /etc/run.sh; sed -i /^@reboot/d /etc/crontab; bash /tmp/run.sh' >>/target/etc/crontab; \
-echo '' >>/target/etc/crontab; \
-echo '${setCMD}' >/target/etc/run.sh; \
-${DebianModifiedProcession} \
-${DebianEnableKejilion}
+						sed -ri 's/^#?Port.*/Port ${sshPORT}/g' /target/etc/ssh/sshd_config; \
+						sed -ri 's/^#?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config; \
+						sed -ri 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config; \
+						echo '@reboot root cat /etc/run.sh 2>/dev/null |base64 -d >/tmp/run.sh; rm -rf /etc/run.sh; sed -i /^@reboot/d /etc/crontab; bash /tmp/run.sh' >>/target/etc/crontab; \
+						echo '' >>/target/etc/crontab; \
+						echo '${setCMD}' >/target/etc/run.sh; \
+						${DebianModifiedProcession} \
+						${DebianEnableKejilion}
 EOF
 	fi
 }
