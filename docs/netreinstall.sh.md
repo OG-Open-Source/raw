@@ -13,8 +13,8 @@
 - [示例](#示例)
 - [配置](#配置)
 - [常見問題](#常見問題)
-- [貢獻指南](#貢獻指南)
-- [許可證](#許可證)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
@@ -171,13 +171,17 @@ A：目前支援：
 - i386/x86
 - arm64/aarch64
 
-## 貢獻指南
+## Contributing
 
-1. Fork 專案
-2. 創建功能分支
-3. 提交更改
-4. 發起 Pull Request
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Open a Pull Request
 
-## 許可證
+## License
 
-本專案採用 GPL 許可證。
+This repository is licensed under the [GPL License](https://www.gnu.org/licenses/gpl-3.0.html).
+
+---
+
+© 2025 [OG-Open-Source](https://github.com/OG-Open-Source). All rights reserved.

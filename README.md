@@ -31,7 +31,10 @@ Please refer to the documentation in each script directory for detailed usage in
 
 ## Contributing
 
-Feel free to submit issues and pull requests to help improve this project.
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Open a Pull Request
 
 ## License
 
@@ -39,4 +42,4 @@ This project is open source. Please check individual scripts for specific licens
 
 ---
 
-© 2024 [OGATA Open Source](https://github.com/OG-Open-Source). All rights reserved.
+© 2025 [OGATA Open Source](https://github.com/OG-Open-Source). All rights reserved.
