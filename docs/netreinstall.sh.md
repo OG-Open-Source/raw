@@ -180,7 +180,7 @@ A：目前支援：
 
 ## License
 
-This repository is licensed under the [GPL License](https://www.gnu.org/licenses/gpl-3.0.html).
+This repository is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html).
 
 ---
 
