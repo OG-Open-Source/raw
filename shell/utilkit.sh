@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.042.025.231"
+Version="6.043.001.231"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -16,7 +16,7 @@ CLR8="\033[0;96m"
 CLR9="\033[0;97m"
 CLR0="\033[0m"
 
-[ "$(curl -s ipinfo.io/country)" = "CN" ] && cf_proxy="" || cf_proxy=""
+[ "$(LOCATION)" = "CN" ] && cf_proxy="" || cf_proxy=""
 text() { echo -e "$1"; }
 error() {
 	[ -z "$1" ] && {
@@ -976,6 +976,13 @@ function LOAD_AVERAGE() {
 	[[ $fifteen_min =~ ^[0-9.]+$ ]] || fifteen_min=0
 	LC_ALL=C printf "%.2f, %.2f, %.2f (%d cores)" "$one_min" "$five_min" "$fifteen_min" "$(nproc)"
 }
+function LOCATION() {
+	loc=$(curl -s "https://developers.cloudflare.com/cdn-cgi/trace" | grep "^loc=" | cut -d= -f2)
+	[ -n "$loc" ] && text "$loc" || {
+		error "*#Jt9nR7#*"
+		return 1
+	}
+}
 
 function MAC_ADDR() {
 	mac_address=$(ip link show | awk '/ether/ {print $2; exit}')
@@ -1060,7 +1067,7 @@ function PROGRESS() {
 	trap - SIGINT SIGQUIT SIGTSTP
 }
 function PUBLIC_IP() {
-	ip=$(timeout 5s curl -sL https://ifconfig.me)
+	ip=$(curl -s "https://developers.cloudflare.com/cdn-cgi/trace" | grep "^ip=" | cut -d= -f2)
 	[ -n "$ip" ] && text "$ip" || {
 		error "*#Xt7nK6#*"
 		return 1

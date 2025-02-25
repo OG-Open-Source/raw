@@ -288,7 +288,8 @@
         "Et9nR2": "* Setting execute permissions",
         "Ft9kM3": "* Checking $branch branch",
         "Gt9pN4": "* Checking master branch",
-        "Ht9mL5": "* Downloading script"
+        "Ht9mL5": "* Downloading script",
+        "Jt9nR7": "Unable to detect location. Check your internet connection"
     },
     "z1": {
         "Xk9pL2": "${CLR1}未知錯誤${CLR0}",
@@ -579,7 +580,8 @@
         "Et9nR2": "* 設定執行權限",
         "Ft9kM3": "* 檢查分支 $branch",
         "Gt9pN4": "* 檢查 master 分支",
-        "Ht9mL5": "* 下載腳本"
+        "Ht9mL5": "* 下載腳本",
+        "Jt9nR7": "無法偵測地理位置。請檢查網路連線"
     },
     "zh": {
         "Xk9pL2": "${CLR1}未知错误${CLR0}",
@@ -870,6 +872,7 @@
         "Et9nR2": "* 设置执行权限",
         "Ft9kM3": "* 检查分支 $branch",
         "Gt9pN4": "* 检查 master 分支",
-        "Ht9mL5": "* 下载脚本"
+        "Ht9mL5": "* 下载脚本",
+        "Jt9nR7": "无法检测地理位置。请检查网络连接"
     }
 }
