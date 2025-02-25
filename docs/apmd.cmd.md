@@ -43,6 +43,7 @@ move apmd.cmd %SystemRoot%
 ```
 
 {:.important}
+
 > 確保將檔案放置在系統 PATH 包含的目錄中以便全域使用。
 
 ## 使用方法
@@ -60,6 +61,7 @@ apmd.cmd [directory_path] [-d "hidden_dirs"] [-f "hidden_files"]
 - `-f "hidden_files"`：要隱藏的檔案列表
 
 {:.note}
+
 > 檔案隱藏支援三種模式：
 >
 > - 全域模式：`filename.ext`
@@ -109,6 +111,7 @@ apmd.cmd "." -d "node_modules" -f "./local.txt docs/secret.md"
 本工具採用無配置檔案設計，所有設定通過命令列參數完成。
 
 {:.tip}
+
 > 使用前請確保 Windows 命令提示字元可正常運作。
 
 ## 常見問題
