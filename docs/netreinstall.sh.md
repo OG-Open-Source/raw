@@ -53,6 +53,7 @@ netreinstall.sh 是一個功能強大的網絡重裝系統工具，支援多種�
 - 架構：支援 x86_64/amd64、i386/x86、arm64/aarch64
 
 {:.important}
+
 > 執行腳本前請確保有 root 權限，並備份重要數據。
 
 ```bash
@@ -125,6 +126,7 @@ bash netreinstall.sh -debian 12 \
 ```
 
 {:.tip}
+
 > 使用 `--reboot` 參數可在安裝完成後自動重啟系統。
 
 ### Ubuntu 安裝
@@ -150,6 +152,7 @@ bash netreinstall.sh -ubuntu 24.04 \
 4. 多 IP 配置
 
 {:.caution}
+
 > 使用靜態 IP 時，請確保配置的 IP 地址在網絡中未被佔用。
 
 ## 常見問題
