@@ -1,4 +1,10 @@
 #!/bin/bash
+# @commands: system-reinstall-script-by-moeclub-modified-by-ogos
+# @pkg_manager: apk, apt, opkg, pacman, yum, zypper, dnf
+# @dependencies: awk, basename, cat, cpio, curl, cut, dirname, file, find, grep, gzip, iconv, ip, lsblk, openssl, sed, wget
+# @author: MoeClub.org, 秋水逸冰, VPS收割者, airium, 王煎饼, nat.ee, Bohan Yang, Leitbogioro, OGATA Open-Source
+# @version: 2025.02.25
+# @description: System reinstallation tool by MoeClub.org modified by OGATA Open-Source. License under GPL.
 
 # Written By MoeClub.org
 # Blog: https://moeclub.org
@@ -22,7 +28,7 @@
 [ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/get_utilkit.sh) && source ~/utilkit.sh
 
 Scripts="netreinstall.sh"
-Version="2024.12.10"
+Version="2025.02.25"
 License="GPL"
 
 AddNum="1"
@@ -412,7 +418,7 @@ done
 
 CHECK_ROOT
 
-if [ "$(curl -s ipinfo.io/country)" = "CN" ]; then
+if [ "$(LOCATION)" = "CN" ]; then
 	IsCN="1"
 	ipDNS="119.29.29.29 223.6.6.6"
 	ip6DNS="2402:4e00:: 2400:3200::1"
@@ -2667,7 +2673,7 @@ echo -e "\n${CLR3}# System Reinstall${CLR0}"
 echo -e "\n${CLR8}## Check Dependence${CLR0}"
 echo -e "${CLR8}$(LINE - "32")${CLR0}"
 deps=("awk" "basename" "cat" "cpio" "curl" "cut" "dirname" "file" "find" "grep" "gzip" "iconv" "ip" "lsblk" "openssl" "sed" "wget")
-CHECK_DEPS
+CHECK_DEPS -i
 
 echo -e "\n${CLR8}## System Information${CLR0}"
 echo -e "${CLR8}$(LINE - "32")${CLR0}"

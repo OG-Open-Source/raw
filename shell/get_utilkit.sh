@@ -3,7 +3,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="get_utilkit.sh"
-Version="2024.12.27"
+Version="2025.02.25"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -17,7 +17,7 @@ CLR8="\033[0;96m"
 CLR9="\033[0;97m"
 CLR0="\033[0m"
 
-location=$(curl -s ipinfo.io/country)
+location=$(LOCATION)
 cf_proxy=""
 if [ "$location" = "CN" ]; then
 	dis_lang="zh"
