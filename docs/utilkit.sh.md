@@ -22,19 +22,19 @@
 
 utilkit.sh 是一個全面的 Shell 函數庫，專為系統管理員和開發者設計。它提供了豐富的函式可用，包括套件管理、系統監控、網路配置等，大大簡化了日常系統維護工作。
 
-| 可用函式                      |                           |                               |                               |
-|-------------------------------|---------------------------|-------------------------------|-------------------------------|
-| [ADD](#add)                   | [CHECK_DEPS](#check_deps) | [CHECK_OS](#check_os)         | [CHECK_ROOT](#check_root)     |
-| [CHECK_VIRT](#check_virt)     | [CLEAN](#clean)           | [CONVERT_SIZE](#convert_size) | [COPYRIGHT](#copyright)       |
-| [CPU_CACHE](#cpu_cache)       | [CPU_FREQ](#cpu_freq)     | [CPU_MODEL](#cpu_model)       | [CPU_USAGE](#cpu_usage)       |
-| [DEL](#del)                   | [DISK_USAGE](#disk_usage) | [DNS_ADDR](#dns_addr)         | [FIND](#find)                 |
-| [FONT](#font)                 | [FORMAT](#format)         | [GET](#get)                   | [INPUT](#input)               |
-| [INTERFACE](#interface)       | [IP_ADDR](#ip_addr)       | [LAST_UPDATE](#last_update)   | [LINE](#line)                 |
-| [LOAD_AVERAGE](#load_average) | [MAC_ADDR](#mac_addr)     | [MEM_USAGE](#mem_usage)       | [NET_PROVIDER](#net_provider) |
-| [PKG_COUNT](#pkg_count)       | [PROGRESS](#progress)     | [PUBLIC_IP](#public_ip)       | [RUN](#run)                   |
-| [SHELL_VER](#shell_ver)       | [SWAP_USAGE](#swap_usage) | [SYS_CLEAN](#sys_clean)       | [SYS_INFO](#sys_info)         |
-| [SYS_OPTIMIZE](#sys_optimize) | [SYS_REBOOT](#sys_reboot) | [SYS_UPDATE](#sys_update)     | [SYS_UPGRADE](#sys_upgrade)   |
-| [TASK](#task)                 | [TIMEZONE](#timezone)     |                               |                               |
+| 可用函式                      |                               |                               |                           |
+| ----------------------------- | ----------------------------- | ----------------------------- | ------------------------- |
+| [ADD](#add)                   | [CHECK_DEPS](#check_deps)     | [CHECK_OS](#check_os)         | [CHECK_ROOT](#check_root) |
+| [CHECK_VIRT](#check_virt)     | [CLEAN](#clean)               | [CONVERT_SIZE](#convert_size) | [COPYRIGHT](#copyright)   |
+| [CPU_CACHE](#cpu_cache)       | [CPU_FREQ](#cpu_freq)         | [CPU_MODEL](#cpu_model)       | [CPU_USAGE](#cpu_usage)   |
+| [DEL](#del)                   | [DISK_USAGE](#disk_usage)     | [DNS_ADDR](#dns_addr)         | [FIND](#find)             |
+| [FONT](#font)                 | [FORMAT](#format)             | [GET](#get)                   | [INPUT](#input)           |
+| [INTERFACE](#interface)       | [IP_ADDR](#ip_addr)           | [LAST_UPDATE](#last_update)   | [LINE](#line)             |
+| [LOAD_AVERAGE](#load_average) | [LOCATION](#location)         | [MAC_ADDR](#mac_addr)         | [MEM_USAGE](#mem_usage)   |
+| [NET_PROVIDER](#net_provider) | [PKG_COUNT](#pkg_count)       | [PROGRESS](#progress)         | [PUBLIC_IP](#public_ip)   |
+| [RUN](#run)                   | [SHELL_VER](#shell_ver)       | [SWAP_USAGE](#swap_usage)     | [SYS_CLEAN](#sys_clean)   |
+| [SYS_INFO](#sys_info)         | [SYS_OPTIMIZE](#sys_optimize) | [SYS_REBOOT](#sys_reboot)     | [SYS_UPDATE](#sys_update) |
+| [SYS_UPGRADE](#sys_upgrade)   | [TASK](#task)                 | [TIMEZONE](#timezone)         |                           |
 
 ## 特性
 
@@ -57,6 +57,7 @@ utilkit.sh 是一個全面的 Shell 函數庫，專為系統管理員和開發�
 - root 權限（部分功能需要）
 
 {:.important}
+
 > 使用前請確保系統已安裝所需的基本工具。
 
 ```bash
@@ -85,21 +86,21 @@ source utilkit.sh
   - 無參數時預設為安裝套件
 - 示例：
 
- ```bash
- ADD nginx              # 安裝 nginx 套件
- ADD -f /path/file.txt  # 建立檔案
- ADD -d /path/dir       # 建立目錄
- ```
+```bash
+ADD nginx              # 安裝 nginx 套件
+ADD -f /path/file.txt  # 建立檔案
+ADD -d /path/dir       # 建立目錄
+```
 
 #### CHECK_DEPS
 
 - 功能：檢查依賴項是否已安裝
 - 用法：
 
- ```bash
- deps=("curl" "wget" "git")  # 設定要檢查的依賴項
- CHECK_DEPS                  # 執行檢查
- ```
+```bash
+deps=("curl" "wget" "git")  # 設定要檢查的依賴項
+CHECK_DEPS                  # 執行檢查
+```
 
 - 說明：需要先設定 deps 陣列變數，再執行檢查
 
@@ -113,11 +114,11 @@ source utilkit.sh
   - 無參數：顯示完整作業系統資訊
 - 示例：
 
- ```bash
- CHECK_OS        # 輸出：Ubuntu 22.04 LTS
- CHECK_OS -v     # 輸出：22.04
- CHECK_OS -n     # 輸出：Ubuntu
- ```
+```bash
+CHECK_OS        # 輸出：Ubuntu 22.04 LTS
+CHECK_OS -v     # 輸出：22.04
+CHECK_OS -n     # 輸出：Ubuntu
+```
 
 #### CHECK_ROOT
 
@@ -148,10 +149,10 @@ source utilkit.sh
     - 十進制：B/KB/MB/GB/TB/PB
 - 示例：
 
- ```bash
- CONVERT_SIZE 1024        # 預設使用二進制（1.000 KiB）
- CONVERT_SIZE 1000 KB     # 使用十進制（1000 KB =  1.000 MB）
- ```
+```bash
+CONVERT_SIZE 1024        # 預設使用二進制（1.000 KiB）
+CONVERT_SIZE 1000 KB     # 使用十進制（1000 KB =  1.000 MB）
+```
 
 #### COPYRIGHT
 
@@ -193,11 +194,11 @@ source utilkit.sh
   - 無參數時預設為移除套件
 - 示例：
 
- ```bash
- DEL nginx              # 移除 nginx 套件
- DEL -f /path/file.txt  # 刪除檔案
- DEL -d /path/dir       # 刪除目錄
- ```
+```bash
+DEL nginx              # 移除 nginx 套件
+DEL -f /path/file.txt  # 刪除檔案
+DEL -d /path/dir       # 刪除目錄
+```
 
 #### DISK_USAGE
 
@@ -239,12 +240,12 @@ source utilkit.sh
   - RGB：可使用 RGB 值（前景色和背景色）
 - 示例：
 
- ```bash
- FONT B RED "錯誤"                    # 粗體紅色
- FONT B RED BG.WHITE "警告"           # 粗體紅色白底
- FONT RGB 255,0,0 "紅色"              # RGB 前景色
- FONT B RGB 255,0,0 BG.RGB 0,0,255 "紅字藍底"  # RGB 前景色和背景色
- ```
+```bash
+FONT B RED "錯誤"                    # 粗體紅色
+FONT B RED BG.WHITE "警告"           # 粗體紅色白底
+FONT RGB 255,0,0 "紅色"              # RGB 前景色
+FONT B RGB 255,0,0 BG.RGB 0,0,255 "紅字藍底"  # RGB 前景色和背景色
+```
 
 #### FORMAT
 
@@ -256,11 +257,11 @@ source utilkit.sh
   - `-Aa`：首字母大寫
 - 示例：
 
- ```bash
- FORMAT -AA "hello"    # 輸出：HELLO
- FORMAT -aa "WORLD"    # 輸出：world
- FORMAT -Aa "hELLo"    # 輸出：Hello
- ```
+```bash
+FORMAT -AA "hello"    # 輸出：HELLO
+FORMAT -aa "WORLD"    # 輸出：world
+FORMAT -Aa "hELLo"    # 輸出：Hello
+```
 
 #### GET
 
@@ -281,14 +282,15 @@ source utilkit.sh
   - zst
 - 示例：
 
- ```bash
- GET https://example.com/file.txt                      # 下載到當前目錄
- GET https://example.com/file.txt downloads            # 下載到指定目錄
- GET https://example.com/file.txt -r new.txt downloads # 下載並重命名
- GET https://example.com/archive.tar.gz -x             # 下載並自動解壓縮
- ```
+```bash
+GET https://example.com/file.txt                      # 下載到當前目錄
+GET https://example.com/file.txt downloads            # 下載到指定目錄
+GET https://example.com/file.txt -r new.txt downloads # 下載並重命名
+GET https://example.com/archive.tar.gz -x             # 下載並自動解壓縮
+```
 
 {:.note}
+
 > 自動解壓縮功能需要系統安裝對應的解壓縮工具。
 
 #### INPUT
@@ -313,12 +315,12 @@ source utilkit.sh
   - 無參數：顯示真實網卡名稱（自動過濾虛擬網卡）
 - 示例：
 
- ```bash
- INTERFACE              # 顯示真實網卡名稱
- INTERFACE -i           # 顯示詳細資訊
- INTERFACE RX_BYTES     # 顯示接收位元組數
- INTERFACE TX_PACKETS   # 顯示傳送封包數
- ```
+```bash
+INTERFACE              # 顯示真實網卡名稱
+INTERFACE -i           # 顯示詳細資訊
+INTERFACE RX_BYTES     # 顯示接收位元組數
+INTERFACE TX_PACKETS   # 顯示傳送封包數
+```
 
 - 說明：
   - 自動過濾以下虛擬網卡：
@@ -358,6 +360,12 @@ source utilkit.sh
 - 用法：`LOAD_AVERAGE`
 - 輸出：顯示 1、5、15 分鐘的平均負載
 
+#### LOCATION
+
+- 功能：顯示地理位置
+- 用法：`LOCATION`
+- 輸出：顯示當前位置的縮寫
+
 #### MAC_ADDR
 
 - 功能：顯示 MAC 地址
@@ -391,14 +399,14 @@ source utilkit.sh
 - 功能：顯示進度條
 - 用法：
 
- ```bash
- cmds=(
-  "command1"
-  "command2"
-  "command3"
- )
- PROGRESS
- ```
+```bash
+cmds=(
+ "command1"
+ "command2"
+ "command3"
+)
+PROGRESS
+```
 
 - 說明：
   - 需要先設定 cmds 陣列變數
@@ -425,14 +433,14 @@ source utilkit.sh
   - GitHub 倉庫腳本執行
 - 示例：
 
- ```bash
- RUN "ls -la"                           # 執行本地命令
- RUN local_script.sh                    # 執行本地腳本
- RUN local_script.sh arg1 arg2          # 執行本地腳本並傳遞參數
- RUN username/repo/script.sh            # 執行 GitHub 腳本（main 分支）
- RUN username/repo/script.sh -b dev     # 執行 GitHub 腳本（指定分支）
- RUN username/repo/script.sh -- arg1    # 執行 GitHub 腳本並傳遞參數
- ```
+```bash
+RUN "ls -la"                           # 執行本地命令
+RUN local_script.sh                    # 執行本地腳本
+RUN local_script.sh arg1 arg2          # 執行本地腳本並傳遞參數
+RUN username/repo/script.sh            # 執行 GitHub 腳本（main 分支）
+RUN username/repo/script.sh -b dev     # 執行 GitHub 腳本（指定分支）
+RUN username/repo/script.sh -- arg1    # 執行 GitHub 腳本並傳遞參數
+```
 
 #### SHELL_VER
 
@@ -491,6 +499,7 @@ source utilkit.sh
   - 完成後可能需要重新啟動
 
 {:.important}
+
 > 執行系統升級前請確保已備份重要資料。
 
 #### TASK
@@ -502,9 +511,9 @@ source utilkit.sh
   - 錯誤時自動中止並顯示詳細信息
 - 語法：
 
- ```bash
- TASK "消息" "命令" [是否忽略錯誤]
- ```
+```bash
+TASK "消息" "命令" [是否忽略錯誤]
+```
 
 - 參數：
   - `消息`: 顯示的任務描述
@@ -515,19 +524,19 @@ source utilkit.sh
   - 1: 命令執行失敗
 - 示例：
 
- ```bash
- # 命令示例
- TASK "更新套件列表" "apt-get update"
- TASK "創建目錄" "ADD -d /path/to/dir"
- ```
+```bash
+# 命令示例
+TASK "更新套件列表" "apt-get update"
+TASK "創建目錄" "ADD -d /path/to/dir"
+```
 
 - 輸出格式：
 
- ```bash
- * 任務描述... Done     # 成功時
- * 任務描述... Failed   # 失敗時
-   [錯誤詳情]           # 失敗時顯示具體錯誤
- ```
+```bash
+* 任務描述... Done     # 成功時
+* 任務描述... Failed   # 失敗時
+  [錯誤詳情]           # 失敗時顯示具體錯誤
+```
 
 #### TIMEZONE
 
@@ -538,6 +547,7 @@ source utilkit.sh
   - `-e`：顯示外部偵測到的時區
 
 {:.note}
+
 > 每個函式都設計為獨立運作，可以單獨調用或組合使用。
 
 ## 示例
@@ -588,6 +598,7 @@ CLR0="\033[0m"       # 重置
 ```
 
 {:.tip}
+
 > 可以根據需要修改顏色定義和代理設置。
 
 ## 常見問題
