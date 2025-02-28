@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.043.001.231"
+Version="6.043.002.232"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -16,7 +16,6 @@ CLR8="\033[0;96m"
 CLR9="\033[0;97m"
 CLR0="\033[0m"
 
-[ "$(LOCATION)" = "CN" ] && cf_proxy="" || cf_proxy=""
 text() { echo -e "$1"; }
 error() {
 	[ -z "$1" ] && {
@@ -1690,7 +1689,7 @@ function SYS_UPDATE() {
 		return 1
 	} ;;
 	esac
-	TASK "*#Jn5tR8#*" "bash <(curl -L ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)" || {
+	TASK "*#Jn5tR8#*" "bash <(curl -L https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)" || {
 		error "*#Wx4nP9#*"
 		return 1
 	}
