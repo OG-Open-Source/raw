@@ -3,7 +3,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="get_utilkit.sh"
-Version="2025.02.25"
+Version="2025.03.01"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -16,16 +16,6 @@ CLR7="\033[0;37m"
 CLR8="\033[0;96m"
 CLR9="\033[0;97m"
 CLR0="\033[0m"
-
-location=$(LOCATION)
-cf_proxy=""
-if [ "$location" = "CN" ]; then
-	dis_lang="zh"
-elif [ "$location" = "TW" ]; then
-	dis_lang="z1"
-else
-	dis_lang="en"
-fi
 
 text() { echo -e "$1"; }
 error() {
@@ -44,7 +34,7 @@ error() {
 
 lang="${1:-$dis_lang}"
 apply_translations() {
-	curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/space/utilkit.json -o "utilkit.json" &>/dev/null
+	curl -sSL https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/space/utilkit.json -o "utilkit.json" &>/dev/null
 	[ ! -f "utilkit.json" ] && {
 		error "Translation file utilkit.json not found"
 		return 1
@@ -70,11 +60,11 @@ apply_translations() {
 
 if [ -f ~/utilkit.sh ]; then
 	text "${CLR2}Update utilkit.sh${CLR0}"
-	curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh -o utilkit.sh &>/dev/null
+	curl -sSL https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh -o utilkit.sh &>/dev/null
 	text "${CLR2}Apply translations${CLR0}"
 	apply_translations
 else
-	version=$(curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh | grep -oP 'Version="\K[^"]+')
+	version=$(curl -sL https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh | grep -oP 'Version="\K[^"]+')
 	if [[ $version == 0.* ]]; then
 		if [ "$dis_lang" = "z1" ]; then
 			text "${CLR3}警告：此版本（$version）為開發版本。不建議使用${CLR0}"
@@ -105,13 +95,13 @@ else
 			}
 		fi
 	fi
-	if ! crontab -l | grep -F "0 0 \* \* \* curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash"; then
+	if ! crontab -l | grep -F "0 0 \* \* \* curl -sL https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash"; then
 		crontab -l >utilkit
-		echo "0 0 * * * curl -sL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash -s -- $lang" >>utilkit
+		echo "0 0 * * * curl -sL https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh | bash -s -- $lang" >>utilkit
 		crontab utilkit
 		rm -f utilkit
 	fi
-	curl -sSL ${cf_proxy}https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh -o utilkit.sh &>/dev/null
+	curl -sSL https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/utilkit.sh -o utilkit.sh &>/dev/null
 	apply_translations
 	grep -q "source ~/utilkit.sh" ~/.bashrc || echo "source ~/utilkit.sh" >>~/.bashrc
 fi
