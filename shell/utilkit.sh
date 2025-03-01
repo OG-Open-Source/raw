@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.043.002.232"
+Version="6.043.003.233"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -1302,107 +1302,129 @@ function SYS_CLEAN() {
 	text "${CLR8}$(LINE = "24")${CLR0}"
 	case $(command -v apk apt opkg pacman yum zypper dnf | head -n1) in
 	*apk)
-		TASK "*#Nt9mK4#*" "apk cache clean" || {
+		text "*#Nt9mK4#*"
+		apk cache clean || {
 			error "*#Wt5nR7#*"
 			return 1
 		}
-		TASK "*#Mt8pL5#*" "rm -rf /tmp/* /var/cache/apk/*" || {
+		text "*#Mt8pL5#*"
+		rm -rf /tmp/* /var/cache/apk/* || {
 			error "*#Ht6mK8#*"
 			return 1
 		}
-		TASK "*#Kt7nR8#*" "apk fix" || {
+		text "*#Kt7nR8#*"
+		apk fix || {
 			error "*#Nt7pL4#*"
 			return 1
 		}
 		;;
 	*apt)
 		while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-			TASK "*#Jt6mK9#*" "sleep 1" || return 1
+			text "*#Jt6mK9#*"
+			sleep 1 || return 1
 			((wait_time++))
 			[ "$wait_time" -gt 300 ] && {
 				error "*#Bx8vP5#*"
 				return 1
 			}
 		done
-		TASK "*#Ht5nL7#*" "DEBIAN_FRONTEND=noninteractive dpkg --configure -a" || {
+		text "*#Ht5nL7#*"
+		DEBIAN_FRONTEND=noninteractive dpkg --configure -a || {
 			error "*#Kt7mR5#*"
 			return 1
 		}
-		TASK "*#Gt4mK8#*" "apt autoremove --purge -y" || {
+		text "*#Gt4mK8#*"
+		apt autoremove --purge -y || {
 			error "*#Mt6nK8#*"
 			return 1
 		}
-		TASK "*#Ft3nL9#*" "apt clean -y" || {
+		text "*#Ft3nL9#*"
+		apt clean -y || {
 			error "*#Pt7nR4#*"
 			return 1
 		}
-		TASK "*#Et2mK7#*" "apt autoclean -y" || {
+		text "*#Et2mK7#*"
+		apt autoclean -y || {
 			error "*#Qt8mK5#*"
 			return 1
 		}
 		;;
 	*opkg)
-		TASK "*#Mt8pL5#*" "rm -rf /tmp/*" || {
+		text "*#Mt8pL5#*"
+		rm -rf /tmp/* || {
 			error "*#Ht6mK8#*"
 			return 1
 		}
-		TASK "*#Dt1nL8#*" "opkg update" || {
+		text "*#Dt1nL8#*"
+		opkg update || {
 			error "*#Rt7nK4#*"
 			return 1
 		}
-		TASK "*#Ct0mK6#*" "opkg clean" || {
+		text "*#Ct0mK6#*"
+		opkg clean || {
 			error "*#St6mL5#*"
 			return 1
 		}
 		;;
 	*pacman)
-		TASK "*#Bt9nL5#*" "pacman -Syu --noconfirm" || {
+		text "*#Bt9nL5#*"
+		pacman -Syu --noconfirm || {
 			error "*#Tt7nR6#*"
 			return 1
 		}
-		TASK "*#At8mK4#*" "pacman -Sc --noconfirm" || {
+		text "*#At8mK4#*"
+		pacman -Sc --noconfirm || {
 			error "*#Ut8mK4#*"
 			return 1
 		}
-		TASK "*#Zt7nL3#*" "pacman -Scc --noconfirm" || {
+		text "*#Zt7nL3#*"
+		pacman -Scc --noconfirm || {
 			error "*#Vt7nL5#*"
 			return 1
 		}
 		;;
 	*yum)
-		TASK "*#Gt4mK8#*" "yum autoremove -y" || {
+		text "*#Gt4mK8#*"
+		yum autoremove -y || {
 			error "*#Mt6nK8#*"
 			return 1
 		}
-		TASK "*#Yt8aK2#*" "yum clean all" || {
+		text "*#Yt8aK2#*"
+		yum clean all || {
 			error "*#Wt8nR4#*"
 			return 1
 		}
-		TASK "*#Xt5nL1#*" "yum makecache" || {
+		text "*#Xt5nL1#*"
+		yum makecache || {
 			error "*#Xt7mK5#*"
 			return 1
 		}
 		;;
 	*zypper)
-		TASK "*#Wt4mK0#*" "zypper clean --all" || {
+		text "*#Wt4mK0#*"
+		zypper clean --all || {
 			error "*#Yt6nR7#*"
 			return 1
 		}
-		TASK "*#Vt3nL9#*" "zypper refresh" || {
+		text "*#Vt3nL9#*"
+		zypper refresh || {
 			error "*#Zt8mK4#*"
 			return 1
 		}
 		;;
 	*dnf)
-		TASK "*#Gt4mK8#*" "dnf autoremove -y" || {
+		text "*#Gt4mK8#*"
+		dnf autoremove -y || {
 			error "*#Mt6nK8#*"
 			return 1
 		}
-		TASK "*#Ut2mK8#*" "dnf clean all" || {
+		text "*#Ut2mK8#*"
+		dnf clean all || {
 			error "*#At7nR5#*"
 			return 1
 		}
-		TASK "*#Tt1nL7#*" "dnf makecache" || {
+		text "*#Tt1nL7#*"
+		dnf makecache || {
 			error "*#Bt8mK4#*"
 			return 1
 		}
@@ -1650,11 +1672,13 @@ function SYS_UPDATE() {
 		cmd="$1"
 		update_cmd="$2"
 		upgrade_cmd="$3"
-		TASK "*#Ym6tK9#*" "$update_cmd" || {
+		text "*#Ym6tK9#*"
+		$update_cmd || {
 			error "*#Qn5wL7#*"
 			return 1
 		}
-		TASK "*#Vx3nR8#*" "$upgrade_cmd" || {
+		text "*#Vx3nR8#*"
+		$upgrade_cmd || {
 			error "*#Ht9pL4#*"
 			return 1
 		}
@@ -1689,7 +1713,8 @@ function SYS_UPDATE() {
 		return 1
 	} ;;
 	esac
-	TASK "*#Jn5tR8#*" "bash <(curl -L https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh)" || {
+	text "*#Jn5tR8#*"
+	bash <(curl -L https://raw.githubusercontent.com/OG-Open-Source/raw/refs/heads/main/shell/get_utilkit.sh) || {
 		error "*#Wx4nP9#*"
 		return 1
 	}
@@ -1704,11 +1729,13 @@ function SYS_UPGRADE() {
 	case "$os_name" in
 	Debian)
 		text "*#Vx8tK5#*"
-		TASK "*#Ym6tK9#*" "apt update -y" || {
+		text "*#Ym6tK9#*"
+		apt update -y || {
 			error "*#An8zR7#*"
 			return 1
 		}
-		TASK "*#Lw7mP4#*" "apt full-upgrade -y" || {
+		text "*#Lw7mP4#*"
+		apt full-upgrade -y || {
 			error "*#Bx3vR6#*"
 			return 1
 		}
