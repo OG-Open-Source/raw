@@ -1,8 +1,14 @@
 #!/bin/bash
+# @script: utilkit_sh
+# @pkg_managers: apk, apt, opkg, pacman, yum, zypper, dnf
+# @dependencies: null
+# @authors: OGATA Open-Source
+# @version: 6.043.005.235
+# @description: The best utility kit for your system
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.043.004.234"
+Version="6.043.005.235"
 License="MIT License"
 
 CLR1="\033[0;31m"
