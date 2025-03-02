@@ -2,7 +2,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="utilkit.sh"
-Version="6.043.003.233"
+Version="6.043.004.234"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -832,7 +832,7 @@ function INTERFACE() {
 			grep ':' |
 			cut -d':' -f1 |
 			sed 's/\s//g' |
-			grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker' |
+			grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn\|^warp\|^wgcf\|^wg\|^docker\|^br-\|^veth' |
 			sort -n
 	) || {
 		error "*#Xt7nK5#*"
@@ -844,8 +844,8 @@ function INTERFACE() {
 		((i++))
 	done <<<"$all_interfaces"
 	interfaces_num="${#interfaces[*]}"
-	default4_route=$(ip -4 route show default | grep -A 3 "^default")
-	default6_route=$(ip -6 route show default | grep -A 3 "^default")
+	default4_route=$(ip -4 route show default 2>/dev/null | grep -A 3 "^default" || text "")
+	default6_route=$(ip -6 route show default 2>/dev/null | grep -A 3 "^default" || text "")
 	get_arr_item_idx() {
 		item="$1"
 		shift
@@ -858,50 +858,95 @@ function INTERFACE() {
 		done
 		return 255
 	}
+	interface4=""
+	interface6=""
 	for ((i = 1; i <= ${#interfaces[@]}; i++)); do
 		item="${interfaces[$i]}"
 		[ -z "$item" ] && continue
-		if [[ "$default4_route" == *"$item"* ]] && [ -z "$interface4" ]; then
+		if [[ -n "$default4_route" && "$default4_route" == *"$item"* ]] && [ -z "$interface4" ]; then
 			interface4="$item"
 			interface4_device_order=$(get_arr_item_idx "$item" "${interfaces[@]}")
 		fi
-		if [[ "$default6_route" == *"$item"* ]] && [ -z "$interface6" ]; then
+		if [[ -n "$default6_route" && "$default6_route" == *"$item"* ]] && [ -z "$interface6" ]; then
 			interface6="$item"
 			interface6_device_order=$(get_arr_item_idx "$item" "${interfaces[@]}")
 		fi
 		[ -n "$interface4" ] && [ -n "$interface6" ] && break
 	done
-	interface="$interface4 $interface6"
-	[[ "$interface4" == "$interface6" ]] && interface=$(text "$interface" | cut -d' ' -f 1)
-	[[ -z "$interface4" || -z "$interface6" ]] && {
-		interface=$(text "$interface" | sed 's/[[:space:]]//g')
-		[[ -z "$interface4" ]] && interface4="$interface"
-		[[ -z "$interface6" ]] && interface6="$interface"
-	}
-	for interface in $interface; do
-		if stats=$(awk -v iface="$interface" '$1 ~ iface":" {print $2, $3, $5, $10, $11, $13}' /proc/net/dev); then
-			read rx_bytes rx_packets rx_drop tx_bytes tx_packets tx_drop <<<"$stats"
-			case "$1" in
-			RX_BYTES) text "$rx_bytes" ;;
-			RX_PACKETS) text "$rx_packets" ;;
-			RX_DROP) text "$rx_drop" ;;
-			TX_BYTES) text "$tx_bytes" ;;
-			TX_PACKETS) text "$tx_packets" ;;
-			TX_DROP) text "$tx_drop" ;;
-			-i) text "*#Yt8nK4#*" ;;
-			"") text "$interface" ;;
-			*) {
-				error "*#Wx7mP5#*"
-				return 2
-			} ;;
-			esac
-		else
-			{
-				error "*#Jt5nR8#*"
-				return 1
-			}
+	if [ -z "$interface4" ] && [ -z "$interface6" ]; then
+		for ((i = 1; i <= ${#interfaces[@]}; i++)); do
+			item="${interfaces[$i]}"
+			if [[ "$item" =~ ^en ]]; then
+				interface4="$item"
+				interface6="$item"
+				break
+			fi
+		done
+		if [ -z "$interface4" ] && [ -z "$interface6" ] && [ "$interfaces_num" -gt 0 ]; then
+			interface4="${interfaces[1]}"
+			interface6="${interfaces[1]}"
 		fi
-	done
+	fi
+	if [ -n "$interface4" ] || [ -n "$interface6" ]; then
+		interface="$interface4 $interface6"
+		[[ "$interface4" == "$interface6" ]] && interface="$interface4"
+		interface=$(text "$interface" | tr -s ' ' | xargs)
+	else
+		physical_iface=$(ip -o link show | grep -v 'lo\|docker\|br-\|veth\|bond\|tun\|tap' | grep 'state UP' | head -n 1 | awk -F': ' '{print $2}')
+		if [ -n "$physical_iface" ]; then
+			interface="$physical_iface"
+		else
+			interface=$(ip -o link show | grep -v 'lo:' | head -n 1 | awk -F': ' '{print $2}')
+		fi
+	fi
+	case "$1" in
+	RX_BYTES | RX_PACKETS | RX_DROP | TX_BYTES | TX_PACKETS | TX_DROP)
+		for iface in $interface; do
+			if stats=$(awk -v iface="$iface" '$1 ~ iface":" {print $2, $3, $5, $10, $11, $13}' /proc/net/dev 2>/dev/null); then
+				read rx_bytes rx_packets rx_drop tx_bytes tx_packets tx_drop <<<"$stats"
+				case "$1" in
+				RX_BYTES)
+					text "$rx_bytes"
+					break
+					;;
+				RX_PACKETS)
+					text "$rx_packets"
+					break
+					;;
+				RX_DROP)
+					text "$rx_drop"
+					break
+					;;
+				TX_BYTES)
+					text "$tx_bytes"
+					break
+					;;
+				TX_PACKETS)
+					text "$tx_packets"
+					break
+					;;
+				TX_DROP)
+					text "$tx_drop"
+					break
+					;;
+				esac
+			fi
+		done
+		;;
+	-i)
+		for iface in $interface; do
+			if stats=$(awk -v iface="$iface" '$1 ~ iface":" {print $2, $3, $5, $10, $11, $13}' /proc/net/dev 2>/dev/null); then
+				read rx_bytes rx_packets rx_drop tx_bytes tx_packets tx_drop <<<"$stats"
+				text "$iface: RX: $(CONVERT_SIZE $rx_bytes), TX: $(CONVERT_SIZE $tx_bytes)"
+			fi
+		done
+		;;
+	"") text "$interface" ;;
+	*)
+		error "*#Wx7mP5#*"
+		return 2
+		;;
+	esac
 }
 function IP_ADDR() {
 	version="$1"
