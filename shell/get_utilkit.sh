@@ -3,7 +3,7 @@
 
 Authors="OGATA Open-Source"
 Scripts="get_utilkit.sh"
-Version="2025.03.01"
+Version="2025.03.02"
 License="MIT License"
 
 CLR1="\033[0;31m"
@@ -16,6 +16,15 @@ CLR7="\033[0;37m"
 CLR8="\033[0;96m"
 CLR9="\033[0;97m"
 CLR0="\033[0m"
+
+loc=$(curl -s "https://developers.cloudflare.com/cdn-cgi/trace" | grep "^loc=" | cut -d= -f2)
+if [ "$loc" = "CN" ]; then
+	dis_lang="zh"
+elif [ "$loc" = "TW" ]; then
+	dis_lang="z1"
+else
+	dis_lang="en"
+fi
 
 text() { echo -e "$1"; }
 error() {
