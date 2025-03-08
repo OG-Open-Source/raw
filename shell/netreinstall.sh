@@ -25,7 +25,7 @@
 # Modified By OGATA Open-Source
 # Github: https://github.com/OG-Open-Source
 
-[ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL raw.ogtt.tk/shell/get_utilkit.sh) && source ~/utilkit.sh
+[ -f ~/utilkit.sh ] && source ~/utilkit.sh || bash <(curl -sL utilkit.ogtt.tk) && source ~/utilkit.sh
 
 Scripts="netreinstall.sh"
 Version="2025.02.25"
