@@ -1,6 +1,6 @@
-# OG|OS - OGATA Open Source
+# OG-Open-Source
 
-Welcome to the OGATA Open Source repository, a collection of useful open-source tools and scripts.
+Welcome to the OG-Open-Source repository, a collection of useful open-source tools and scripts.
 
 ## Repository Structure
 
@@ -15,13 +15,11 @@ Welcome to the OGATA Open Source repository, a collection of useful open-source 
 > > > [dd.sh](shell/dd.sh)<br>
 > > > [get_utilkit.sh](shell/get_utilkit.sh)<br>
 > > > [netreinstall.sh](shell/netreinstall.sh)<br>
-> > > [utilkit.sh](shell/utilkit.sh)<br>
 >
 > > [space/](space/)<br>
 > > > [apmd.cmd](space/apmd.cmd)<br>
 > > > [generate_text.sh](space/generate_text.sh)<br>
 > > > [pi_benchmark.sh](space/pi_benchmark.sh)<br>
-> > > [utilkit.json](space/utilkit.json)<br>
 >
 > > [README.md](README.md)<br>
 
@@ -42,4 +40,4 @@ This project is open source. Please check individual scripts for specific licens
 
 ---
 
-© 2025 [OGATA Open Source](https://github.com/OG-Open-Source). All rights reserved.
+© 2025 [OG-Open-Source](https://github.com/OG-Open-Source). All rights reserved.
