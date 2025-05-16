@@ -174,6 +174,9 @@ A：目前支援：
 - i386/x86
 - arm64/aarch64
 
+**Q：預設的密碼為？**  
+A：OGOSpass
+
 ## Contributing
 
 1. Fork the repository
