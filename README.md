@@ -8,12 +8,8 @@ Welcome to the OG-Open-Source repository, a collection of useful open-source too
 > > [docs/](docs/)<br>
 > > > [apmd.cmd.md](docs/apmd.cmd.md)<br>
 > > > [netreinstall.sh.md](docs/netreinstall.sh.md)<br>
-> > > [sdcl.md](docs/sdcl.md)<br>
-> > > [utilkit.sh.md](docs/utilkit.sh.md)<br>
 >
 > > [shell/](shell/)<br>
-> > > [dd.sh](shell/dd.sh)<br>
-> > > [get_utilkit.sh](shell/get_utilkit.sh)<br>
 > > > [netreinstall.sh](shell/netreinstall.sh)<br>
 >
 > > [space/](space/)<br>
