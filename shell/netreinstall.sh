@@ -1,10 +1,4 @@
 #!/bin/bash
-# @commands: system-reinstall-script-by-moeclub-modified-by-ogos
-# @pkg_manager: apk, apt, opkg, pacman, yum, zypper, dnf
-# @dependencies: awk, basename, cat, cpio, curl, cut, dirname, file, find, grep, gzip, iconv, ip, lsblk, openssl, sed, wget
-# @author: MoeClub.org, 秋水逸冰, VPS收割者, airium, 王煎饼, nat.ee, Bohan Yang, Leitbogioro, OGATA Open-Source
-# @version: 2025.02.25
-# @description: System reinstallation tool by MoeClub.org modified by OGATA Open-Source. License under GPL.
 
 # Written By MoeClub.org
 # Blog: https://moeclub.org
@@ -413,7 +407,7 @@ while [[ $# -ge 1 ]]; do
 	esac
 done
 
-?Root
+ChkRoot
 
 if [ "$(Net.Location)" = "CN" ]; then
 	IsCN="1"
