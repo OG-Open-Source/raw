@@ -1,0 +1,291 @@
+$var = :str|int:  /* 宣告允許字串和數字的空變量 */
+/* --設計想法：哈哈 && 被用掉了 */
+$var = "Hello"    /* 賦值 var 變量字串 "Hello" */
+$var = "World"    /* 重新賦值 var 變量字串 "World" */
+$var = 3.14159    /* Err 使用不允許的型別 :flo: */
+$var = World      /* Err 使用不存在的狀態 */
+#CST = :flo:      /* 宣告允許浮點數的空常量 */
+#CST = 1.23       /* 賦值 CST 常量浮點數 1.23 */
+#CST = 1.23       /* Err 為常量重複賦值 */
+$arr = :arr<ord|het|rep>: /* 宣告 arr 變量為可變有序多型別複用陣列 */
+$arr = :arr<ord|het|rep>: /* Err 為變量重複宣告型別 */
+$arr = [2, 1, "Hello"]    /* 賦值 arr 變量整數及字串，分號其實沒必要，一樣可以用空格替代，但是 UCLx 會使用分號 */
+/* UCLx 就是更底層的 UCL，正常情況下會是 UCL -> 轉譯成 UCLx -> 編譯
+ * UCLx 不會使用保留字，而是完全使用符號，並且它會將全部的內容都推演至少一個型別，並使用;;作為換行符合併符，即不依靠 LF 或是 CRLF，依舊保留 ;，如果真的想要對程式如 C類語言 一樣的控制，建議選擇 UCLx，只是會起笑 */
+$arr[#1]          /* 獲取 arr 變量的第一項(2) */
+/* --設計想法：NO. 1，畫面出來了，我還按到 VS Code 的搜尋框(?
+ * --設計想法：到底為何要延續傳統的 0-based，引用「從來如此，便對嗎？」By 魯迅 */
+$dic = {name "Alice", number "12345678"} /* 使用自動型判斷，並賦值可變無序多型別字典 */
+/* --設計想法：哈哈 SDCL 喝到湯了 */
+$dic[name]        /* 獲取 dic 變量的 name 鍵值(Alice) */
+#ENV_CST   = @:.env:API_KEY /* 獲取環境變量 API_KEY，並宣告成常量 */
+$file_name = @:./a.json:name /* 獲取 a.json 的 name 鍵值，並宣告成變量 */
+/* --設計想法：不妨你說，我的 {} 被佔用了 :<
+ * --設計想法：這型別設計真不戳 */
+$var1, $var2, #CST1, #CST2 = :str:  /* 其他用法，用於快速宣告型別，僅能宣告相同型別 */
+$(                 /* 變量宣告塊 */
+	x = 123
+	y = 321
+)$
+#(                 /* 常量宣告塊 */
+	PI = Math.Pi(5)      /* 即 PI 常量為 3.14159 */
+)#
+Txt( 1000000 )    /* 同 Txt( 1_000_000 ) */
+Txt( "This is pi("$PI")" )     /* 輸出 "This is pi(3.14159)" */
+Txt( "This is pi(" $PI$ ")" )   /* 輸出 "This is pi(3.14159)" */
+Txt( "This is pi(", $PI$, ")" ) /* 輸出 "This is pi(3.14159)" */
+Txt( "This is pi(", Math.Pi(5), ")" ) /* 輸出 "This is pi(3.14159)" */
+Txt( Math.Pi(5) )   /* 輸出 3.14159，為何呢，因為位於參數內，會進行參數運算 */
+/* --設計想法：事實上，UCL 並不區分 , 和 空格，因為 UCL 本身無需空格，因此你想怎麼用就怎麼用，型別混用除外
+ * --設計想法：就是不是一點麻煩，這樣還可以強迫將同型別都整理到一起
+ * --設計想法：採用 WYSIWYG，所以沒有不換行用法，你要什麼直接寫
+ * 當使用變量或常量的宣告塊時，則必須將位於同一層級的全部變量和常量都加入對應的宣告塊，此處僅作範例使用
+ * --設計想法：如果說是枚舉則限制發揮，這樣最好了 :> */
+!(                 /* 綱要宣告塊 */
+	Color(
+		Red            /* 即 Color::Red */
+		Blue
+		Purple
+		RGB(:int:, :int:, :int:) /* 創建綱要 */
+		/* --設計想法：你看到什麼就是你要什麼，不要給我在哪裡扭捏的用 1...257
+		 * --設計想法：預設就支持 Excel 那樣的嚴謹 :> */
+	)
+	Arch(
+		x86
+		arm
+	)
+	_Sys{
+		Arch{
+			"x86" => Arch::x86 /* 需要先宣告狀態，才可以使用 */
+			"arm" => Arch::arm
+		}
+	}
+)!
+
+/* [[]] 會向前後傳遞 true
+ * if or |> 如果為 true 會執行其中的邏輯塊 {}
+ * if 和 or 寫在 [[]] 之前
+ * |> 寫在 [[]] 之後
+ * --設計想法：OMG! 看著好爽喔 */
+if [[ @Sys.Arch === Arch::x86 ]] {
+	Log.Info("The arch is x86") }
+or [[ @Sys.Arch === Arch::arm ]] {
+	Log.Info("The arch is arm") }
+or {
+	Log.Info("The arch is unknown") }
+
+/* 以下為單個 if [[]] {} or [[]] {} or {} */
+[[ @Sys.Arch === Arch::x86 ]] |> { Log.Info("The arch is x86") }; [[ @Sys.Arch === Arch::arm ]] |> { Log.Info("The arch is arm") }; |> { Log.Info("The arch is unknown") }
+/* 以下為單個 if [[]] {} */
+[[ @Sys.Arch === Arch::x86 ]] |> { Log.Info("The arch is x86") }
+/* 以下為單個 if [[]] {} or {} */
+[[ @Sys.Arch === Arch::arm ]] |> { Log.Info("The arch is arm") }; |> { Log.Info("The arch is unknown") }
+
+?$temperature {
+  > 30 |> { Log.Info("The arch is x86") }
+  > 20 |> { Log.Info("The arch is arm") }
+  _ |> { Log.Info("The arch is unknown") }
+}
+
+/* --設計想法：全部內容都假設值為 true
+ * zo 在 [[]] 為 true 時執行，並且執行到為 false 時結束
+ * 同樣可以使用 @@ 在後面 */
+$i$ = 0
+zo [[ $i$ < 10 && $i$ += 1 ]] {
+	$sum$ += $i$
+	Txt($sum$) }
+[[ $i$ < 10 && $i$ += 1 ]] @@ {
+	$sum$ += $i$
+	Txt($sum$) }
+
+$i = 0
+[[ $i < 10 ]] @@ $i += 1
+{ $sum += $i;; Text($sum) }
+/* 同時可以使用 continue 和 break，分別執行返回和退出迴圈
+ * 創建無限迴圈 */
+zo { Log.Info(1) }
+@@ { Log.Info(1) }
+/* 如果要配置成相反情況，則改為 ! [[]] 即可
+ * --設計想法：中文字的結合性完美體現 */
+zo [[ $i$, $v$ := [1,2,4,8,16,32,64,128] ]] {
+	Txt($i$,$v$) /* 會輸出 1, 2 */
+	Txt($i$,$v$) /* 會輸出 2, 4 */
+}
+/* 最終結果為 1, 2; 2, 4; 4, 8; 8, 16; 16, 32; 32, 64; 64, 128 */
+zo [[ $i$, $v$ !:= [1,2,4,8,16,32,64,128] ]] {
+	Txt($i$,$v$) /* 會輸出 128, 64 */
+	Txt($i$,$v$) /* 會輸出 64, 32 */
+}
+/* 最終結果為 128, 64; 64, 32; 32, 16; 16, 8; 8, 4; 4, 2; 2, 1 */
+
+/* 邏輯是 UCL 對於 [[]] 所進行的設計 */
+|>  /* 邏輯然後（THEN） */
+@@  /* 邏輯迴圈（LOOP） */
+=== /* 邏輯相等（IS, ARE） */
+!== /* 邏輯不等（IS NOT, ARE NOT） */
+&&  /* 邏輯且（AND） */
+||  /* 邏輯或（OR） */
+^^  /* 邏輯互斥或（XOR） */
+!   /* 邏輯反向（Invert），如 !true 為 false */
+/* 那 [[ A && B ]] 與 [[ A; B ]] 差在哪呢？A && B 只會輸出一個 true 或 false，而 A; B 則是 2 個，會導致 [[]] 無法運算 */
+
+/* AND && */
+|  A  |  B  | res |
+|:---:|:---:|:---:|
+|  T  |  T  |  T  |
+|  T  |  F  |  F  |
+|  F  |  T  |  F  |
+|  F  |  F  |  F  |
+
+/* OR || */
+|  A  |  B  | res |
+|:---:|:---:|:---:|
+|  T  |  T  |  T  |
+|  T  |  F  |  T  |
+|  F  |  T  |  T  |
+|  F  |  F  |  F  |
+
+/* XOR ^^ */
+|  A  |  B  | res |
+|:---:|:---:|:---:|
+|  T  |  T  |  F  |
+|  T  |  F  |  T  |
+|  F  |  T  |  T  |
+|  F  |  F  |  F  |
+
+/* NOT-AND !&& */
+|  A  |  B  | res |
+|:---:|:---:|:---:|
+|  T  |  T  |  F  |
+|  T  |  F  |  T  |
+|  F  |  T  |  T  |
+|  F  |  F  |  T  |
+
+/* NOT-OR !|| */
+|  A  |  B  | res |
+|:---:|:---:|:---:|
+|  T  |  T  |  F  |
+|  T  |  F  |  F  |
+|  F  |  T  |  F  |
+|  F  |  F  |  T  |
+
+/* NOT-XOR !^^ */
+|  A  |  B  | res |
+|:---:|:---:|:---:|
+|  T  |  T  |  T  |
+|  T  |  F  |  F  |
+|  F  |  T  |  F  |
+|  F  |  F  |  T  |
+
+_Sys{
+	Arch(){
+
+	}
+}
+/* 創建 Main 函式，輸入的第一參數和第二參數為字串型別
+ * 並且輸出的內容為字串型別
+ * --設計想法：Golang 的型別 int int 是一個型別為整數的變量 int，這到底是什麼鬼 */
+Main($msg$, $stu$ = :stu:) -> (:str:) {
+	Txt( What.Day() )         /* 輸出 "Wednesday", 3 */
+	Txt( What.Day("a str") )  /* 輸出 "Wednesday" */
+	Txt( What.Day(1) )        /* 輸出 3 */
+	Txt( What.Day(":schm:") )  /* 輸出 Day::Wednesday */
+}
+Main()  /* 輸出 "Wednesday", 3; "Wednesday"; 3; Day::Wednesday 均為字串，因為 Txt 只會輸出 :str: */
+/* 你可以將 Main() 函數使用在 Main 函數宣告前，因為 UCL 會在編譯階段將宣告內容和任務內容分開，同時 UCL 使用函數時必要加上()，否則視為腳本形式(同Shell) */
+
+/* 類似 Main 函式，但是無輸入型別要求，並且輸出具有 2 種型別
+ * 你可以獲得 "Wednesday" 和 3，表示同一意思
+ * 將無法輸出第三個型別 :schm:，因為輸出參數沒有定義到
+ * --設計想法：笑死，在不想好好定義內容啊，就型別都給你了，還死不定義，這看你怎麼辦 */
+_What{
+	Day(:any:) -> (:str|int:) { /* :str:, :int: 和 :str|int: 差在哪呢，一個是輸出 2 個參數，另一個只有輸出一種參數，但會是 2 個型別之一 */
+		"""" /* 單一個函式或物件中只能有一組，不可以拆分 */
+		This function will output the content about the day of the week
+		This is a description
+		""""
+		Time.Day("int")
+		Time.Day("str")
+		/* 這裡使用 () 表示傳入參數，但是建議是直接在 :any: 前面加上 $var$=，使用變量 */
+		if [[ () === :str: ]] {
+			Time.Day("str") }
+		or [[ () === :int: ]] {
+			Time.Day("int") }
+		or [[ () === ":schm:" ]] {
+			Time.Day("schm") }
+		$msg$ = () /* 可以在其他地方進行調用，以完整名 $msg:What.Day$ 進行調用，值為輸入的參數 */
+	}
+	DayStu{ /* 物件可以同時兼具獲取狀態用，以 @What.DayStu */
+		""""
+		Get day status
+		""""
+		Time.Day("schm") /* 輸出綱要 Day::Wednesday */
+		/* 或是直接替換它 */
+		!(_Time{Day{DayStu:: => Day::}})! /* 輸出變成 DayStu::Wednesday */
+		/* 可以寫成 !(_Time.Day{DayStu:: => Day::})! */
+	}
+	Date(:any:) -> (:str|int:) {
+		"""" /* 單一個函式或物件中只能有一組，不可以拆分 */
+		This function will output content related to dates.
+		""""
+		Time.Date("int")
+		Time.Date("str")
+		/* 這裡使用 () 表示傳入參數，但是建議是直接在 :any: 前面加上 $var$=，使用變量 */
+		if [[ () === :str: ]] {
+			Time.Date("str") }
+		or [[ () === :int: ]] {
+			Time.Date("int") }
+		or [[ () === ":schm:" ]] {
+			Time.Date("schm") }
+		$msg$ = () /* 可以在其他地方進行調用，以完整名 $msg:What.Date 進行調用，值為輸入的參數 */
+	}
+	_DateStu{ /* 物件可以同時兼具獲取狀態用，以 @What.DataStu */
+		""""
+		Get date status
+		""""
+		Time.Date("schm") /* 輸出綱要 Date::Wednesday */
+		/* 或是直接替換它 */
+		!(_Time{Date{DateStu:: => Date::}})! /* 輸出變成 DateStu::Wednesday */
+		/* 可以寫成 !(_Time.Date{DateStu:: => Date::})! */
+	}
+	/* 不過 @物件 最終輸出的結果會變成 :str: :> */
+}
+_Example{
+	_This{
+		_Is{
+			_A{
+				MultiLayerObjectFunction(:any:)->(:str:){
+					Txt("Wtf")
+				}
+			}
+		}
+	}
+}
+Example.This.Is.A.MultiLayerObjectFunction() // 輸出 "Wtf"
+/* 和 if 用法一樣，但也只有 if ...，與 if 不同之處在於，它主要是用在你無法確定何時會發生 */
+wh [[ @Web.DOM.myButton === WebEvent::click ]] {
+	Log.Info("myButton 被按下") }
+dn { UCL.Clean("logfile") } /* 全部執行後，不管成功與否，直接執行對應操作 */
+/* Max() 計算最大值，Min() 計算最小值，如果為 :num: 則為參數，:arr: 則必須是有序，將顯示 #1 作為最小值 #n 作為最大值
+ * Txt() Log() 均為輸出字串內容，但是 Log 需要你配置輸出位置（預設為 /var/log/scl.log）作為第二參數 */
+
+/* ?What 會輸出以下，且無法使用其他位置，因為沒有子物件了
+ *:fuc: Day(:any:) -> (:str|int:)
+ *           This function will output the content about the day of the week
+ *           This is a description
+ *      Date(:any:) -> (:str|int:)
+ *           This function will output content related to dates.
+ *:stu: DayStu
+ *           Get day status
+ *      DateStu
+ *           Get date status
+ * ?Example 則是輸出以下，並且可以使用 ?Example.This 或更下面的位置
+ *:fuc: This.Is.A.MultiLayerObjectFunction(:any:) -> (:str:)
+ * ?Example.This 的輸出
+ *:fuc: Is.A.MultiLayerObjectFunction(:any:) -> (:str:)
+ */
+
+$var$ -> $var
+#CST# -> #CST
+:str: -> :str
+:str|int: -> :str
