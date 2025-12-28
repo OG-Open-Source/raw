@@ -1,7 +1,8 @@
 _HttpHandler {
 	HandleRequest($method:str, $path:str) -> (:str) {
 		/* 使用統一的 ?{} 結構進行路由 */
-		$response :str = ?{$method; $path
+		$response :str = 
+    ?{$method; $path
 			"GET"; "/"       |> { Txt("Welcome home!") }
 			"GET"; "/users"  |> { @[db:users.list()] } /* 假設從 db 來源獲取數據 */
 			"POST"; "/users" |> {

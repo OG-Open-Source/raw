@@ -94,16 +94,16 @@ apmd.cmd "." -d "node_modules" -f "./local.txt docs/secret.md"
 
 ```markdown
 > [docs/](.)<br>
+>
 > > [image/](image/)<br>
-> > > [diagram.png](image/diagram.png)<br>
-> > > [style.css](image/style.css)<br>
-> > > [README.md](image/README.md)<br>
+> >
+> > > [diagram.png](image/diagram.png)<br> > > > [style.css](image/style.css)<br> > > > [README.md](image/README.md)<br>
 >
 > > [scripts/](scripts/)<br>
+> >
 > > > [main.js](scripts/main.js)<br>
 >
-> > [index.md](index.md)<br>
-> > [README.md](README.md)<br>
+> > [index.md](index.md)<br> > > [README.md](README.md)<br>
 ```
 
 ## 配置
